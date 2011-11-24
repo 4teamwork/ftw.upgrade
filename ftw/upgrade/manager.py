@@ -24,7 +24,13 @@ class UpgradeManager(object):
         self._upgrade_directories.append(path)
 
     def list_upgrades(self):
+        # XXX: implement list_upgrades
         raise NotImplementedError()
 
     def install_upgrades(self, upgrades):
+        # XXX: implement install_upgrades
+        raise NotImplementedError()
+
+    def is_installed(self, dottedname):
+        # XXX: implement is_installed
         raise NotImplementedError()

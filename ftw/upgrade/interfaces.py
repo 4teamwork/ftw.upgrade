@@ -27,6 +27,13 @@ class IUpgradeManager(Interface):
         `upgrades` -- A list of `IUpgradeInfo` objects.
         """
 
+    def is_installed(dottedname):
+        """Returns `True` if the class with the dottedname is installed.
+
+        Arguments:
+        `dottedname` -- dotted name of the upgrade class.
+        """
+
 
 class IUpgradeInfo(Interface):
     """Provides information about an upgrade.

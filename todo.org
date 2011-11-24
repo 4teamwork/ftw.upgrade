@@ -54,7 +54,7 @@
     on the Dependency informations.
   - [ ] Is able to return a list of UpgradeInformation objects.
 
-* Base Upgrade / Upgrade [0/3]
+* Base Upgrade / Upgrade [2/3]
   - [X] Has a __call__ method, which is overwritten by upgrades.
   - [X] When the upgrade is initialized, the upgrade manager instance
         is passed.

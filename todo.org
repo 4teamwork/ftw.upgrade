@@ -4,13 +4,13 @@
   - [ ] Registered in plone control panel
   - [ ] Lists upgrades
     - Group by "installed" / "not installed", where "not installed"
-     is folded by default
+      is folded by default
   - [ ] Button for running all not installed upgrades
   - [ ] Upgrades can be selected (checkbox) and installed (also
-       already installed upgrades can be re-installed)
+        already installed upgrades can be re-installed)
   - [ ] Given upgrade A dependends on upgrade B: when only A is
-       selected and installed but B was not installed yet, the view
-       should warn the user and request a confirmation.
+        selected and installed but B was not installed yet, the view
+        should warn the user and request a confirmation.
   - [ ] Shows a log of the last few installed upgrades including
         upgrade logs.
   - [ ] When installing an upgrade, the progress is live displayed
@@ -43,15 +43,15 @@
         the various upgrades. The catalog is updated after installing
         all upgrades.
   - [ ] When querying the catalog with a query which uses a index
-    updated by a depended Upgrade it first runs the reindex and
-    removes it from the Queue.
+        updated by a depended Upgrade it first runs the reindex and
+        removes it from the Queue.
   - [ ] Executes the Catalog reindexes after all upgrades are done.
 
 * Upgrade Mixin [0/3]
   - Mixin for the upgrade manager
   - [ ] Provides a method for getting all Upgrades.
   - [ ] Provides a method which builds a Order for the Upgrades based
-    on the Dependency informations.
+        on the Dependency informations.
   - [ ] Is able to return a list of UpgradeInformation objects.
 
 * Base Upgrade / Upgrade [2/3]

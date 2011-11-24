@@ -2,7 +2,7 @@
 # E0211: Method has no argument
 # E0213: Method should have "self" as first argument
 
-from zope.interface import Interface
+from zope.interface import Interface, Attribute
 
 
 class IUpgradeManager(Interface):

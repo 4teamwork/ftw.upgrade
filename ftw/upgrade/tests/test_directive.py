@@ -2,7 +2,6 @@ from plone.mocktestcase import MockTestCase
 from plone.testing import zca
 from zope.configuration import xmlconfig
 import ftw.upgrade.tests.data.foo
-import os
 from ftw.upgrade.manager import UpgradeManager
 from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.testing import UPGRADE_ZCML_LAYER

@@ -1,6 +1,5 @@
 from zope.component import Interface
 from zope.configuration.fields import Tokens, GlobalObject
-import os
 from ftw.upgrade.interfaces import IUpgradeManager
 from zope.component import getUtility
 

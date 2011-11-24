@@ -16,10 +16,8 @@ class UpgradeManager(object):
         self._upgrade_packages.append(module)
 
     def list_upgrades(self):
-        files = []
-        for directory in self._upgrade_directories:
-            files.append(os.listdir(directory))
-        import pdb; pdb.set_trace( )
+        # XXX: implement install_upgrades
+        raise NotImplementedError()
         
     def install_upgrades(self, upgrades):
         # XXX: implement install_upgrades

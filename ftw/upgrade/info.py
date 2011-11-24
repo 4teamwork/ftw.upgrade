@@ -1,4 +1,7 @@
 from ftw.upgrade.interfaces import IUpgradeManager
+from ftw.upgrade.interfaces import IUpgradeInfo
+from ftw.upgrade.utils import get_dotted_name
+from zope.component import getUtility
 from zope.interface import implements
 
 
@@ -6,7 +9,7 @@ class UpgradeInfo(object):
     """Provides information about an upgrade.
     """
 
-    implements(IUpgradeManager)
+    implements(IUpgradeInfo)
 
     def __init__(self, upgrade_class):
         """Initializes a upgrade information object for the passed upgrade
@@ -16,6 +19,13 @@ class UpgradeInfo(object):
         `upgrade_class` -- the upgrade class.
         """
         self._upgrade_class = upgrade_class
+        dottedname = get_dotted_name(upgrade_class)
+
+        self._title = dottedname
+        self._description = upgrade_class.__doc__
+
+        manager = getUtility(IUpgradeManager)
+        self._installed = manager.is_installed(dottedname)
 
     def get_title(self):
         """Returns the title, which is the dotted name of the class.

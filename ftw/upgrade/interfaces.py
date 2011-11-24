@@ -34,6 +34,14 @@ class IUpgradeManager(Interface):
         `dottedname` -- dotted name of the upgrade class.
         """
 
+    def get_upgrade(dottedname):
+        """Get a `IUpgradeInfo` object of a specific upgrade by dotted name.
+        Returns `None` if there is no such upgrade.
+
+        Arguments:
+        `dottedname` -- dotted name of the upgrade class.
+        """
+
 
 class IUpgradeInfo(Interface):
     """Provides information about an upgrade.

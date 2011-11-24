@@ -34,3 +34,7 @@ class UpgradeManager(object):
     def is_installed(self, dottedname):
         # XXX: implement is_installed
         raise NotImplementedError()
+
+    def get_upgrade(self, dottedname):
+        # XXX: implement get_upgrade
+        raise NotImplementedError()

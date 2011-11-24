@@ -1,3 +1,7 @@
+# pylint: disable=W0212, W0201
+# W0212: Access to a protected member of a client class
+# W0201: Attribute defined outside __init__
+
 from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.manager import UpgradeManager
 from ftw.upgrade.testing import UPGRADE_ZCML_LAYER

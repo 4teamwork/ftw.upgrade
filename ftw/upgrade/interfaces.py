@@ -64,5 +64,10 @@ class IUpgradeInfo(Interface):
         """Returns the class of the upgrade.
         """
 
+
 class IUpgrade(Interface):
     """Markerinterface for every upgrade."""
+
+    def __call__():
+        """Runs the upgrade.
+        """

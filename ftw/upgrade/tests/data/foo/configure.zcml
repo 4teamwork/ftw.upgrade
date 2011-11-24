@@ -1,0 +1,7 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:upgrade="http://namespaces.zope.org/upgrade">
+
+    <upgrade:registerUpgrades directory="./upgrades" />
+
+</configure>

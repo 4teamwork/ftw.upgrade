@@ -3,4 +3,6 @@
 
   <utility factory="ftw.upgrade.manager.UpgradeManager" />
 
+  <include file="meta.zcml" />
+
 </configure>

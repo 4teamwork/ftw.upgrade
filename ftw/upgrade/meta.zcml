@@ -1,4 +1,15 @@
 <configure
-    xmlns="http://namespaces.zope.org/zope">
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:meta="http://namespaces.zope.org/meta">
+
+    <meta:directives namespace="http://namespaces.zope.org/upgrade">
+
+        <meta:directive
+            name="registerUpgrades"
+            schema="ftw.upgrade.meta.IRegisterUpgradesDirective"
+            handler="ftw.upgrade.meta.registerUpgrades"
+            />
+
+    </meta:directives>
 
 </configure>

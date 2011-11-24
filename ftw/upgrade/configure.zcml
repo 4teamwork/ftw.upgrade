@@ -1,4 +1,6 @@
 <configure
     xmlns="http://namespaces.zope.org/zope">
 
+  <utility factory="ftw.upgrade.manager.UpgradeManager" />
+
 </configure>

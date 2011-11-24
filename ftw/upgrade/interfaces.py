@@ -63,3 +63,6 @@ class IUpgradeInfo(Interface):
     def get_class():
         """Returns the class of the upgrade.
         """
+
+class IUpgrade(Interface):
+    """Markerinterface for every upgrade."""

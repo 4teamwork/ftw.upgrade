@@ -60,7 +60,7 @@
         is passed.
   - [ ] The upgrade is called to running the upgrade.
 
-* ZCML directive [0/2]
-  - [ ] A ZCML directive for registering upgrade directories is provided
+* ZCML directive [1/2]
+  - [X] A ZCML directive for registering upgrade directories is provided
   - [ ] The registered upgrade directories are parsed automatically
         and searched for upgrade classes when the upgrade manager is used.

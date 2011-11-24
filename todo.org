@@ -55,10 +55,10 @@
   - [ ] Is able to return a list of UpgradeInformation objects.
 
 * Base Upgrade / Upgrade [0/3]
-  - [ ] Has a __call__ method, which is overwritten by upgrades.
-  - [ ] When the upgrade is initialized, the upgrade manager instance
+  - [X] Has a __call__ method, which is overwritten by upgrades.
+  - [X] When the upgrade is initialized, the upgrade manager instance
         is passed.
-  - [ ] The upgrade is called to running the upgrade.
+  - [ ] The upgrade is called to run the upgrade.
 
 * ZCML directive [1/2]
   - [X] A ZCML directive for registering upgrade directories is provided

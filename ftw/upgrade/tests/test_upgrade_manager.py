@@ -5,10 +5,10 @@
 from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.manager import UpgradeManager
 from ftw.upgrade.testing import UPGRADE_ZCML_LAYER
+from ftw.upgrade.tests.data import bar
 from plone.mocktestcase import MockTestCase
 from zope.component import getUtility
 from zope.interface.verify import verifyClass
-import os.path
 
 
 class TestUpgradeManager(MockTestCase):
@@ -24,41 +24,17 @@ class TestUpgradeManager(MockTestCase):
         self.assertEqual(manager.__class__, UpgradeManager)
         self.assertEqual(getUtility(IUpgradeManager), manager)
 
-    def test_add_upgrade_directory_raises_with_relative_path(self):
+    def test_add_upgrade_package_raises_if_not_module(self):
         manager = UpgradeManager()
 
         with self.assertRaises(ValueError) as cm:
-            manager.add_upgrade_directory('foo/bar')
+            manager.add_upgrade_package('foo')
 
         self.assertEqual(
             str(cm.exception),
-            '`path` should be absolute, got "foo/bar".')
+            'Expected module, got "foo"')
 
-    def test_add_upgrade_directory_works_with_absolute_path(self):
+    def test_add_upgrade_package_works_with_module(self):
         manager = UpgradeManager()
-        path = os.path.abspath(os.path.dirname(__file__))
-        manager.add_upgrade_directory(path)
-        self.assertEqual(manager._upgrade_directories, [path])
-
-    def test_add_upgrade_directory_fails_when_directory_does_not_exist(self):
-        manager = UpgradeManager()
-        path = '/not/existing/path'
-        self.assertFalse(os.path.exists(path))  # we need a wrong path
-
-        with self.assertRaises(ValueError) as cm:
-            manager.add_upgrade_directory(path)
-
-        self.assertEqual(
-            str(cm.exception),
-            'Upgrade directory path does not exist (%s).' % path)
-
-    def test_add_upgrade_directory_fails_if_path_is_not_a_directory(self):
-        manager = UpgradeManager()
-        path = __file__
-
-        with self.assertRaises(ValueError) as cm:
-            manager.add_upgrade_directory(path)
-
-        self.assertEqual(
-            str(cm.exception),
-            'Upgrades: path is not a directory (%s).' % path)
+        manager.add_upgrade_package(bar)
+        self.assertIn(bar, manager._upgrade_packages)

@@ -1,27 +1,19 @@
 from ftw.upgrade.interfaces import IUpgradeManager
+from types import ModuleType
 from zope.interface import implements
-import os.path
 
 
 class UpgradeManager(object):
     implements(IUpgradeManager)
 
     def __init__(self):
-        self._upgrade_directories = []
+        self._upgrade_packages = []
 
-    def add_upgrade_directory(self, path):
-        if not os.path.isabs(path):
-            raise ValueError('`path` should be absolute, got "%s".' % path)
+    def add_upgrade_package(self, module):
+        if not isinstance(module, ModuleType):
+            raise ValueError('Expected module, got "%s"' % str(module))
 
-        if not os.path.exists(path):
-            raise ValueError(
-                'Upgrade directory path does not exist (%s).' % path)
-
-        if not os.path.isdir(path):
-            raise ValueError(
-                'Upgrades: path is not a directory (%s).' % path)
-
-        self._upgrade_directories.append(path)
+        self._upgrade_packages.append(module)
 
     def list_upgrades(self):
         # XXX: implement list_upgrades

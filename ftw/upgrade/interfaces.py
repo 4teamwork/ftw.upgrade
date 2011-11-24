@@ -9,8 +9,8 @@ class IUpgradeManager(Interface):
     """Utility interface for the upgrade manager.
     """
 
-    def add_upgrade_directory(path):
-        """Registers a upgrade directory.
+    def add_upgrade_package(module):
+        """Registers a upgrade package.
 
         Arguments:
         `path` -- Absolute path of the directory.

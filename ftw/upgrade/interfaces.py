@@ -38,3 +38,28 @@ class IUpgradeManager(Interface):
 class IUpgradeInfo(Interface):
     """Provides information about an upgrade.
     """
+
+    def __init__(upgrade_class):
+        """Initializes a upgrade information object for the passed upgrade
+        class.
+
+        Arguments:
+        `upgrade_class` -- the upgrade class.
+        """
+
+    def get_title():
+        """Returns the title, which is the dotted name of the class.
+        """
+
+    def get_description():
+        """Returns the description, which is the docstring of the upgrade
+        class.
+        """
+
+    def is_installed():
+        """Returns `True` if the upgrade is already installed.
+        """
+
+    def get_class():
+        """Returns the class of the upgrade.
+        """

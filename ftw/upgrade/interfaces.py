@@ -11,3 +11,8 @@ class IUpgradeManager(Interface):
         Arguments:
         `path` -- Absolute path of the directory.
         """
+
+
+class IUpgradeInfo(Interface):
+    """Provides information about an upgrade.
+    """

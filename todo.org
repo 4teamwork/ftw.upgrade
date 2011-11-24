@@ -18,21 +18,21 @@
   - [ ] When clicking on an upgrade title, the description is
         displayed (which is the docstring of the upgrade class)
 
-* Upgrade Manager [0/3]
+* Upgrade Manager [1/3]
   - Interface used by the view for requesting upgrade information
   - [ ] Stores which upgrades were already installed
-  - [ ] Gives information about all available upgrades
+  - [X] Gives information about all available upgrades
   - [ ] Installs selected requests
 
-* Upgrade Information [0/5]
+* Upgrade Information [4/5]
   - Upgrade information instances are used by the upgrade manager and
     the view for sharing information
-  - [ ] Contains the dotted name of the upgrade (which is used as
+  - [X] Contains the dotted name of the upgrade (which is used as
         title in the upgrade listing).
-  - [ ] Contains the description of the upgrade, which is defined as
+  - [X] Contains the description of the upgrade, which is defined as
         docstring on the update class.
-  - [ ] Knows whether the upgrade already is installed.
-  - [ ] Contains a reference to the upgrade class.
+  - [X] Knows whether the upgrade already is installed.
+  - [X] Contains a reference to the upgrade class.
   - [ ] Provides information about dependencies
 
 * Catalog Mixin [0/5]

@@ -26,9 +26,7 @@ class TestDirective(MockTestCase):
 
         manager = self.mocker.mock(UpgradeManager)
         self.mock_utility(manager, IUpgradeManager)
-        expected_path = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), 'data', 'foo', 'upgrades'))
-        self.expect(manager.add_upgrade_directory(expected_path))
+        manager.add_upgrade_package('ftw.upgrade.tests.data.foo.upgrades')
         self.replay()
         xmlconfig.file('configure.zcml', ftw.upgrade.tests.data.foo,
                        context=self.configurationContext)

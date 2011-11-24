@@ -1,22 +1,22 @@
 from zope.component import Interface
-from zope.configuration.fields import Path
+from zope.configuration.fields import Tokens, GlobalObject
 import os
 from ftw.upgrade.interfaces import IUpgradeManager
 from zope.component import getUtility
 
 
 class IRegisterUpgradesDirective(Interface):
-    """Register Directory which contains Upgrades."""
+    """Register Module which contains Upgrades."""
 
-    directory = Path(
-        title=u"Directory",
-        description=u"Directory containing the Upgrades",
-        required=True
+    modules = Tokens(
+        title=u"Module",
+        description=u"Module containing the Upgrades",
+        required=True,
+        value_type=GlobalObject()
         )
 
 
-def registerUpgrades(_context, directory):
-    path = os.path.abspath(os.path.normpath(directory))
+def registerUpgrades(_context, modules):
     manager = getUtility(IUpgradeManager)
-    manager.add_upgrade_directory(path.encode('utf-8'))
-
+    for module in modules:
+        manager.add_upgrade_package(module.__name__)

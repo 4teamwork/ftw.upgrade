@@ -24,7 +24,7 @@
   - [X] Gives information about all available upgrades
   - [ ] Installs selected requests
 
-* Upgrade Information [4/5]
+* Upgrade Information [5/5]
   - Upgrade information instances are used by the upgrade manager and
     the view for sharing information
   - [X] Contains the dotted name of the upgrade (which is used as
@@ -33,7 +33,7 @@
         docstring on the update class.
   - [X] Knows whether the upgrade already is installed.
   - [X] Contains a reference to the upgrade class.
-  - [ ] Provides information about dependencies
+  - [X] Provides information about dependencies
 
 * Catalog Mixin [0/5]
   - Mixin for the upgrade manager

@@ -1,5 +1,5 @@
-from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.interfaces import IUpgradeInfo
+from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.utils import get_dotted_name
 from zope.component import getUtility
 from zope.interface import implements
@@ -47,3 +47,11 @@ class UpgradeInfo(object):
         """Returns the class of the upgrade.
         """
         return self._upgrade_class
+
+    def get_dependencies(self):
+        """Returns `IUpgradeInfo` objects of all
+        """
+        manager = getUtility(IUpgradeManager)
+
+        for dottedname in self.get_class().dependencies:
+            return manager.get_upgrade(dottedname)

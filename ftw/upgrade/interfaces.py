@@ -72,6 +72,10 @@ class IUpgradeInfo(Interface):
         """Returns the class of the upgrade.
         """
 
+    def get_dependencies():
+        """Returns `IUpgradeInfo` objects of all
+        """
+
 
 class IUpgrade(Interface):
     """Markerinterface for every upgrade."""

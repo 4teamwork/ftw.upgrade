@@ -18,6 +18,13 @@ class NotInstalled(object):
     """
 
 
+class AnotherUpgrade(object):
+    """An upgrade
+    """
+
+    dependencies = ['ftw.upgrade.tests.test_info.MyUpgrade']
+
+
 class TestUpgradeInfo(TestCase):
 
     def setUp(self):
@@ -30,6 +37,14 @@ class TestUpgradeInfo(TestCase):
 
         expect(manager.is_installed(
                 'ftw.upgrade.tests.test_info.NotInstalled')).result(False)
+
+        expect(manager.is_installed(
+                'ftw.upgrade.tests.test_info.AnotherUpgrade')).result(False)
+
+        self.myupgrade_info = UpgradeInfo(MyUpgrade)
+        expect(manager.get_upgrade(
+                'ftw.upgrade.tests.test_info.MyUpgrade')).result(
+            self.myupgrade_info)
 
         self.testcase_mocker.replay()
 
@@ -59,3 +74,7 @@ class TestUpgradeInfo(TestCase):
 
     def test_get_class(self):
         self.assertEqual(UpgradeInfo(MyUpgrade).get_class(), MyUpgrade)
+
+    def test_get_dependencies(self):
+        another = UpgradeInfo(AnotherUpgrade)
+        self.assertEqual(another.get_dependencies(), self.myupgrade_info)

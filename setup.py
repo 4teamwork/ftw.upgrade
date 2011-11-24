@@ -12,7 +12,7 @@ setup(name='ftw.upgrade',
       version=version,
       description='Central management for decental package upgrades in plone.',
 
-      long_description=open('README.txt').read() + '\n' + \
+      long_description=open('README.rst').read() + '\n' + \
           open(os.path.join('docs', 'HISTORY.txt')).read(),
 
       classifiers=[

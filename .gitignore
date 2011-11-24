@@ -1,0 +1,13 @@
+*.egg-info
+*.mo
+*.pyc
+.installed.cfg
+.mr.developer.cfg
+README.html
+bin/
+buildout.cfg
+coverage/
+develop-eggs/
+eggs/
+parts/
+var/

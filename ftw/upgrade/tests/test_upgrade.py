@@ -27,3 +27,8 @@ class TestUpgrade(MockTestCase):
         myUpgrade = BaseUpgrade()
         manager = getUtility(IUpgradeManager)
         self.assertEqual(myUpgrade.manager, manager)
+
+    def test_dependencies_are_empty_in_base_upgrade(self):
+        myUpgrade = BaseUpgrade()
+        self.assertEqual(myUpgrade.dependencies, [])
+

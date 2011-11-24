@@ -76,6 +76,10 @@ class IUpgradeInfo(Interface):
 class IUpgrade(Interface):
     """Markerinterface for every upgrade."""
 
+    dependencies = Attribute(
+        'List of dotted names of upgrades which should be run before '
+        'this upgrade.')
+
     def __call__():
         """Runs the upgrade.
         """

@@ -7,6 +7,7 @@ from zope.interface import implements
 class BaseUpgrade(object):
     implements(IUpgrade)
 
+    dependencies = []
 
     def __init__(self):
         self.manager = getUtility(IUpgradeManager)

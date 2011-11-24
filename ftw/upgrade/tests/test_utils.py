@@ -58,16 +58,3 @@ class TestUtils(TestCase):
             str(cm.exception),
             '`path` (/tmp/foo) does not begin with `basepath` (/tmp/foo/bar)'
             )
-
-
-
-# bar
-# bar/__init__.py
-# bar/one
-# bar/one/__init__.py
-# bar/one/baz.py
-# bar/two
-# bar/two/__init__.py
-# bar/two/three
-# bar/two/three/__init__.py
-# bar/two/three/foo.py

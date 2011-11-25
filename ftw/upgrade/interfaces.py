@@ -27,13 +27,6 @@ class IUpgradeManager(Interface):
         `upgrades` -- A list of `IUpgradeInfo` objects.
         """
 
-    def is_installed(dottedname):
-        """Returns `True` if the class with the dottedname is installed.
-
-        Arguments:
-        `dottedname` -- dotted name of the upgrade class.
-        """
-
     def get_upgrade(dottedname):
         """Get a `IUpgradeInfo` object of a specific upgrade by dotted name.
         Returns `None` if there is no such upgrade.
@@ -81,6 +74,26 @@ class ICatalogMixin(Interface):
 
     def finish_catalog_tasks():
         """Finishes all queued catalog update tasks.
+        """
+
+
+STORAGE_ANNOTATIONS_KEY = 'ftw.upgrade.installed_upgrades'
+
+
+class IStorageMixin(Interface):
+    """A mixin for the upgrade manager which stores and provides information
+    about which upgrades are installed.
+    """
+
+    def is_installed(dottedname):
+        """Returns `True` if the class with the dottedname is installed.
+
+        Arguments:
+        `dottedname` -- dotted name of the upgrade class.
+        """
+
+    def mark_as_installed(upgrade):
+        """Marks a upgrade (`IUpgradeInfor`) as installed persistently.
         """
 
 

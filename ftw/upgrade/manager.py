@@ -1,15 +1,16 @@
+from ftw.upgrade.info import UpgradeInfo
+from ftw.upgrade.interfaces import IUpgrade
 from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.mixins.catalog import CatalogMixin
+from ftw.upgrade.mixins.storage import StorageMixin
+from ftw.upgrade.upgrade import BaseUpgrade
+from ftw.upgrade.utils import get_modules, order_upgrades
 from types import ModuleType
 from zope.interface import implements
-from ftw.upgrade.utils import get_modules, order_upgrades
-from ftw.upgrade.interfaces import IUpgrade
-from ftw.upgrade.info import UpgradeInfo
-from ftw.upgrade.upgrade import BaseUpgrade
 import inspect
 
 
-class UpgradeManager(CatalogMixin):
+class UpgradeManager(CatalogMixin, StorageMixin):
     implements(IUpgradeManager)
 
     def __init__(self):
@@ -28,17 +29,13 @@ class UpgradeManager(CatalogMixin):
     def list_upgrades(self):
         self._load()
         return self._upgrades
-        
+
     def install_upgrades(self, upgrades):
-        ordered_upgrades = order_upgrades(upgrades)
-        for upgrade in upgrades:
+        ordered = order_upgrades(upgrades)
+        for upgrade in ordered:
             upgrade()()
         self.finish_catalog_tasks()
 
-    def is_installed(self, dottedname):
-        #XXX: IMPLEMENT ME
-        return False
-        
     def get_upgrade(self, dottedname):
         self._load()
         return self._upgrades[dottedname]
@@ -49,11 +46,11 @@ class UpgradeManager(CatalogMixin):
         self._upgrades = {}
         for package in self._upgrade_packages:
             self._modules.append(self._load_package(package))
-        
+
     def _load_package(self, package):
         for module in get_modules(package):
             self._load_module(module)
-                
+
     def _load_module(self, module):
         for name, obj in inspect.getmembers(module):
             if inspect.isclass(obj) and not BaseUpgrade.__call__ == obj.__call__:

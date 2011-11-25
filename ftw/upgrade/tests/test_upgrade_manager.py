@@ -2,8 +2,9 @@
 # W0212: Access to a protected member of a client class
 # W0201: Attribute defined outside __init__
 
-from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.interfaces import ICatalogMixin
+from ftw.upgrade.interfaces import IStorageMixin
+from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.manager import UpgradeManager
 from ftw.upgrade.testing import UPGRADE_ZCML_LAYER
 from ftw.upgrade.tests.data import bar
@@ -23,6 +24,10 @@ class TestUpgradeManager(MockTestCase):
     def test_has_catalog_mixin(self):
         self.assertTrue(ICatalogMixin.implementedBy(UpgradeManager))
         verifyClass(ICatalogMixin, UpgradeManager)
+
+    def test_has_storage_mixin(self):
+        self.assertTrue(IStorageMixin.implementedBy(UpgradeManager))
+        verifyClass(IStorageMixin, UpgradeManager)
 
     def test_registered_as_utility(self):
         manager = getUtility(IUpgradeManager)

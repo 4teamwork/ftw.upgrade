@@ -1,25 +1,27 @@
 from ftw.upgrade.upgrade import BaseUpgrade
 
 class MyUpgrade(BaseUpgrade):
-    
+
     dependencies = []
 
     def __call__(self):
         pass
 
 
+PREFIX = 'ftw.upgrade.tests.data.foo.upgrades.testupgrade.'
+
 
 class MyUpgrade1(BaseUpgrade):
-    
-    dependencies = ['ftw.upgrade.tests.data.foo.upgrades.testupgrade.MyUpgrade2']
+
+    dependencies = [PREFIX + 'MyUpgrade2']
     def __call__(self):
         pass
 
 
 class MyUpgrade2(BaseUpgrade):
 
-    dependencies = ['ftw.upgrade.tests.data.foo.upgrades.testupgrade.MyUpgrade3',
-                    'ftw.upgrade.tests.data.foo.upgrades.testupgrade.MyUpgrade4']
+    dependencies = [PREFIX + 'MyUpgrade3',
+                    PREFIX + 'MyUpgrade4']
 
     def __call__(self):
         pass
@@ -27,7 +29,7 @@ class MyUpgrade2(BaseUpgrade):
 
 
 class MyUpgrade3(BaseUpgrade):
-    
+
     def __call__(self):
         pass
 
@@ -39,28 +41,28 @@ class MyUpgrade4(BaseUpgrade):
         pass
 
 class MyUpgrade5(BaseUpgrade):
-    
-    dependencies = ['ftw.upgrade.tests.data.foo.upgrades.testupgrade.MyUpgrade1']
+
+    dependencies = [PREFIX + 'MyUpgrade1']
     def __call__(self):
         pass
 
 # class MyUpgrade6(BaseUpgrade):
-# 
-#     dependencies = ['ftw.upgrade.tests.data.foo.upgrades.testupgrade.MyUpgrade7']
-# 
+#
+#     dependencies = [PREFIX + 'MyUpgrade7']
+#
 #     def __call__(self):
 #         pass
-# 
+#
 # class MyUpgrade7(BaseUpgrade):
-# 
-#     dependencies = ['ftw.upgrade.tests.data.foo.upgrades.testupgrade.MyUpgrade8']
-#     
+#
+#     dependencies = [PREFIX + 'MyUpgrade8']
+#
 #     def __call__(self):
 #         pass
-# 
+#
 # class MyUpgrade8(BaseUpgrade):
-# 
-#     dependencies = ['ftw.upgrade.tests.data.foo.upgrades.testupgrade.MyUpgrade6']
-# 
+#
+#     dependencies = [PREFIX + 'MyUpgrade6']
+#
 #     def __call__(self):
 #         pass

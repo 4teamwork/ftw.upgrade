@@ -1,7 +1,7 @@
 from plone.testing import Layer
 from plone.testing import zca
 from zope.app.component.hooks import setSite
-from zope.component import getSiteManager
+from zope.component import getSiteManager as sm
 from zope.configuration import xmlconfig
 from zope.interface import alsoProvides
 import ftw.upgrade
@@ -9,7 +9,7 @@ import zope.annotation
 
 
 class DummySite(object):
-    getSiteManager = getSiteManager
+    getSiteManager = sm
 
 
 class UpgradeZCMLLayer(Layer):

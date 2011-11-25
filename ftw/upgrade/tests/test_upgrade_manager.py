@@ -38,3 +38,9 @@ class TestUpgradeManager(MockTestCase):
         manager = UpgradeManager()
         manager.add_upgrade_package(bar)
         self.assertIn(bar, manager._upgrade_packages)
+
+    def test_list_upgrades(self):
+        manager = UpgradeManager()
+        import ftw.upgrade.tests.data.foo.upgrades
+        manager.add_upgrade_package(ftw.upgrade.tests.data.foo.upgrades)
+        manager.list_upgrades()

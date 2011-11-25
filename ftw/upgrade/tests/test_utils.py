@@ -40,6 +40,13 @@ class TestUtils(TestCase):
         self.assertEqual(
             utils.filepath_to_dottedname('/tmp/foo', '/tmp/foo/bar/baz.py'),
             'bar.baz')
+            
+        self.assertEqual(
+            utils.filepath_to_dottedname(
+                '/tmp/ftw/upgrade/tests/data/foo/upgrades',
+                '/tmp/ftw/upgrade/tests/data/foo/upgrades/testupgrade.py',
+                prefix='ftw.upgrade.tests.data.foo.upgrades'),
+            'ftw.upgrade.tests.data.foo.upgrades.testupgrade')
 
         self.assertEqual(
             utils.filepath_to_dottedname('/tmp/foo',

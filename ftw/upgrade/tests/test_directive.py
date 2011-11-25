@@ -25,7 +25,8 @@ class TestDirective(MockTestCase):
 
         manager = self.mocker.mock(UpgradeManager)
         self.mock_utility(manager, IUpgradeManager)
-        manager.add_upgrade_package('ftw.upgrade.tests.data.foo.upgrades')
+        import ftw.upgrade.tests.data.foo.upgrades
+        manager.add_upgrade_package(ftw.upgrade.tests.data.foo.upgrades)
         self.replay()
         xmlconfig.file('configure.zcml', ftw.upgrade.tests.data.foo,
                        context=self.configurationContext)

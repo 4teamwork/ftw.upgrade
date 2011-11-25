@@ -43,30 +43,30 @@ def filepath_to_dottedname(basepath, path, prefix=''):
     """Converts a filename `path` to a dotted name by removing the `basepath`
     and converting the rest.
     """
-    path = os.path.normpath(path)
+        
+    fullpath = os.path.normpath(path)
     basepath = os.path.normpath(basepath)
 
-    if not path.startswith(basepath):
+    if not fullpath.startswith(basepath):
         raise ValueError(
             '`path` (%s) does not begin with `basepath` (%s)'% (
                 path, basepath))
 
-    end = path[len(basepath) + 1:]
+    path = fullpath[len(basepath) + 1:]
 
-    basename, ext_ = os.path.splitext(os.path.basename(end))
-    if basename == '__init__':
-        end = os.path.dirname(end)
-    else:
-        end = os.path.dirname(end) + os.sep + basename
+    directory, filename = os.path.split(path)
+    basename, ext_ = os.path.splitext(filename)
 
-    if len(end) == 0:
+    if basename == '__init__' and not directory:
         return prefix
 
-    dottedname = end.replace(os.sep, '.')
-    if prefix:
-        return '.'.join((prefix, dottedname))
+    elif basename == '__init__':
+        dottedname = os.path.join(prefix, directory)
+
     else:
-        return dottedname
+        dottedname = os.path.join(prefix, directory, basename)
+
+    return dottedname.replace(os.sep, '.')
 
 
 def get_module(dottedname):

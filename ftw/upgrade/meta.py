@@ -18,4 +18,4 @@ class IRegisterUpgradesDirective(Interface):
 def registerUpgrades(_context, modules):
     manager = getUtility(IUpgradeManager)
     for module in modules:
-        manager.add_upgrade_package(module.__name__)
+        manager.add_upgrade_package(module)

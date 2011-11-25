@@ -1,7 +1,7 @@
 from ftw.upgrade.interfaces import IUpgradeManager
 from types import ModuleType
 from zope.interface import implements
-
+from ftw.upgrade.utils import get_modules
 
 class UpgradeManager(object):
     implements(IUpgradeManager)
@@ -16,8 +16,10 @@ class UpgradeManager(object):
         self._upgrade_packages.append(module)
 
     def list_upgrades(self):
-        # XXX: implement install_upgrades
-        raise NotImplementedError()
+        modules = []
+        for package in self._upgrade_packages:
+            import pdb; pdb.set_trace( )
+            modules.append(get_modules(package.__name__))
         
     def install_upgrades(self, upgrades):
         # XXX: implement install_upgrades

@@ -3,13 +3,12 @@ from ftw.upgrade.interfaces import IStorageMixin
 from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.manager import UpgradeManager
 from ftw.upgrade.mixins.storage import StorageMixin
+from ftw.upgrade.testing import UPGRADE_ZCML_LAYER
 from ftw.upgrade.tests.data.foo.upgrades.testupgrade import MyUpgrade
 from ftw.upgrade.utils import get_dotted_name
 from plone.mocktestcase import MockTestCase
-from plone.testing import zca
 from zope.app.component.hooks import setSite
 from zope.component import getSiteManager
-from zope.configuration import xmlconfig
 from zope.interface import alsoProvides
 from zope.interface.verify import verifyClass
 import zope.annotation
@@ -17,20 +16,11 @@ import zope.annotation
 
 class TestStorageMixin(MockTestCase):
 
-    layer = zca.ZCML_DIRECTIVES
+    layer = UPGRADE_ZCML_LAYER
 
     def setUp(self):
         super(TestStorageMixin, self).setUp()
         self.my_upgade_dotted_name = get_dotted_name(MyUpgrade)
-
-        self.configurationContext = zca.stackConfigurationContext(
-            self.layer.get('configurationContext'))
-
-        xmlconfig.file('configure.zcml', zope.annotation,
-                       context=self.configurationContext)
-
-    def testTearDown(self):
-        self.configurationContext = None
 
     def _create_site(self):
         site = self.create_dummy(getSiteManager=getSiteManager)

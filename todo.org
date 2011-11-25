@@ -47,9 +47,9 @@
         removes it from the Queue.
   - [ ] Executes the Catalog reindexes after all upgrades are done.
 
-* Upgrade Mixin [0/3]
+* Upgrade Mixin [1/3]
   - Mixin for the upgrade manager
-  - [ ] Provides a method for getting all Upgrades.
+  - [X] Provides a method for getting all Upgrades.
   - [ ] Provides a method which builds a Order for the Upgrades based
         on the Dependency informations.
   - [ ] Is able to return a list of UpgradeInformation objects.

@@ -14,8 +14,6 @@ class TestUtils(TestCase):
                          'ftw.upgrade.tests.test_utils.Foo')
 
     def test_get_modules(self):
-        dottedname = bar
-
         expected_modules = set((
             'ftw.upgrade.tests.data.bar',
             'ftw.upgrade.tests.data.bar.one',
@@ -37,11 +35,18 @@ class TestUtils(TestCase):
 
         self.assertEqual(set(module_names), expected_modules)
 
+    def test_get_modules_with_single_module(self):
+        modules = utils.get_modules(bar.one.baz)
+
+        self.assertEqual(len(modules), 1)
+        self.assertEqual(modules, [bar.one.baz])
+
+
     def test_filepath_to_dottedname(self):
         self.assertEqual(
             utils.filepath_to_dottedname('/tmp/foo', '/tmp/foo/bar/baz.py'),
             'bar.baz')
-            
+
         self.assertEqual(
             utils.filepath_to_dottedname(
                 '/tmp/ftw/upgrade/tests/data/foo/upgrades',

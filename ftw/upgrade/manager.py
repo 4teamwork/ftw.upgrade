@@ -2,7 +2,12 @@ from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.mixins.catalog import CatalogMixin
 from types import ModuleType
 from zope.interface import implements
-from ftw.upgrade.utils import get_modules
+from ftw.upgrade.utils import get_modules, order_upgrades
+from ftw.upgrade.interfaces import IUpgrade
+from ftw.upgrade.info import UpgradeInfo
+from ftw.upgrade.upgrade import BaseUpgrade
+import inspect
+
 
 class UpgradeManager(CatalogMixin):
     implements(IUpgradeManager)
@@ -10,6 +15,9 @@ class UpgradeManager(CatalogMixin):
     def __init__(self):
         CatalogMixin.__init__(self)
         self._upgrade_packages = []
+        self._upgrades = None
+        self._modules = []
+
 
     def add_upgrade_package(self, module):
         if not isinstance(module, ModuleType):
@@ -18,18 +26,37 @@ class UpgradeManager(CatalogMixin):
         self._upgrade_packages.append(module)
 
     def list_upgrades(self):
-        modules = []
-        for package in self._upgrade_packages:
-            modules.append(get_modules(package.__name__))
+        self._load()
+        return self._upgrades
         
     def install_upgrades(self, upgrades):
-        # XXX: implement install_upgrades
-        raise NotImplementedError()
+        ordered_upgrades = order_upgrades(upgrades)
+        for upgrade in upgrades:
+            upgrade()()
+        self.finish_catalog_tasks()
 
     def is_installed(self, dottedname):
-        # XXX: implement is_installed
-        raise NotImplementedError()
-
+        #XXX: IMPLEMENT ME
+        return False
+        
     def get_upgrade(self, dottedname):
-        # XXX: implement get_upgrade
-        raise NotImplementedError()
+        self._load()
+        return self._upgrades[dottedname]
+
+    def _load(self):
+        if self._upgrades != None:
+            return
+        self._upgrades = {}
+        for package in self._upgrade_packages:
+            self._modules.append(self._load_package(package))
+        
+    def _load_package(self, package):
+        for module in get_modules(package):
+            self._load_module(module)
+                
+    def _load_module(self, module):
+        for name, obj in inspect.getmembers(module):
+            if inspect.isclass(obj) and not BaseUpgrade.__call__ == obj.__call__:
+                if IUpgrade.implementedBy(obj):
+                    info = UpgradeInfo(obj)
+                    self._upgrades[info._title]= info

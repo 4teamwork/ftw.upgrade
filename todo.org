@@ -18,9 +18,9 @@
   - [ ] When clicking on an upgrade title, the description is
         displayed (which is the docstring of the upgrade class)
 
-* Upgrade Manager [1/3]
+* Upgrade Manager [2/3]
   - Interface used by the view for requesting upgrade information
-  - [ ] Stores which upgrades were already installed
+  - [X] Stores which upgrades were already installed
   - [X] Gives information about all available upgrades
   - [ ] Installs selected requests
 

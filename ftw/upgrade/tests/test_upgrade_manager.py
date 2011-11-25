@@ -54,5 +54,5 @@ class TestUpgradeManager(MockTestCase):
         import ftw.upgrade.tests.data.foo.upgrades
         manager.add_upgrade_package(ftw.upgrade.tests.data.foo.upgrades)
         upgrades = manager.list_upgrades()
-        self.assertEqual(upgrades, manager._upgrades)
+        self.assertEqual(upgrades, manager._upgrades.values())
 

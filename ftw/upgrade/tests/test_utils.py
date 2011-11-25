@@ -1,5 +1,6 @@
 from unittest2 import TestCase
 from ftw.upgrade import utils
+from ftw.upgrade.tests.data import bar
 
 
 class Foo(object):
@@ -13,7 +14,7 @@ class TestUtils(TestCase):
                          'ftw.upgrade.tests.test_utils.Foo')
 
     def test_get_modules(self):
-        dottedname = 'ftw.upgrade.tests.data.bar'
+        dottedname = bar
 
         expected_modules = set((
             'ftw.upgrade.tests.data.bar',
@@ -24,7 +25,7 @@ class TestUtils(TestCase):
             'ftw.upgrade.tests.data.bar.two.three.foo',
             ))
 
-        modules = utils.get_modules(dottedname)
+        modules = utils.get_modules(bar)
 
         module_names = []
 

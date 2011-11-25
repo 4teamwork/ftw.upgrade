@@ -3,6 +3,7 @@
 # W0201: Attribute defined outside __init__
 
 from ftw.upgrade.interfaces import IUpgradeManager
+from ftw.upgrade.interfaces import ICatalogMixin
 from ftw.upgrade.manager import UpgradeManager
 from ftw.upgrade.testing import UPGRADE_ZCML_LAYER
 from ftw.upgrade.tests.data import bar
@@ -18,6 +19,10 @@ class TestUpgradeManager(MockTestCase):
     def test_implements_interface(self):
         self.assertTrue(IUpgradeManager.implementedBy(UpgradeManager))
         verifyClass(IUpgradeManager, UpgradeManager)
+
+    def test_has_catalog_mixin(self):
+        self.assertTrue(ICatalogMixin.implementedBy(UpgradeManager))
+        verifyClass(ICatalogMixin, UpgradeManager)
 
     def test_registered_as_utility(self):
         manager = getUtility(IUpgradeManager)

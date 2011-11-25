@@ -43,6 +43,47 @@ class IUpgradeManager(Interface):
         """
 
 
+class ICatalogMixin(Interface):
+    """Mixin for the upgrade manager for supporting and handling catalog
+    tasks, such as changing indexes, reindexing or catalog queries.
+    """
+
+    def add_catalog_index(name, meta_type, extra=None, index=True):
+        """Add a new index to the catalog.
+
+        Arguments:
+        `name` -- Name of the index (e.g. "searchable_title").
+        `meta_type` -- Type of the index (e.g. "FieldIndex").
+        `extra` -- Pass additional parameters to the index.
+        `index` -- Reindex index automatically for all types (True).
+        """
+
+    def rebuild_catalog_indexes(indexes, query=None, metadata=False):
+        """Reindexes one or more indexes for objects returned for a query.
+        This task may be hold back until all upgrades have finished. The
+        catalog may be not up to date after invoking a rebuild command - it
+        is even not up to date in later upgrades.
+        It is very important to use `query_catalog` instead of querying the
+        catalog directly - this ensures that the result are up to date.
+
+        Arguments:
+        `indexes` -- a list of one ore more index names (string)
+        `query` -- a regular catalog query (optional)
+        `metadata` -- if `True`, the metadata are updated too.
+        """
+
+    def query_catalog(query):
+        """Query the catalog for some objects. It is very important to not
+        use the catalog directly but query it with this method. If a index
+        used in the query was requested to be updated but that did not happen
+        yet, the index will be updated.
+        """
+
+    def finish_catalog_tasks():
+        """Finishes all queued catalog update tasks.
+        """
+
+
 class IUpgradeInfo(Interface):
     """Provides information about an upgrade.
     """

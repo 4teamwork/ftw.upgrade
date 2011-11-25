@@ -1,12 +1,14 @@
 from ftw.upgrade.interfaces import IUpgradeManager
+from ftw.upgrade.mixins.catalog import CatalogMixin
 from types import ModuleType
 from zope.interface import implements
 from ftw.upgrade.utils import get_modules
 
-class UpgradeManager(object):
+class UpgradeManager(CatalogMixin):
     implements(IUpgradeManager)
 
     def __init__(self):
+        CatalogMixin.__init__(self)
         self._upgrade_packages = []
 
     def add_upgrade_package(self, module):

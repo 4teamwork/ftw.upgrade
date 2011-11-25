@@ -35,24 +35,24 @@
   - [X] Contains a reference to the upgrade class.
   - [X] Provides information about dependencies
 
-* Catalog Mixin [0/5]
+* Catalog Mixin [5/5]
   - Mixin for the upgrade manager
-  - [ ] Provides a method for installing catalog indexes and metadata
-  - [ ] Provides a method for querying the catalog
-  - [ ] Queues the catalog updates and merges the update requests of
+  - [X] Provides a method for installing catalog indexes and metadata
+  - [X] Provides a method for querying the catalog
+  - [X] Queues the catalog updates and merges the update requests of
         the various upgrades. The catalog is updated after installing
         all upgrades.
-  - [ ] When querying the catalog with a query which uses a index
+  - [X] When querying the catalog with a query which uses a index
         updated by a depended Upgrade it first runs the reindex and
         removes it from the Queue.
-  - [ ] Executes the Catalog reindexes after all upgrades are done.
+  - [X] Executes the Catalog reindexes after all upgrades are done.
 
-* Upgrade Mixin [1/3]
+* Upgrade Mixin [2/3]
   - Mixin for the upgrade manager
   - [X] Provides a method for getting all Upgrades.
   - [ ] Provides a method which builds a Order for the Upgrades based
         on the Dependency informations.
-  - [ ] Is able to return a list of UpgradeInformation objects.
+  - [X] Is able to return a list of UpgradeInformation objects.
 
 * Base Upgrade / Upgrade [2/3]
   - [X] Has a __call__ method, which is overwritten by upgrades.

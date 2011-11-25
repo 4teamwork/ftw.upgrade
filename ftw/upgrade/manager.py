@@ -15,10 +15,10 @@ class UpgradeManager(CatalogMixin, StorageMixin):
 
     def __init__(self):
         CatalogMixin.__init__(self)
+        StorageMixin.__init__(self)
         self._upgrade_packages = []
         self._upgrades = None
         self._modules = []
-
 
     def add_upgrade_package(self, module):
         if not isinstance(module, ModuleType):
@@ -52,8 +52,10 @@ class UpgradeManager(CatalogMixin, StorageMixin):
             self._load_module(module)
 
     def _load_module(self, module):
-        for name, obj in inspect.getmembers(module):
-            if inspect.isclass(obj) and not BaseUpgrade.__call__ == obj.__call__:
+        for _, obj in inspect.getmembers(module):
+            if inspect.isclass(obj) and \
+                    not BaseUpgrade.__call__ == obj.__call__:
+
                 if IUpgrade.implementedBy(obj):
                     info = UpgradeInfo(obj)
-                    self._upgrades[info._title]= info
+                    self._upgrades[info.get_title()] = info

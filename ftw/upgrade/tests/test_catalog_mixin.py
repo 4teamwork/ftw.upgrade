@@ -1,3 +1,7 @@
+# pylint: disable=W0212, W0201
+# W0212: Access to a protected member of a client class
+# W0201: Attribute defined outside __init__
+
 from Products.CMFCore.CatalogTool import CatalogTool
 from ftw.upgrade.interfaces import ICatalogMixin
 from ftw.upgrade.mixins.catalog import CatalogMixin

@@ -13,7 +13,7 @@ def get_dotted_name(cls):
 
 def get_modules(package):
 
-    packagename, ext_ = os.path.splitext(os.path.basename(package.__file__))
+    packagename, _ = os.path.splitext(os.path.basename(package.__file__))
     if packagename != '__init__':
         return [package]
 
@@ -21,10 +21,10 @@ def get_modules(package):
 
     modules = []
 
-    for dirpath, dirnames, filenames in os.walk(path):
+    for dirpath, _, filenames in os.walk(path):
         for filename in filenames:
-            basename, ext_ = os.path.splitext(filename)
-            if ext_ not in ('.py', '.pyc', 'pyo'):
+            _, ext = os.path.splitext(filename)
+            if ext not in ('.py', '.pyc', 'pyo'):
                 continue
 
             filepath = os.path.join(dirpath, filename)
@@ -42,7 +42,7 @@ def filepath_to_dottedname(basepath, path, prefix=''):
     """Converts a filename `path` to a dotted name by removing the `basepath`
     and converting the rest.
     """
-        
+
     fullpath = os.path.normpath(path)
     basepath = os.path.normpath(basepath)
 
@@ -54,7 +54,7 @@ def filepath_to_dottedname(basepath, path, prefix=''):
     path = fullpath[len(basepath) + 1:]
 
     directory, filename = os.path.split(path)
-    basename, ext_ = os.path.splitext(filename)
+    basename, _ = os.path.splitext(filename)
 
     if basename == '__init__' and not directory:
         return prefix
@@ -73,7 +73,7 @@ def get_module(dottedname):
     return sys.modules[dottedname]
 
 def order_upgrades(upgrades):
-    """Requires a Dict of UpgradeInfo objects. 
+    """Requires a Dict of UpgradeInfo objects.
        Since we get the dottedname as dependency it's alot easier to access the depended upgrade
     """
     ordered_upgrades=[]

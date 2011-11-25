@@ -11,6 +11,9 @@ class StorageMixin(object):
 
     implements(IStorageMixin)
 
+    def __init__(self):
+        self._storage = None
+
     def _get_storage(self):
         if getattr(self, '_storage', None) is None:
             ann = IAnnotations(getSite())

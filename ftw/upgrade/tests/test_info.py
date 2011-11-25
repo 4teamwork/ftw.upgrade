@@ -77,4 +77,4 @@ class TestUpgradeInfo(TestCase):
 
     def test_get_dependencies(self):
         another = UpgradeInfo(AnotherUpgrade)
-        self.assertEqual(another.get_dependencies(), self.myupgrade_info)
+        self.assertEqual(another.get_dependencies(), [self.myupgrade_info])

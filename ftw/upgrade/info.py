@@ -52,6 +52,8 @@ class UpgradeInfo(object):
         """Returns `IUpgradeInfo` objects of all
         """
         manager = getUtility(IUpgradeManager)
-
+        upgrades = []
         for dottedname in self.get_class().dependencies:
-            return manager.get_upgrade(dottedname)
+            upgrades.append(manager.get_upgrade(dottedname))
+        return upgrades
+

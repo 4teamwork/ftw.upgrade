@@ -76,6 +76,26 @@ def order_upgrades(upgrades):
     """Requires a Dict of UpgradeInfo objects.
        Since we get the dottedname as dependency it's alot easier to access the depended upgrade
     """
-    ordered_upgrades=[]
-    for k, v in upgrades.items():
-        dependencies = v.get_dependencies()
+    upgrades_dict = {}
+    ordered_dottednames = []
+    
+    for upgrade in upgrades:
+        upgrades_dict[upgrade.get_title()] = upgrade
+    
+    for upgrade in upgrades:
+        if not upgrade.is_installed() and upgrade not in ordered_dottednames:
+            branch = get_dependency_branch([upgrade])
+            for item in branch:
+                if item not in ordered_dottednames:
+                    ordered_dottednames.append(item)
+    
+    return ordered_dottednames
+    
+def get_dependency_branch(items):
+    branch = []
+    for item in items:
+        dependencies = item.get_dependencies()
+        if len(dependencies) != 0:
+            branch.extend(get_dependency_branch(dependencies))
+        branch.append(item)
+    return branch

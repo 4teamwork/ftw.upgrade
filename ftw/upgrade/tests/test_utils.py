@@ -1,7 +1,7 @@
 from unittest2 import TestCase
 from ftw.upgrade import utils
 from ftw.upgrade.tests.data import bar
-
+from ftw.upgrade.manager import UpgradeManager
 
 class Foo(object):
     pass

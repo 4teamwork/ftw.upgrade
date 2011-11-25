@@ -18,7 +18,6 @@ class UpgradeManager(object):
     def list_upgrades(self):
         modules = []
         for package in self._upgrade_packages:
-            import pdb; pdb.set_trace( )
             modules.append(get_modules(package.__name__))
         
     def install_upgrades(self, upgrades):

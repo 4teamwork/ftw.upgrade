@@ -11,8 +11,7 @@ def get_dotted_name(cls):
     return '.'.join((cls.__module__, cls.__name__))
 
 
-def get_modules(dottedname):
-    package = get_module(dottedname)
+def get_modules(package):
 
     packagename, ext_ = os.path.splitext(os.path.basename(package.__file__))
     if packagename != '__init__':
@@ -73,3 +72,10 @@ def get_module(dottedname):
     __import__(dottedname)
     return sys.modules[dottedname]
 
+def order_upgrades(upgrades):
+    """Requires a Dict of UpgradeInfo objects. 
+       Since we get the dottedname as dependency it's alot easier to access the depended upgrade
+    """
+    ordered_upgrades=[]
+    for k, v in upgrades.items():
+        dependencies = v.get_dependencies()

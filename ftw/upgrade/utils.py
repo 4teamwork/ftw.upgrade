@@ -74,10 +74,9 @@ def get_module(dottedname):
 
 
 def order_upgrades(upgrades):
-    """Requires a Dict of UpgradeInfo objects.
-    Since we get the dottedname as dependency it's alot easier to access the
-    depended upgrade
+    """Orders a list of UpgradeInfo objects (`upgrades`) by dependencies.
     """
+    # XXX: this function can not handle circular dependencies.
     upgrades_dict = {}
     ordered_dottednames = []
 

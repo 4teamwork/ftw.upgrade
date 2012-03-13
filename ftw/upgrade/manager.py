@@ -29,7 +29,7 @@ class UpgradeManager(CatalogMixin, StorageMixin):
     def list_upgrades(self):
         self._load()
         return self._upgrades.values()
-        
+
     def install_upgrades(self, upgrades):
         ordered = order_upgrades(upgrades)
         for upgrade in ordered:

@@ -1,5 +1,6 @@
 from ftw.upgrade.upgrade import BaseUpgrade
 
+
 class MyUpgrade(BaseUpgrade):
 
     dependencies = []
@@ -14,6 +15,7 @@ PREFIX = 'ftw.upgrade.tests.data.foo.upgrades.testupgrade.'
 class MyUpgrade1(BaseUpgrade):
 
     dependencies = [PREFIX + 'MyUpgrade2']
+
     def __call__(self):
         pass
 
@@ -27,12 +29,10 @@ class MyUpgrade2(BaseUpgrade):
         pass
 
 
-
 class MyUpgrade3(BaseUpgrade):
 
     def __call__(self):
         pass
-
 
 
 class MyUpgrade4(BaseUpgrade):
@@ -40,9 +40,11 @@ class MyUpgrade4(BaseUpgrade):
     def __call__(self):
         pass
 
+
 class MyUpgrade5(BaseUpgrade):
 
     dependencies = [PREFIX + 'MyUpgrade1']
+
     def __call__(self):
         pass
 

@@ -48,7 +48,7 @@ def filepath_to_dottedname(basepath, path, prefix=''):
 
     if not fullpath.startswith(basepath):
         raise ValueError(
-            '`path` (%s) does not begin with `basepath` (%s)'% (
+            '`path` (%s) does not begin with `basepath` (%s)' % (
                 path, basepath))
 
     path = fullpath[len(basepath) + 1:]
@@ -72,25 +72,28 @@ def get_module(dottedname):
     __import__(dottedname)
     return sys.modules[dottedname]
 
+
 def order_upgrades(upgrades):
     """Requires a Dict of UpgradeInfo objects.
-       Since we get the dottedname as dependency it's alot easier to access the depended upgrade
+    Since we get the dottedname as dependency it's alot easier to access the
+    depended upgrade
     """
     upgrades_dict = {}
     ordered_dottednames = []
-    
+
     for upgrade in upgrades:
         upgrades_dict[upgrade.get_title()] = upgrade
-    
+
     for upgrade in upgrades:
         if not upgrade.is_installed() and upgrade not in ordered_dottednames:
             branch = get_dependency_branch([upgrade])
             for item in branch:
                 if item not in ordered_dottednames:
                     ordered_dottednames.append(item)
-    
+
     return ordered_dottednames
-    
+
+
 def get_dependency_branch(items):
     branch = []
     for item in items:

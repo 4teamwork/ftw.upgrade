@@ -15,13 +15,13 @@ class TestUtils(TestCase):
 
     def test_get_modules(self):
         expected_modules = set((
-            'ftw.upgrade.tests.data.bar',
-            'ftw.upgrade.tests.data.bar.one',
-            'ftw.upgrade.tests.data.bar.one.baz',
-            'ftw.upgrade.tests.data.bar.two',
-            'ftw.upgrade.tests.data.bar.two.three',
-            'ftw.upgrade.tests.data.bar.two.three.foo',
-            ))
+                'ftw.upgrade.tests.data.bar',
+                'ftw.upgrade.tests.data.bar.one',
+                'ftw.upgrade.tests.data.bar.one.baz',
+                'ftw.upgrade.tests.data.bar.two',
+                'ftw.upgrade.tests.data.bar.two.three',
+                'ftw.upgrade.tests.data.bar.two.three.foo',
+                ))
 
         modules = utils.get_modules(bar)
 

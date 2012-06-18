@@ -9,7 +9,7 @@ from ftw.upgrade.manager import UpgradeManager
 from ftw.upgrade.testing import UPGRADE_ZCML_LAYER
 from ftw.upgrade.tests.data import bar
 from ftw.upgrade.tests.data import foo
-from plone.mocktestcase import MockTestCase
+from ftw.testing import MockTestCase
 from zope.component import getUtility
 from zope.interface.verify import verifyClass
 
@@ -55,4 +55,3 @@ class TestUpgradeManager(MockTestCase):
         manager.add_upgrade_package(foo.upgrades)
         upgrades = manager.list_upgrades()
         self.assertEqual(upgrades, manager._upgrades.values())
-

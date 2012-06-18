@@ -1,0 +1,10 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope">
+
+
+    <include package="zope.annotation" />
+
+    <include package="ftw.upgrade" file="meta.zcml" />
+    <include package="ftw.upgrade" />
+
+</configure>

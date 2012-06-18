@@ -2,7 +2,7 @@ from ftw.upgrade.interfaces import IUpgrade
 from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.testing import UPGRADE_ZCML_LAYER
 from ftw.upgrade.upgrade import BaseUpgrade
-from plone.mocktestcase import MockTestCase
+from ftw.testing import MockTestCase
 from zope.component import getUtility
 from zope.interface.verify import verifyClass
 
@@ -31,4 +31,3 @@ class TestUpgrade(MockTestCase):
     def test_dependencies_are_empty_in_base_upgrade(self):
         myUpgrade = BaseUpgrade()
         self.assertEqual(myUpgrade.dependencies, [])
-

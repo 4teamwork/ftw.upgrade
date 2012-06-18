@@ -6,7 +6,7 @@ from ftw.upgrade.mixins.storage import StorageMixin
 from ftw.upgrade.testing import UPGRADE_ZCML_LAYER
 from ftw.upgrade.tests.data.foo.upgrades.testupgrade import MyUpgrade
 from ftw.upgrade.utils import get_dotted_name
-from plone.mocktestcase import MockTestCase
+from ftw.testing import MockTestCase
 from zope.app.component.hooks import setSite
 from zope.component import getSiteManager
 from zope.interface import alsoProvides

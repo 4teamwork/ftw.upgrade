@@ -1,43 +1,36 @@
-from plone.testing import Layer
+from ftw.testing.layer import ComponentRegistryLayer
 from plone.testing import zca
+from zope.annotation.interfaces import IAttributeAnnotatable
 from zope.app.component.hooks import setSite
 from zope.component import getSiteManager as sm
-from zope.configuration import xmlconfig
-from zope.interface import alsoProvides
-import ftw.upgrade
-import zope.annotation
+from zope.interface import implements
 
 
 class DummySite(object):
+    implements(IAttributeAnnotatable)
+
     getSiteManager = sm
 
 
-class UpgradeZCMLLayer(Layer):
+class UpgradeZCMLLayer(ComponentRegistryLayer):
     """A layer which only sets up the zcml, but does not start a zope
     instance.
     """
 
     defaultBases = (zca.ZCML_DIRECTIVES,)
 
+    def setUp(self):
+        super(UpgradeZCMLLayer, self).setUp()
+        import ftw.upgrade.tests
+        self.load_zcml_file('test.zcml', ftw.upgrade.tests)
+
     def testSetUp(self):
-        self['configurationContext'] = zca.stackConfigurationContext(
-            self.get('configurationContext'))
-
-        xmlconfig.file('configure.zcml', zope.annotation,
-                       context=self['configurationContext'])
-
-        xmlconfig.file('meta.zcml', ftw.upgrade,
-                       context=self['configurationContext'])
-
-        xmlconfig.file('configure.zcml', ftw.upgrade,
-                       context=self['configurationContext'])
-
+        super(UpgradeZCMLLayer, self).testSetUp()
         site = DummySite()
-        alsoProvides(site, zope.annotation.interfaces.IAttributeAnnotatable)
         setSite(site)
 
     def testTearDown(self):
-        del self['configurationContext']
+        super(UpgradeZCMLLayer, self).testTearDown()
         setSite(None)
 
 

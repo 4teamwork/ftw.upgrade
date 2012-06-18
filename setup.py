@@ -5,7 +5,7 @@ version = '1.0'
 
 tests_require = [
     'plone.app.testing',
-    'plone.mocktestcase',
+    'ftw.testing',
     ]
 
 setup(name='ftw.upgrade',

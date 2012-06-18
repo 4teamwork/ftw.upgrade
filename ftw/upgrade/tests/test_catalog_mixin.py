@@ -3,9 +3,9 @@
 # W0201: Attribute defined outside __init__
 
 from Products.CMFCore.CatalogTool import CatalogTool
+from ftw.testing import MockTestCase
 from ftw.upgrade.interfaces import ICatalogMixin
 from ftw.upgrade.mixins.catalog import CatalogMixin
-from plone.mocktestcase import MockTestCase
 from zope.interface.verify import verifyClass
 
 

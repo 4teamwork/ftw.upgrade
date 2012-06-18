@@ -6,7 +6,7 @@ from ftw.upgrade import utils
 from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.testing import UPGRADE_ZCML_LAYER
 from ftw.upgrade.tests.data import foo
-from plone.mocktestcase import MockTestCase
+from ftw.testing import MockTestCase
 from zope.component import getUtility
 
 

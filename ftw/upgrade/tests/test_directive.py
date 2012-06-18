@@ -1,7 +1,7 @@
 from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.manager import UpgradeManager
 from ftw.upgrade.testing import UPGRADE_ZCML_LAYER
-from plone.mocktestcase import MockTestCase
+from ftw.testing import MockTestCase
 from plone.testing import zca
 from zope.configuration import xmlconfig
 import ftw.upgrade.tests.data.foo
@@ -12,6 +12,7 @@ class TestDirective(MockTestCase):
     layer = UPGRADE_ZCML_LAYER
 
     def setUp(self):
+        super(TestDirective, self).setUp()
         self.configurationContext = zca.stackConfigurationContext(
             self.layer.get('configurationContext'))
 
@@ -19,6 +20,7 @@ class TestDirective(MockTestCase):
                        context=self.configurationContext)
 
     def tearDown(self):
+        super(TestDirective, self).tearDown()
         self.configurationContext = None
 
     def test_directive(self):

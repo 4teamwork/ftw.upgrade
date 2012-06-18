@@ -19,13 +19,11 @@ class UpgradeInfo(object):
         `upgrade_class` -- the upgrade class.
         """
         self._upgrade_class = upgrade_class
-        dottedname = get_dotted_name(upgrade_class)
+        self._dottedname = get_dotted_name(upgrade_class)
 
-        self._title = dottedname
+        self._title = self._dottedname
         self._description = upgrade_class.__doc__
-
-        manager = getUtility(IUpgradeManager)
-        self._installed = manager.is_installed(dottedname)
+        self._installed = None
 
     def get_title(self):
         """Returns the title, which is the dotted name of the class.
@@ -41,6 +39,9 @@ class UpgradeInfo(object):
     def is_installed(self):
         """Returns `True` if the upgrade is already installed.
         """
+        if self._installed is None:
+            manager = getUtility(IUpgradeManager)
+            self._installed = manager.is_installed(self._dottedname)
         return self._installed
 
     def get_class(self):

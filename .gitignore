@@ -5,9 +5,12 @@
 .mr.developer.cfg
 README.html
 bin/
+build/
 buildout.cfg
 coverage/
 develop-eggs/
+dist/
 eggs/
 parts/
+src/
 var/

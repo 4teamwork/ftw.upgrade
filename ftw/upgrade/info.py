@@ -56,4 +56,3 @@ class UpgradeInfo(object):
         for dottedname in self.get_class().dependencies:
             upgrades.append(manager.get_upgrade(dottedname))
         return upgrades
-

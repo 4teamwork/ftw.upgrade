@@ -41,7 +41,7 @@ class UpgradeManager(CatalogMixin, StorageMixin):
         return self._upgrades[dottedname]
 
     def _load(self):
-        if self._upgrades != None:
+        if self._upgrades is not None:
             return
         self._upgrades = {}
         for package in self._upgrade_packages:

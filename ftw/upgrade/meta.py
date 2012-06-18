@@ -11,7 +11,7 @@ class IRegisterUpgradesDirective(Interface):
         title=u"Module",
         description=u"Module containing the Upgrades",
         required=True,
-        value_type=GlobalObject()
+        value_type=GlobalObject(),
         )
 
 

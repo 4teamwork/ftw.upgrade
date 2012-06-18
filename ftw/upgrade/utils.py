@@ -1,3 +1,6 @@
+from ftw.upgrade.interfaces import IUpgrade
+from ftw.upgrade.upgrade import BaseUpgrade
+import inspect
 import os
 import sys
 
@@ -101,3 +104,30 @@ def get_dependency_branch(items):
             branch.extend(get_dependency_branch(dependencies))
         branch.append(item)
     return branch
+
+
+def get_classes_from_module(module, implements=None):
+    """Returns all classes defined or imported in a ``module``.
+    If ``implements`` is an interface the classes are filtered and only those
+    implementing the ``implements`` interface are yielded.
+    """
+
+    for _, obj in inspect.getmembers(module):
+        if not inspect.isclass(obj):
+            continue
+
+        if implements and not implements.implementedBy(obj):
+            continue
+
+        yield obj
+
+
+def discover_upgrades(package):
+    """Discover all classes within modules of a ``package``.
+    """
+
+    for module in get_modules(package):
+        for cls in get_classes_from_module(module, implements=IUpgrade):
+            if BaseUpgrade.__call__ == cls.__call__:
+                continue
+            yield cls

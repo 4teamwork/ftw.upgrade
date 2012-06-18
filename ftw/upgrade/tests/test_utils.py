@@ -1,6 +1,7 @@
-from unittest2 import TestCase
 from ftw.upgrade import utils
 from ftw.upgrade.tests.data import bar
+from ftw.upgrade.tests.data.foo import upgrades
+from unittest2 import TestCase
 
 
 class Foo(object):
@@ -71,3 +72,16 @@ class TestUtils(TestCase):
             str(cm.exception),
             '`path` (/tmp/foo) does not begin with `basepath` (/tmp/foo/bar)'
             )
+
+    def test_discover_upgrade_classes(self):
+        result = tuple(utils.discover_upgrades(upgrades))
+        self.assertIn(upgrades.testupgrade.MyUpgrade, result)
+        self.assertIn(upgrades.testupgrade.MyUpgrade1, result)
+        self.assertIn(upgrades.testupgrade.MyUpgrade2, result)
+        self.assertNotIn(upgrades.testupgrade.BaseUpgrade, result)
+
+        result2 = tuple(utils.discover_upgrades(upgrades.testupgrade))
+        self.assertIn(upgrades.testupgrade.MyUpgrade, result2)
+        self.assertIn(upgrades.testupgrade.MyUpgrade1, result2)
+        self.assertIn(upgrades.testupgrade.MyUpgrade2, result2)
+        self.assertNotIn(upgrades.testupgrade.BaseUpgrade, result2)

@@ -1,13 +1,10 @@
 from ftw.upgrade.info import UpgradeInfo
-from ftw.upgrade.interfaces import IUpgrade
 from ftw.upgrade.interfaces import IUpgradeManager
 from ftw.upgrade.mixins.catalog import CatalogMixin
 from ftw.upgrade.mixins.storage import StorageMixin
-from ftw.upgrade.upgrade import BaseUpgrade
-from ftw.upgrade.utils import get_modules, order_upgrades
+from ftw.upgrade.utils import order_upgrades, discover_upgrades
 from types import ModuleType
 from zope.interface import implements
-import inspect
 
 
 class UpgradeManager(CatalogMixin, StorageMixin):
@@ -18,7 +15,6 @@ class UpgradeManager(CatalogMixin, StorageMixin):
         StorageMixin.__init__(self)
         self._upgrade_packages = []
         self._upgrades = None
-        self._modules = []
 
     def add_upgrade_package(self, module):
         if not isinstance(module, ModuleType):
@@ -45,17 +41,9 @@ class UpgradeManager(CatalogMixin, StorageMixin):
             return
         self._upgrades = {}
         for package in self._upgrade_packages:
-            self._modules.append(self._load_package(package))
+            self._load_package(package)
 
     def _load_package(self, package):
-        for module in get_modules(package):
-            self._load_module(module)
-
-    def _load_module(self, module):
-        for _, obj in inspect.getmembers(module):
-            if inspect.isclass(obj) and \
-                    not BaseUpgrade.__call__ == obj.__call__:
-
-                if IUpgrade.implementedBy(obj):
-                    info = UpgradeInfo(obj)
-                    self._upgrades[info.get_title()] = info
+        for cls in discover_upgrades(package):
+            info = UpgradeInfo(cls)
+            self._upgrades[info.get_title()] = info

@@ -38,7 +38,9 @@ setup(name='ftw.upgrade',
 
       install_requires=[
         'setuptools',
+        'plone.browserlayer',
         ],
+
       tests_require=tests_require,
       extras_require=dict(tests=tests_require),
 

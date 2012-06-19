@@ -1,0 +1,6 @@
+<layers>
+
+    <layer name="ftw.upgrade"
+           interface="ftw.upgrade.interfaces.IUpgradeLayer" />
+
+</layers>

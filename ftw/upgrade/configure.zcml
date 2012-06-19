@@ -1,11 +1,4 @@
 <configure
     xmlns="http://namespaces.zope.org/zope">
 
-  <utility
-      factory="ftw.upgrade.manager.UpgradeManager"
-      provides="ftw.upgrade.interfaces.IUpgradeManager"
-      />
-
-  <include file="meta.zcml" />
-
 </configure>

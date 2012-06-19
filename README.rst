@@ -4,71 +4,31 @@ Introduction
 This product aims to simplify writing plone upgrade steps. It provides a view
 in the plone control panel for running the upgrades.
 
-Upgrades are registered by registering an upgrade package which contains
-classes subclassing the `BaseUpgrade` - also subpackages are automatically
-scanned.
-
-
-Usage
-=====
-
-Add a dependency from your package to `ftw.upgrade` in `setup.py`:
-
-::
-
-    setup(name='my.package',
-          install_requires=[
-            'setuptools',
-            'ftw.upgrade',
-          ])
-
-
-Register your upgrades package (directory) in `configure.zcml`:
-
-::
-
-    <configure
-        xmlns="http://namespaces.zope.org/zope"
-        xmlns:upgrade="http://namespaces.zope.org/upgrade">
-
-        <upgrade:registerUpgrades modules=".upgrades" />
-
-    </configure>
-
-
-Create upgrades somewhere in your upgrades package:
-
-::
-
-    from ftw.upgrade import BaseUpgrade
-
-    class ChangeFoo(BaseUpgrade):
-        """There are some objects of content type "Bar" which have a wrong
-        foo. Fix this and reindex the index "foo".
-        """
-
-        def __call__(self):
-            query = {'portal_type': 'Bar', 'foo': 'wrong'}
-
-            for brain in self.manager.query_catalog(query):
-                obj = brain.getObject()
-                obj.foo = 'fixed'
-
-            self.manager.rebuild_catalog_indexes(
-                indexes=['foo'], query=query, metadata=False)
-
+It is based on the upgrade mechanism of GenericSetup in plone.
 
 Features
 ========
 
-* Simple definition of upgrades without registering every single upgrade
-* Lazy dependencies between upgrades
-* Upgrade control panel
-* Upgrades are not bound to versions
-* Heavy catalog indexing tasks are queued and merged - this speeds up when
-  running multiple upgrades at once
-* Save catalog queries with `self.manager.query_catalog`
-* Provides tools for common tasks
+* **Managing upgrades**: It provides an advanced view for upgrading
+  third-party plone packages using Generic Setup.
+  It allows to upgrade multiple packages at once with an easy to use user
+  interface.
+
+* **Writing upgrades**: The package provides a base upgrade class which has
+  various helpers for tasks often done in upgrades.
+
+
+Installation
+============
+
+For using the upgrade view install the ``ftw.upgrade`` using buildout.
+Add ``ftw.upgrade`` to the eggs section of your buildout configuration::
+
+    [instance]
+    eggs +=
+        ftw.upgrade
+
+- Install ``ftw.upgrade``s generic setup profile.
 
 
 Links
@@ -86,4 +46,3 @@ Copyright
 This package is copyright by `4teamwork <http://www.4teamwork.ch/>`_.
 
 ``ftw.upgrade`` is licensed under GNU General Public License, version 2.
-

@@ -1,0 +1,19 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser">
+
+    <browser:resourceDirectory
+        name='ftw.upgrade'
+        directory="resources"
+        />
+
+    <browser:page
+        name="manage-upgrades"
+        for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+        template="templates/manage.pt"
+        class=".manage.ManageUpgrades"
+        permission="cmf.ManagePortal"
+        layer="ftw.upgrade.interfaces.IUpgradeLayer"
+        />
+
+</configure>

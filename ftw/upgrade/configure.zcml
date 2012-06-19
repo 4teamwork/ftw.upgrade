@@ -4,6 +4,8 @@
 
     <include package="plone.browserlayer" />
 
+    <include package=".browser" />
+
     <genericsetup:registerProfile
         name="default"
         title="ftw.upgrade"

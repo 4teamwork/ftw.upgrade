@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<object xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+        name="portal_controlpanel"
+        meta_type="Plone Control Panel Tool"
+        i18n:domain="ftw.upgrade">
+
+    <configlet
+        title="Upgrades"
+        action_id="Upgrades"
+        appId="ftw.upgrade"
+        category="Products"
+        condition_expr=""
+        icon_expr="string:$portal_url/++resource++ftw.upgrade/icon.png"
+        url_expr="string:$portal_url/@@manage-upgrades"
+        visible="True"
+        i18n:attributes="title"
+        >
+        <permission>cmf.ManagePortal</permission>
+    </configlet>
+
+</object>

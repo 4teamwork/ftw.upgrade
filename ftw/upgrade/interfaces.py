@@ -21,6 +21,10 @@ class IUpgradeInformationGatherer(Interface):
     - Upgrades are grouped by done / proposed.
     """
 
+    def __init__(portal_setup):
+        """Adapts portal_setup.
+        """
+
     def get_upgrades():
         """Returns upgrades grouped by done / proposed and assigned profile.
 
@@ -51,4 +55,20 @@ class IUpgradeInformationGatherer(Interface):
         ...   'path': u'/.../profiles/default',
         ...   'type': 2,
         ...   'id': u'Products.CMFEditions:CMFEditions'}]
+        """
+
+
+class IExecutioner(Interface):
+    """Executes multiple upgrade steps of multiple packages.
+    Adapts the generic setup tool (portal_setup).
+    """
+
+    def __init__(portal_setup):
+        """Adapts portal_setup.
+        """
+
+    def install(data):
+        """Installs the dict data.
+        data example:
+        >>> {u'Products.CMFEditions:CMFEditions': '8159946379289711266'}
         """

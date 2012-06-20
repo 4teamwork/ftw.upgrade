@@ -16,5 +16,6 @@
         />
 
     <adapter factory=".gatherer.UpgradeInformationGatherer" />
+    <adapter factory=".executioner.Executioner" />
 
 </configure>

@@ -1,0 +1,14 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="ftw.upgrade">
+
+    <genericsetup:upgradeStep
+        profile="ftw.upgrade.tests:foo"
+        source="1"
+        destination="2"
+        title="Registers foo utility"
+        handler=".foo.register_foo_utility"
+        />
+
+</configure>

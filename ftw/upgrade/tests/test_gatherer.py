@@ -1,5 +1,4 @@
 from Products.GenericSetup.interfaces import ISetupTool
-from pprint import pprint
 from ftw.testing import MockTestCase
 from ftw.upgrade.gatherer import UpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
@@ -20,7 +19,7 @@ def generate_id():
         globals()[key] = set()
 
     while True:
-        id_ = int(random()*10**10)
+        id_ = int(random() * 10 ** 10)
         if id_ not in globals()[key]:
             globals()[key].add(id_)
             return id_
@@ -63,8 +62,8 @@ class TestUpgradeInformationGatherer(MockTestCase):
             lambda id_: id_ in self._profiles and self._profiles[id_])
 
         self.expect(self.setup_tool.listUpgrades(ANY)).call(
-            lambda id_: id_ in self._upgrades and \
-                [u for u in self._upgrades[id_] if not u['done']] or [])
+            lambda id_: id_ in self._upgrades and
+            [u for u in self._upgrades[id_] if not u['done']] or [])
 
         self.expect(self.setup_tool.listUpgrades(ANY, show_old=True)).call(
             lambda id_, show_old: id_ in self._upgrades and

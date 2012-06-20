@@ -1,3 +1,8 @@
+# pylint: disable=E0211, E0213
+# E0211: Method has no argument
+# E0213: Method should have "self" as first argument
+
+
 from zope.interface import Interface
 
 
@@ -22,7 +27,8 @@ class IUpgradeInformationGatherer(Interface):
         Example output:
         >>> [{'db_version': u'3',
         ...   'product': 'Products.CMFEditions',
-        ...   'description': u'Extension profile for default CMFEditions setup.',
+        ...   'description': u'Extension profile for default ' + \
+        ...       'CMFEditions setup.',
         ...   'for': None,
         ...   'title': u'CMFEditions',
         ...   'version': u'3',
@@ -38,11 +44,11 @@ class IUpgradeInformationGatherer(Interface):
         ...        'sortkey': 0,
         ...        'source': ('2',
         ...                   '0'),
-        ...        'step': <Products.GenericSetup.upgrade.UpgradeDepends object at 0x105e12dd0>,
+        ...        'step': <Products.GenericSetup.upgrade...>,
         ...        'done': True,
         ...        'id': '8159946379289711266',
         ...        'sdest': '3'}],
-        ...   'path': u'/.../Products.CMFEditions-2.2.3-py2.6.egg/Products/CMFEditions/profiles/default',
+        ...   'path': u'/.../profiles/default',
         ...   'type': 2,
         ...   'id': u'Products.CMFEditions:CMFEditions'}]
         """

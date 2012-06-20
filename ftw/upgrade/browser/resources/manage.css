@@ -1,0 +1,54 @@
+.selection-control {
+  margin-bottom: 1em;
+}
+
+.selection-control > span:after {
+  content: "|";
+}
+
+.selection-control > span:last-child:after {
+  content: "";
+}
+
+.profile {
+  clear: both;
+  margin-bottom: 0.5em;
+  padding: 1px;
+}
+
+.profile:hover {
+  border: 1px solid #ddd;
+  padding: 0px;
+}
+
+.profile-title strong {
+  cursor: pointer;
+}
+
+.profile-version {
+  float: right;
+  margin-right: 1em;
+}
+
+.upgrade {
+  clear: both;
+  padding-left: 2em;
+  cursor: pointer;
+}
+
+.upgrade:hover {
+  background-color: #eee;
+}
+
+.upgrade > span {
+  float: left;
+  margin-left: 1em;
+}
+
+.upgrade span.upgrade-version {
+  width: 20em;
+}
+
+.upgrade.done {
+  display: none;
+}

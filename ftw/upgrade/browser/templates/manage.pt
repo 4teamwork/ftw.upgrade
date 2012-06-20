@@ -7,26 +7,105 @@
       metal:use-macro="here/prefs_main_template/macros/master"
       i18n:domain="ftw.upgrade">
 
-    <body>
+    <div metal:fill-slot="prefs_configlet_main">
 
-        <div metal:fill-slot="prefs_configlet_main">
+        <script language="javascript" type="text/javascript"
+                tal:attributes="src string:${portal_url}/++resource++ftw.upgrade/manage.js">
+        </script>
+        <link rel="stylesheet" type="text/css" media="screen"
+              tal:attributes="href string:${portal_url}/++resource++ftw.upgrade/manage.css" />
 
-            <h1 class="documentFirstHeading"
-                i18n:translate="title_manage_upgrades">Upgrades</h1>
 
-            <a href=""
-               class="link-parent"
-               tal:attributes="href string:$portal_url/@@overview-controlpanel"
-               i18n:translate="label_up_to_plone_setup"
-               i18n:domain="plone">
-                Up to Site Setup
-            </a>
 
-            <p i18n:translate="description_manage_upgrades"
-               class="discreet">
-                Manage your upgrades.
-            </p>
+        <h1 class="documentFirstHeading"
+            i18n:translate="title_manage_upgrades">Upgrades</h1>
 
+        <a href=""
+           class="link-parent"
+           tal:attributes="href string:$portal_url/@@overview-controlpanel"
+           i18n:translate="label_up_to_plone_setup"
+           i18n:domain="plone">
+            Up to Site Setup
+        </a>
+
+        <p i18n:translate="description_manage_upgrades"
+           class="discreet">
+            This view lists all profiles with at least one upgrade.
+            Profiles which are not yet installed are not listed.
+            Upgrades which are already installed are hidden by default,
+            click on the profile title to show them.
+        </p>
+
+
+        <div class="selection-control">
+            <span>
+                <a href="#"
+                   class="select-none"
+                   i18n:translate="">Select none</a>
+            </span>
+            <span>
+                <a href="#"
+                   class="select-not-installed"
+                   i18n:translate="">Select not installed</a>
+            </span>
         </div>
-    </body>
+
+
+        <div class="profiles">
+            <div class="profile hide-done"
+                 tal:repeat="profile view/get_data">
+
+                <div class="profile-title">
+                    <strong tal:content="profile/id" />
+
+                    <span i18n:translate="label_installed_version" class="profile-version discreet">
+                        Source-Version: <span i18n:name="src_version" tal:content="profile/version" />,
+                        Database-Version: <span i18n:name="db_version" tal:content="profile/db_version" />
+                    </span>
+
+                </div>
+
+                <tal:UPGRADES tal:repeat="upgrade profile/upgrades">
+                    <div tal:define="boxid string:${profile/id}-${upgrade/id};
+                                     classes string:upgrade;
+                                     classes python: upgrade.get('done') and '%s done' % classes or classes;
+                                     classes python: upgrade.get('proposed') and '%s proposed' % classes or classes"
+                         tal:attributes="class classes">
+
+                        <span class="upgrade-checkbox">
+                            <input type="checkbox"
+                                   tal:attributes="id boxid;
+                                                   checked python:upgrade.get('proposed') and 'checked'" />
+
+                            <img tal:condition="upgrade/proposed|nothing"
+                                 tal:attributes="src string:$portal_url/error_icon.png"
+                                 title="This upgrade is not installed yet."
+                                 i18n:attributes="title" />
+
+                            <img tal:condition="upgrade/done|nothing"
+                                 tal:attributes="src string:$portal_url/confirm_icon.gif"
+                                 title="This upgrade is already installed."
+                                 i18n:attributes="title" />
+                        </span>
+
+                        <span class="upgrade-version">
+                            <tal:FROM tal:content="upgrade/ssource" />
+                            &rarr;
+                            <tal:TO tal:content="upgrade/sdest" />
+                        </span>
+
+                        <span class="upgrade-title"
+                              tal:content="upgrade/title" />
+
+                        <div class="visualClear"><!-- --></div>
+
+                    </div>
+                </tal:UPGRADES>
+
+            </div>
+        </div>
+
+        <input type="submit" value="Install" />
+
+    </div>
 </html>

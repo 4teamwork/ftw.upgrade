@@ -1,6 +1,7 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
-    xmlns:genericsetup="http://namespaces.zope.org/genericsetup">
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="ftw.upgrade">
 
     <include package="plone.browserlayer" />
 
@@ -13,5 +14,7 @@
         description="An advanced upgrade control panel."
         provides="Products.GenericSetup.interfaces.EXTENSION"
         />
+
+    <adapter factory=".gatherer.UpgradeInformationGatherer" />
 
 </configure>

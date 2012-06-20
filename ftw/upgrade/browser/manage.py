@@ -1,78 +1,12 @@
 from Products.CMFCore.utils import getToolByName
+from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from zope.component import getAdapter
 from zope.publisher.browser import BrowserView
-
-
-def flatten_upgrades(upgrades):
-    """Flattens the data structure of a list of upgrades: removes grouping.
-    The result is an iterable with dicts containg upgrade information.
-    """
-
-    for item in upgrades:
-        if isinstance(item, (list, tuple)):
-            for subitem in flatten_upgrades(item):
-                yield subitem
-
-        else:
-            yield item
 
 
 class ManageUpgrades(BrowserView):
 
     def get_data(self):
-        return sorted(self._get_profiles(),
-                      key=lambda item: item.get('product'))
-
-    def _get_profiles(self):
         gstool = getToolByName(self.context, 'portal_setup')
-        for profileid in gstool.listProfilesWithUpgrades():
-            if not self._is_profile_installed(profileid):
-                continue
-
-            data = self._get_profile_data(profileid)
-            if len(data['upgrades']) == 0:
-                continue
-
-            if profileid == 'Products.CMFPlone:plone':
-                # Plone has its own migration mechanism.
-                # We do not support upgrading plone.
-                continue
-
-            yield data
-
-    def _get_profile_data(self, profileid):
-        gstool = getToolByName(self.context, 'portal_setup')
-
-        db_version = gstool.getLastVersionForProfile(profileid)
-        if isinstance(db_version, (tuple, list)):
-            db_version = '.'.join(db_version)
-
-        data = {'upgrades': self._get_profile_upgrades(profileid),
-                'db_version': db_version}
-        data.update(gstool.getProfileInfo(profileid))
-        return data
-
-    def _get_profile_upgrades(self, profileid):
-        gstool = getToolByName(self.context, 'portal_setup')
-        proposed_ids = set()
-        upgrades = []
-
-        for upgrade in flatten_upgrades(gstool.listUpgrades(profileid)):
-            upgrade = upgrade.copy()
-            upgrades.append(upgrade)
-            proposed_ids.add(upgrade['id'])
-
-        for upgrade in flatten_upgrades(gstool.listUpgrades(profileid,
-                                                            show_old=True)):
-            if upgrade['id'] in proposed_ids:
-                continue
-
-            upgrade = upgrade.copy()
-            upgrade['proposed'] = False
-            upgrade['done'] = True
-            upgrades.append(upgrade)
-
-        return upgrades
-
-    def _is_profile_installed(self, profileid):
-        gstool = getToolByName(self.context, 'portal_setup')
-        return gstool.getLastVersionForProfile(profileid) != 'unknown'
+        gatherer = getAdapter(gstool, IUpgradeInformationGatherer)
+        return gatherer.get_upgrades()

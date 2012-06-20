@@ -1,6 +1,11 @@
 <configure
     xmlns="http://namespaces.zope.org/zope">
 
+    <include package="Products.Five" file="meta.zcml" />
+    <include package="Products.GenericSetup" file="meta.zcml" />
+
+    <include package="Products.CMFCore" file="permissions.zcml" />
+
     <include package="ftw.upgrade" />
 
 </configure>

@@ -7,7 +7,8 @@
       metal:use-macro="here/prefs_main_template/macros/master"
       i18n:domain="ftw.upgrade">
 
-    <div metal:fill-slot="prefs_configlet_main">
+    <div metal:fill-slot="prefs_configlet_main"
+         tal:define="plone_needs_upgrading view/plone_needs_upgrading">
 
         <script language="javascript" type="text/javascript"
                 tal:attributes="src string:${portal_url}/++resource++ftw.upgrade/manage.js">
@@ -36,76 +37,108 @@
             click on the profile title to show them.
         </p>
 
+        <tal:PLONE_NEEDS_UPGRADE
+            tal:condition="plone_needs_upgrading">
+            <dl class="portalMessage warning">
+                <dt i18n:translate="">Upgrade Plone</dt>
+                <dd i18n:translate="">
+                    The site configuration is outdated and needs to be
+                    upgraded!
+                    Upgrading add-ons is disabled while plone is outdated.
+                    <br />
+                    <a tal:attributes="href string:$portal_url/@@plone-upgrade"
+                       i18n:name="continue_upgrade_link"
+                       i18n:translate="continue_upgrade_link">
+                        Please continue with the upgrade.
+                    </a>
+                </dd>
+            </dl>
+        </tal:PLONE_NEEDS_UPGRADE>
 
-        <div class="selection-control">
-            <span>
-                <a href="#"
-                   class="select-none"
-                   i18n:translate="">Select none</a>
-            </span>
-            <span>
-                <a href="#"
-                   class="select-not-installed"
-                   i18n:translate="">Select not installed</a>
-            </span>
-        </div>
+        <form
+            tal:condition="not:plone_needs_upgrading"
+            tal:attributes="action string:${context/absolute_url}/@@manage-upgrades?ajax=1"
+            method="post"
+            target="upgrade-output"
+            id="upgrade-form">
+
+            <div class="selection-control">
+                <span>
+                    <a href="#"
+                       class="select-none"
+                       i18n:translate="">Select none</a>
+                </span>
+                <span>
+                    <a href="#"
+                       class="select-not-installed"
+                       i18n:translate="">Select not installed</a>
+                </span>
+            </div>
 
 
-        <div class="profiles">
-            <div class="profile hide-done"
-                 tal:repeat="profile view/get_data">
+            <div class="profiles">
+                <div class="profile hide-done"
+                     tal:repeat="profile view/get_data">
 
-                <div class="profile-title">
-                    <strong tal:content="profile/id" />
+                    <input type="hidden"
+                           name="upgrade.profileid:records"
+                           tal:attributes="value profile/id" />
 
-                    <span i18n:translate="label_installed_version" class="profile-version discreet">
-                        Source-Version: <span i18n:name="src_version" tal:content="profile/version" />,
-                        Database-Version: <span i18n:name="db_version" tal:content="profile/db_version" />
-                    </span>
+                    <div class="profile-title">
+                        <strong tal:content="profile/id" />
 
-                </div>
-
-                <tal:UPGRADES tal:repeat="upgrade profile/upgrades">
-                    <div tal:define="boxid string:${profile/id}-${upgrade/id};
-                                     classes string:upgrade;
-                                     classes python: upgrade.get('done') and '%s done' % classes or classes;
-                                     classes python: upgrade.get('proposed') and '%s proposed' % classes or classes"
-                         tal:attributes="class classes">
-
-                        <span class="upgrade-checkbox">
-                            <input type="checkbox"
-                                   tal:attributes="id boxid;
-                                                   checked python:upgrade.get('proposed') and 'checked'" />
-
-                            <img tal:condition="upgrade/proposed|nothing"
-                                 tal:attributes="src string:$portal_url/error_icon.png"
-                                 title="This upgrade is not installed yet."
-                                 i18n:attributes="title" />
-
-                            <img tal:condition="upgrade/done|nothing"
-                                 tal:attributes="src string:$portal_url/confirm_icon.gif"
-                                 title="This upgrade is already installed."
-                                 i18n:attributes="title" />
+                        <span i18n:translate="label_installed_version" class="profile-version discreet">
+                            Filesystem: <span i18n:name="fs_version" tal:content="profile/version" />,
+                            Database: <span i18n:name="db_version" tal:content="profile/db_version" />
                         </span>
-
-                        <span class="upgrade-version">
-                            <tal:FROM tal:content="upgrade/ssource" />
-                            &rarr;
-                            <tal:TO tal:content="upgrade/sdest" />
-                        </span>
-
-                        <span class="upgrade-title"
-                              tal:content="upgrade/title" />
-
-                        <div class="visualClear"><!-- --></div>
 
                     </div>
-                </tal:UPGRADES>
 
+                    <tal:UPGRADES tal:repeat="upgrade profile/upgrades">
+                        <div tal:define="boxid string:${profile/id}-${upgrade/id};
+                                         classes string:upgrade;
+                                         classes python: upgrade.get('done') and '%s done' % classes or classes;
+                                         classes python: upgrade.get('proposed') and '%s proposed' % classes or classes"
+                             tal:attributes="class classes">
+
+                            <span class="upgrade-checkbox">
+                                <input type="checkbox"
+                                       tal:attributes="id boxid;
+                                                       checked python:upgrade.get('proposed') and 'checked';
+                                                       name string:upgrade.${upgrade/id}:records" />
+
+                                <img tal:condition="upgrade/proposed|nothing"
+                                     tal:attributes="src string:$portal_url/error_icon.png"
+                                     title="This upgrade is not installed yet."
+                                     i18n:attributes="title" />
+
+                                <img tal:condition="upgrade/done|nothing"
+                                     tal:attributes="src string:$portal_url/confirm_icon.gif"
+                                     title="This upgrade is already installed."
+                                     i18n:attributes="title" />
+                            </span>
+
+                            <span class="upgrade-version">
+                                <tal:FROM tal:content="upgrade/ssource" />
+                                &rarr;
+                                <tal:TO tal:content="upgrade/sdest" />
+                            </span>
+
+                            <span class="upgrade-title"
+                                  tal:content="upgrade/title" />
+
+                            <div class="visualClear"><!-- --></div>
+
+                        </div>
+                    </tal:UPGRADES>
+
+                </div>
             </div>
-        </div>
 
-        <input type="submit" value="Install" />
+            <input type="submit" name="submitted" value="Install" />
+        </form>
+
+        <iframe name="upgrade-output" id="upgrade-output"></iframe>
 
     </div>
 </html>

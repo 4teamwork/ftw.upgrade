@@ -35,4 +35,13 @@
         checkbox.attr('checked', checkbox.attr('checked') ? '' : 'checked');
     });
 
+    $('#upgrade-form').live('submit', function(e) {
+        $(this).hide();
+
+        var height = ($('#portal-column-one').height() -
+                      $('#portal-column-content').height());
+        $('#upgrade-output').show();
+        $('#upgrade-output').css('height', height);
+    });
+
 })(jQuery);

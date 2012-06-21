@@ -1,12 +1,104 @@
 from Products.CMFCore.utils import getToolByName
+from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from zope.component import getAdapter
 from zope.publisher.browser import BrowserView
+import logging
+
+
+class ResponseLogger(object):
+
+    def __init__(self, response):
+        self.response = response
+        self.handler = None
+
+    def __enter__(self):
+        self.handler = logging.StreamHandler(self)
+        self.handler.setFormatter(logging.root.handlers[-1].formatter)
+        logging.root.addHandler(self.handler)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        logging.root.removeHandler(self.handler)
+
+    def write(self, line):
+        if isinstance(line, unicode):
+            line = line.encode('utf8')
+
+        if isinstance(line, str):
+            self.response.write(line)
+            self.response.flush()
 
 
 class ManageUpgrades(BrowserView):
+
+    def __call__(self):
+        if self.request.get('submitted', False):
+            assert not self.plone_needs_upgrading(), \
+                'Plone is outdated. Upgrading add-ons is disabled.'
+
+            if self.request.get('ajax', False):
+                return self.install_with_ajax_stream()
+
+            else:
+                self.install()
+
+        return super(ManageUpgrades, self).__call__(self)
+
+    def install(self):
+        """Installs the selected upgrades.
+        """
+        gstool = getToolByName(self.context, 'portal_setup')
+        executioner = getAdapter(gstool, IExecutioner)
+        data = self._get_upgrades_to_install()
+        executioner.install(data)
+
+        logging.getLogger('ftw.upgrade').info(
+            'FINISHED')
+
+    def install_with_ajax_stream(self):
+        """Installs the selected upgrades and streams the log into
+        the HTTP response.
+        """
+        response = self.request.RESPONSE
+        response.setHeader('Content-Type', 'text/html')
+        response.setHeader('Transfer-Encoding', 'chunked')
+        response.write('<html>')
+        response.write('<body>')
+        response.write('  ' * response.http_chunk_size)
+        response.write('<pre>')
+
+        with ResponseLogger(self.request.RESPONSE):
+            self.install()
+
+        response.write('</pre>')
+        response.write('</body>')
+        response.write('</html>')
 
     def get_data(self):
         gstool = getToolByName(self.context, 'portal_setup')
         gatherer = getAdapter(gstool, IUpgradeInformationGatherer)
         return gatherer.get_upgrades()
+
+    def plone_needs_upgrading(self):
+        portal_migration = getToolByName(self.context, 'portal_migration')
+        return portal_migration.needUpgrading()
+
+    def _get_upgrades_to_install(self):
+        """Returns a dict where the key is a profileid and the value
+        is a list of upgrade ids.
+        """
+
+        data = self.request.get('upgrade', None)
+        if not data:
+            return {}
+
+        upgrades = {}
+        for item in data:
+            item = dict(item)
+            profileid = item['profileid']
+            del item['profileid']
+
+            if item:
+                upgrades[profileid] = item.keys()
+
+        return upgrades

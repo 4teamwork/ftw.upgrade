@@ -52,3 +52,10 @@
 .upgrade.done {
   display: none;
 }
+
+#upgrade-output {
+  width: 100%;
+  border: 1px solid #eee;
+  display: none;
+  overflow: visible;
+}

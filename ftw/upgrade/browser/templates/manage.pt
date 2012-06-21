@@ -116,6 +116,11 @@
                                      tal:attributes="src string:$portal_url/confirm_icon.gif"
                                      title="This upgrade is already installed."
                                      i18n:attributes="title" />
+
+                                <img tal:condition="python: not upgrade['done'] and not upgrade['proposed']"
+                                     tal:attributes="src string:$portal_url/delete_icon.png"
+                                     title="Something is wrong with this Upgrade step. This upgrade steps seems not to be installed but is not proposed. The target version may be newer than the filesystem profile version."
+                                     i18n:attributes="title" />
                             </span>
 
                             <span class="upgrade-version">

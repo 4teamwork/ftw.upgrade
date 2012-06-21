@@ -59,20 +59,21 @@ class UpgradeInformationGatherer(object):
         proposed_ids = set()
         upgrades = []
 
-        for upgrade in flatten_upgrades(
-            self.portal_setup.listUpgrades(profileid)):
-            upgrade = upgrade.copy()
-            upgrades.append(upgrade)
+        proposed_upgrades = list(flatten_upgrades(
+                self.portal_setup.listUpgrades(profileid)))
+        all_upgrades = list(flatten_upgrades(
+                self.portal_setup.listUpgrades(profileid, show_old=True)))
+
+        for upgrade in proposed_upgrades:
             proposed_ids.add(upgrade['id'])
 
-        for upgrade in flatten_upgrades(
-            self.portal_setup.listUpgrades(profileid, show_old=True)):
-            if upgrade['id'] in proposed_ids:
-                continue
-
+        for upgrade in all_upgrades:
             upgrade = upgrade.copy()
-            upgrade['proposed'] = False
-            upgrade['done'] = True
+
+            if upgrade['id'] not in proposed_ids:
+                upgrade['proposed'] = False
+                upgrade['done'] = True
+
             upgrades.append(upgrade)
 
         return upgrades

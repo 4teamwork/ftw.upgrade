@@ -37,11 +37,16 @@
 
     $('#upgrade-form').live('submit', function(e) {
         $(this).hide();
+        $('#back-to-upgrades').show();
 
         var height = ($('#portal-column-one').height() -
                       $('#portal-column-content').height());
         $('#upgrade-output').show();
         $('#upgrade-output').css('height', height);
+    });
+
+    $('#back-to-upgrades').live('click', function(e) {
+        location.reload();
     });
 
 })(jQuery);

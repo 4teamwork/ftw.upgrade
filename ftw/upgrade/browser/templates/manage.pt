@@ -135,10 +135,14 @@
                 </div>
             </div>
 
-            <input type="submit" name="submitted" value="Install" />
+            <input type="submit" name="submitted" value="Install"
+                   i18n:attributes="value" />
+
         </form>
 
         <iframe name="upgrade-output" id="upgrade-output"></iframe>
+        <input type="button" id="back-to-upgrades"
+               value="Back" i18n:attributes="value" />
 
     </div>
 </html>

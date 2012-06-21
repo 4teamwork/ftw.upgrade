@@ -59,3 +59,7 @@
   display: none;
   overflow: visible;
 }
+
+#back-to-upgrades {
+  display: none;
+}

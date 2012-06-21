@@ -1,0 +1,79 @@
+# --- PLEASE EDIT THE LINES BELOW CORRECTLY ---
+# SOME DESCRIPTIVE TITLE.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2012-06-21 07:39+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0\n"
+"Language-Code: en\n"
+"Language-Name: English\n"
+"Preferred-Encodings: utf-8 latin1\n"
+"Domain: ftw.upgrade\n"
+
+#: ./ftw/upgrade/browser/templates/manage.pt:149
+msgid "Back"
+msgstr ""
+
+#: ./ftw/upgrade/browser/templates/manage.pt:143
+msgid "Install"
+msgstr ""
+
+#: ./ftw/upgrade/browser/templates/manage.pt:67
+msgid "Select none"
+msgstr ""
+
+#: ./ftw/upgrade/browser/templates/manage.pt:72
+msgid "Select not installed"
+msgstr ""
+
+#: ./ftw/upgrade/browser/templates/manage.pt:120
+msgid "Something is wrong with this Upgrade step. This upgrade steps seems not to be installed but is not proposed. The target version may be newer than the filesystem profile version."
+msgstr ""
+
+#: ./ftw/upgrade/browser/templates/manage.pt:49
+msgid "The site configuration is outdated and needs to be upgraded! Upgrading add-ons is disabled while plone is outdated. <br /> ${continue_upgrade_link}"
+msgstr ""
+
+#: ./ftw/upgrade/browser/templates/manage.pt:115
+msgid "This upgrade is already installed."
+msgstr ""
+
+#: ./ftw/upgrade/browser/templates/manage.pt:110
+msgid "This upgrade is not installed yet."
+msgstr ""
+
+#: ./ftw/upgrade/browser/templates/manage.pt:43
+msgid "Upgrade Plone"
+msgstr ""
+
+#: ./ftw/upgrade/profiles/default/controlpanel.xml
+msgid "Upgrades"
+msgstr ""
+
+#. Default: "Please continue with the upgrade."
+#: ./ftw/upgrade/browser/templates/manage.pt:49
+msgid "continue_upgrade_link"
+msgstr ""
+
+#. Default: "This view lists all profiles with at least one upgrade. Profiles which are not yet installed are not listed. Upgrades which are already installed are hidden by default, click on the profile title to show them."
+#: ./ftw/upgrade/browser/templates/manage.pt:32
+msgid "description_manage_upgrades"
+msgstr ""
+
+#. Default: "Filesystem: ${fs_version}, Database: ${db_version}"
+#: ./ftw/upgrade/browser/templates/manage.pt:92
+msgid "label_installed_version"
+msgstr ""
+
+#. Default: "Upgrades"
+#: ./ftw/upgrade/browser/templates/manage.pt:21
+msgid "title_manage_upgrades"
+msgstr ""
+

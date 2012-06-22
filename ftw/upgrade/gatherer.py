@@ -1,5 +1,6 @@
 from Products.GenericSetup.interfaces import ISetupTool
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.utils import topological_sort
 from zope.component import adapts
 from zope.interface import implements
 
@@ -26,8 +27,7 @@ class UpgradeInformationGatherer(object):
         self.portal_setup = portal_setup
 
     def get_upgrades(self):
-        return sorted(self._get_profiles(),
-                      key=lambda item: item.get('product'))
+        return self._sort_profiles_by_dependencies(self._get_profiles())
 
     def _get_profiles(self):
         for profileid in self.portal_setup.listProfilesWithUpgrades():
@@ -81,3 +81,28 @@ class UpgradeInformationGatherer(object):
     def _is_profile_installed(self, profileid):
         version = self.portal_setup.getLastVersionForProfile(profileid)
         return version != 'unknown'
+
+    def _sort_profiles_by_dependencies(self, profiles):
+        """Sort the profiles so that the profiles are listed after its
+        dependencies since it is safer to first install dependencies.
+        """
+
+        profiles = list(self._get_profiles())
+        ids = []
+        dependencies = []
+
+        for profile in profiles:
+            ids.append(profile['id'])
+
+        for profile in profiles:
+            if not profile.get('dependencies'):
+                continue
+
+            for dependency in profile.get('dependencies'):
+                if dependency not in ids:
+                    continue
+
+                dependencies.append((dependency, profile['id']))
+
+        order = topological_sort(ids, dependencies)
+        return sorted(profiles, key=lambda p: order.index(p.get('id')))

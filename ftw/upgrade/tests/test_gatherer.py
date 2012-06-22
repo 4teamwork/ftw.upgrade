@@ -25,15 +25,29 @@ def generate_id():
             return id_
 
 
-def simplify_data(data):
+def simplify_data(data, keep_order=False, profile_only=False):
     """Simplifies the get_upgrades return value for easy comparison.
     """
 
-    simple_data = {}
+    if keep_order:
+        simple_data = []
+    else:
+        simple_data = {}
+
     for profile in data:
         proposed = []
         done = []
-        simple_data[profile['id']] = {'proposed': proposed, 'done': done}
+
+        if profile_only:
+            assert keep_order
+            simple_data.append(profile['id'])
+            continue
+
+        if keep_order:
+            simple_data.append(
+                [profile['id'], {'proposed': proposed, 'done': done}])
+        else:
+            simple_data[profile['id']] = {'proposed': proposed, 'done': done}
 
         for upgrade in profile['upgrades']:
             if upgrade['proposed']:
@@ -82,7 +96,8 @@ class TestUpgradeInformationGatherer(MockTestCase):
         self._upgrades = None
 
     def mock_profile(self, profileid, version, title=None,
-                     db_version=None, installed=True):
+                     db_version=None, installed=True,
+                     dependencies=None):
         product = profileid.split(':')[0]
 
         data = {
@@ -95,6 +110,7 @@ class TestUpgradeInformationGatherer(MockTestCase):
             'for': None,
             'type': 2,
             'path': None,
+            'dependencies': dependencies,
             }
         self._profiles[profileid] = data
 
@@ -209,3 +225,27 @@ class TestUpgradeInformationGatherer(MockTestCase):
 
         gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
         self.assertEqual(gatherer.get_upgrades(), [])
+
+    def test_dependency_ordering(self):
+        self.mock_profile('foo:default', '1.2', db_version='1.0',
+                          dependencies=['bar:default', 'baz:default'])
+        self.mock_upgrade('foo:default', '1.0', '1.1', 'foo1')
+
+        self.mock_profile('bar:default', '1.1', db_version='1.0',
+                          dependencies=['baz:default', 'missing:default'])
+        self.mock_upgrade('bar:default', '1.0', '1.1', 'bar1')
+
+        self.mock_profile('baz:default', '1.1', db_version='1.0')
+        self.mock_upgrade('baz:default', '1.0', '1.1', 'baz1')
+
+        self.replay()
+
+        gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
+        data = gatherer.get_upgrades()
+        self.assertNotEqual(data, [])
+
+        simple = simplify_data(data, keep_order=True,
+                               profile_only=True)
+        self.assertEqual(simple, ['baz:default',
+                                  'bar:default',
+                                  'foo:default'])

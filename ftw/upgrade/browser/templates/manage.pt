@@ -58,9 +58,22 @@
         <form
             tal:condition="not:plone_needs_upgrading"
             tal:attributes="action string:${context/absolute_url}/@@manage-upgrades?ajax=1"
+            tal:define="profiles view/get_data;
+                        cyclic view/cyclic_dependencies"
             method="post"
             target="upgrade-output"
             id="upgrade-form">
+
+            <tal:CYCLIC
+                tal:condition="plone_needs_upgrading">
+                <dl class="portalMessage warning">
+                    <dt i18n:translate="">Cyclic dependencies</dt>
+                    <dd i18n:translate="">
+                        There are cicly dependencies.
+                        The profiles could not be sorted by dependencies!
+                    </dd>
+                </dl>
+            </tal:CYCLIC>
 
             <div class="selection-control">
                 <span>
@@ -78,7 +91,7 @@
 
             <div class="profiles">
                 <div class="profile hide-done"
-                     tal:repeat="profile view/get_data">
+                     tal:repeat="profile profiles">
 
                     <input type="hidden"
                            name="upgrade.profileid:records"

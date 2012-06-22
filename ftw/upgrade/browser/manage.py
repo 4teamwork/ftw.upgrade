@@ -1,4 +1,5 @@
 from Products.CMFCore.utils import getToolByName
+from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from zope.component import getAdapter
@@ -30,6 +31,10 @@ class ResponseLogger(object):
 
 
 class ManageUpgrades(BrowserView):
+
+    def __init__(self, *args, **kwargs):
+        super(ManageUpgrades, self).__init__(*args, **kwargs)
+        self.cyclic_dependencies = False
 
     def __call__(self):
         if self.request.get('submitted', False):
@@ -77,7 +82,11 @@ class ManageUpgrades(BrowserView):
     def get_data(self):
         gstool = getToolByName(self.context, 'portal_setup')
         gatherer = getAdapter(gstool, IUpgradeInformationGatherer)
-        return gatherer.get_upgrades()
+        try:
+            return gatherer.get_upgrades()
+        except CyclicDependencies, exc:
+            self.cyclic_dependencies = True
+            return exc.dependencies
 
     def plone_needs_upgrading(self):
         portal_migration = getToolByName(self.context, 'portal_migration')

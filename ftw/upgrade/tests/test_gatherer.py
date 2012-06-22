@@ -1,5 +1,6 @@
 from Products.GenericSetup.interfaces import ISetupTool
 from ftw.testing import MockTestCase
+from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.gatherer import UpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.testing import ZCML_LAYER
@@ -70,7 +71,11 @@ class TestUpgradeInformationGatherer(MockTestCase):
         self._upgrades = {}
 
         self.expect(self.setup_tool.listProfilesWithUpgrades()).call(
-            lambda: self._profiles.keys())
+            lambda: [key for key, value in self._profiles.items()
+                     if key in self._upgrades])
+
+        self.expect(self.setup_tool.listProfileInfo()).call(
+            lambda: self._profiles.values())
 
         self.expect(self.setup_tool.getProfileInfo(ANY)).call(
             lambda id_: id_ in self._profiles and self._profiles[id_])
@@ -227,16 +232,21 @@ class TestUpgradeInformationGatherer(MockTestCase):
         self.assertEqual(gatherer.get_upgrades(), [])
 
     def test_dependency_ordering(self):
-        self.mock_profile('foo:default', '1.2', db_version='1.0',
-                          dependencies=['bar:default', 'baz:default'])
-        self.mock_upgrade('foo:default', '1.0', '1.1', 'foo1')
-
-        self.mock_profile('bar:default', '1.1', db_version='1.0',
-                          dependencies=['baz:default', 'missing:default'])
-        self.mock_upgrade('bar:default', '1.0', '1.1', 'bar1')
-
         self.mock_profile('baz:default', '1.1', db_version='1.0')
         self.mock_upgrade('baz:default', '1.0', '1.1', 'baz1')
+
+        self.mock_profile('foo:default', '1.2', db_version='1.0',
+                          dependencies=['profile-bar:default',
+                                        'profile-baz:default'])
+        self.mock_upgrade('foo:default', '1.0', '1.1', 'foo1')
+
+        self.mock_profile('subbar:default', '1.1', db_version='1.0',
+                          dependencies=['profile-baz:default'])
+
+        self.mock_profile('bar:default', '1.1', db_version='1.0',
+                          dependencies=['profile-subbar:default',
+                                        'profile-missing:default'])
+        self.mock_upgrade('bar:default', '1.0', '1.1', 'bar1')
 
         self.replay()
 
@@ -248,4 +258,26 @@ class TestUpgradeInformationGatherer(MockTestCase):
                                profile_only=True)
         self.assertEqual(simple, ['baz:default',
                                   'bar:default',
+                                  'foo:default'])
+
+    def test_cyclic_dependencies_raise_exception(self):
+        self.mock_profile('foo:default', '1.2', db_version='1.0',
+                          dependencies=['profile-bar:default'])
+        self.mock_upgrade('foo:default', '1.0', '1.1', 'foo1')
+
+        self.mock_profile('bar:default', '1.1', db_version='1.0',
+                          dependencies=['profile-foo:default'])
+        self.mock_upgrade('bar:default', '1.0', '1.1', 'bar1')
+
+        self.replay()
+
+        gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
+        with self.assertRaises(CyclicDependencies) as cm:
+            gatherer.get_upgrades()
+
+        data = cm.exception.dependencies
+        simple = simplify_data(data, keep_order=True,
+                               profile_only=True)
+
+        self.assertEqual(simple, ['bar:default',
                                   'foo:default'])

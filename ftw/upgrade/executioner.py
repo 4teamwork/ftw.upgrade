@@ -33,9 +33,8 @@ class Executioner(object):
 
     def _do_upgrade(self, profileid, upgradeid):
         step = _upgrade_registry.getUpgradeStep(profileid, upgradeid)
-        if step is not None:
-            step.doStep(self.portal_setup)
-            msg = "Ran upgrade step %s for profile %s" % (
-                step.title, profileid)
-            logger.log(logging.INFO, msg)
+        step.doStep(self.portal_setup)
+        msg = "Ran upgrade step %s for profile %s" % (
+            step.title, profileid)
+        logger.log(logging.INFO, msg)
         return step.dest

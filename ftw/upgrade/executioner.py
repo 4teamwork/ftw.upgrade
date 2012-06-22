@@ -18,7 +18,7 @@ class Executioner(object):
         self.portal_setup = portal_setup
 
     def install(self, data):
-        for profileid, upgradeids in data.items():
+        for profileid, upgradeids in data:
             self._upgrade_profile(profileid, upgradeids)
 
     def _upgrade_profile(self, profileid, upgradeids):

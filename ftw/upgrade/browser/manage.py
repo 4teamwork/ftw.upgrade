@@ -69,7 +69,7 @@ class ManageUpgrades(BrowserView):
         response.setHeader('Transfer-Encoding', 'chunked')
         response.write('<html>')
         response.write('<body>')
-        response.write('  ' * response.http_chunk_size)
+        response.write('  ' * getattr(response, 'http_chunk_size', 100))
         response.write('<pre>')
 
         with ResponseLogger(self.request.RESPONSE):
@@ -97,17 +97,30 @@ class ManageUpgrades(BrowserView):
         is a list of upgrade ids.
         """
 
-        data = self.request.get('upgrade', None)
-        if not data:
-            return {}
-
-        upgrades = {}
-        for item in data:
+        data = {}
+        for item in self.request.get('upgrade', []):
             item = dict(item)
             profileid = item['profileid']
             del item['profileid']
 
             if item:
-                upgrades[profileid] = item.keys()
+                data[profileid] = item.keys()
+
+        upgrades = []
+
+        for profile in self.get_data():
+            if profile.get('id') not in data:
+                continue
+
+            profile_data = data[profile.get('id')]
+            if not profile.get('upgrades', []):
+                continue
+
+            profile_upgrades = []
+            upgrades.append((profile.get('id'), profile_upgrades))
+
+            for upgrade in profile.get('upgrades', []):
+                if upgrade.get('id') in profile_data:
+                    profile_upgrades.append(upgrade.get('id'))
 
         return upgrades

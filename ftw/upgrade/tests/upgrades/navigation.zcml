@@ -1,0 +1,14 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="ftw.upgrade">
+
+    <genericsetup:upgradeStep
+        profile="ftw.upgrade.tests.profiles:navigation-index"
+        source="1"
+        destination="2"
+        title="Change exclude from navigation index name"
+        handler=".navigation.UpdateNavigationIndex"
+        />
+
+</configure>

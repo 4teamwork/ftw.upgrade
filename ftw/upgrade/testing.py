@@ -35,6 +35,10 @@ class FtwUpgradeLayer(PloneSandboxLayer):
         xmlconfig.file('configure.zcml', ftw.upgrade.tests.profiles,
                        context=configurationContext)
 
+        import ftw.upgrade.tests.upgrades
+        xmlconfig.file('navigation.zcml', ftw.upgrade.tests.upgrades,
+                       context=configurationContext)
+
     def setUpPloneSite(self, portal):
         applyProfile(portal, 'ftw.upgrade:default')
 

@@ -1,10 +1,13 @@
+from Products.CMFCore.utils import getToolByName
 from StringIO import StringIO
 from ftw.upgrade.browser.manage import ResponseLogger
+from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
 from plone.app.testing import TEST_USER_NAME, TEST_USER_PASSWORD
 from plone.testing.z2 import Browser
 from unittest2 import TestCase
 import logging
+import transaction
 
 
 class TestResponseLogger(TestCase):
@@ -48,3 +51,17 @@ class TestManageUpgrades(TestCase):
                          self.portal_url + '/@@overview-controlpanel')
 
         self.assertIn('plone.app.discussion:default', self.browser.contents)
+
+    def test_install(self):
+        profileid = 'ftw.upgrade.tests.profiles:navigation-index'
+        portal_setup = getToolByName(self.layer['portal'], 'portal_setup')
+        portal_setup.runAllImportStepsFromProfile(
+            'profile-%s' % profileid,
+            purge_old=False)
+        transaction.commit()
+
+        self.browser.open(self.portal_url + '/@@manage-upgrades')
+        self.assertIn('ftw.upgrade.tests.profiles:navigation-index',
+                      self.browser.contents)
+
+        self.browser.getControl(name='submitted').click()

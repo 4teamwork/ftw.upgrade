@@ -52,8 +52,7 @@ class TestExecutioner(TestCase):
         id_ = upgrades[0]['id']
 
         executioner = queryAdapter(setup_tool, IExecutioner)
-        executioner.install({
-                profileid: [id_]})
+        executioner.install([(profileid, [id_])])
 
         self.assertNotEqual(queryUtility(IFoo), None)
         self.assertEqual(

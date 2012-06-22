@@ -40,7 +40,9 @@ class UpgradeStep(object):
         catalog = self.getToolByName('portal_catalog')
         LOG.info("Reindexing index %s" % name)
 
+        # pylint: disable=W0212
         pgthreshold = catalog._getProgressThreshold() or 100
+        # pylint: enable=W0212
         pghandler = ZLogHandler(pgthreshold)
         catalog.reindexIndex(name, None, pghandler=pghandler)
 
@@ -90,13 +92,13 @@ class UpgradeStep(object):
         actions = []
         found = False
 
-        for action in fti._actions:
+        for action in fti._actions:  # pylint: disable=W0212
             if action.id != action_id:
                 actions.append(action)
             else:
                 found = True
 
-        fti._actions = tuple(actions)
+        fti._actions = tuple(actions)  # pylint: disable=W0212
         return found
 
     def set_property(self, context, key, value, data_type='string'):
@@ -106,9 +108,9 @@ class UpgradeStep(object):
         """
 
         if context.hasProperty(key):
-            context._updateProperty(key, value)
+            context._updateProperty(key, value)  # pylint: disable=W0212
         else:
-            context._setProperty(key, value, data_type)
+            context._setProperty(key, value, data_type)  # pylint: disable=W0212
 
     def add_lines_to_property(self, context, key, lines):
         """Updates a property with key ``key`` on the object ``context``

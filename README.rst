@@ -125,6 +125,45 @@ The ``UpgradeStep`` class has various helper functions:
     ``portal_javascripts`` and ``portal_kss``.
 
 
+Progress logger
+===============
+
+When doing a long lasting migration on a bunch of objects it is useful for
+the administrator to have information about the progress of the update.
+It is also important to have constant output for avoiding proxy timeouts when
+accessing Zope through a webserver / proxy.
+
+With the ``ProgressLogger`` context manager it is very easy to log the
+progress::
+
+    >>> from ftw.upgrade import ProgressLogger
+    >>> from ftw.upgrade import UpgradeStep
+    >>>
+    >>> class MyUpgrade(UpgradeStep):
+    ...
+    ...    def __call__(self):
+    ...        catalog = self.getToolByName('portal_catalog')
+    ...        brains = catalog('MyType')
+    ...
+    ...        with ProgressLogger('Migrate MyType', brains) as step:
+    ...            for brain in brains:
+    ...                self.upgrade_obj(brain.getObject())
+    ...                step()
+    ...
+    ...    def upgrade_obj(self, obj):
+    ...        do_something_with(obj)
+
+
+The logger will log the current progress every 5 seconds (default).
+Example log output::
+
+    INFO ftw.upgrade STARTING Migrate MyType
+    INFO ftw.upgrade 1 of 10 (10%): Migrate MyType
+    INFO ftw.upgrade 5 of 50 (50%): Migrate MyType
+    INFO ftw.upgrade 10 of 10 (100%): Migrate MyType
+    INFO ftw.upgrade DONE: Migrate MyType
+
+
 Links
 =====
 

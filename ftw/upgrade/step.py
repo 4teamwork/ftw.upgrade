@@ -107,10 +107,12 @@ class UpgradeStep(object):
         type ``data_type`` if it does not exist.
         """
 
+        # pylint: disable=W0212
         if context.hasProperty(key):
-            context._updateProperty(key, value)  # pylint: disable=W0212
+            context._updateProperty(key, value)
         else:
-            context._setProperty(key, value, data_type)  # pylint: disable=W0212
+            context._setProperty(key, value, data_type)
+        # pylint: enable=W0212
 
     def add_lines_to_property(self, context, key, lines):
         """Updates a property with key ``key`` on the object ``context``

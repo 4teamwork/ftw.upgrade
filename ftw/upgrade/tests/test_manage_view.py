@@ -1,7 +1,24 @@
+from StringIO import StringIO
+from ftw.upgrade.browser.manage import ResponseLogger
 from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
 from plone.app.testing import TEST_USER_NAME, TEST_USER_PASSWORD
 from plone.testing.z2 import Browser
 from unittest2 import TestCase
+import logging
+
+
+class TestResponseLogger(TestCase):
+
+    def test_logging(self):
+        response = StringIO()
+
+        with ResponseLogger(response):
+            logging.error('foo')
+            logging.error('bar')
+
+        response.seek(0)
+        self.assertEqual(response.read().strip().split('\n'),
+                         ['foo', u'bar'])
 
 
 class TestManageUpgrades(TestCase):

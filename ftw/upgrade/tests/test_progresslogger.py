@@ -20,13 +20,11 @@ class TestProgressLogger(TestCase):
         return self.log.read().strip().split('\n')
 
     def test_succeeding_logging(self):
-        timeout = 0.01
-
         with ProgressLogger('Foo', 5, logger=self.logger,
-                            timeout=timeout) as step:
+                            timeout=0.01) as step:
             for i in range(5):
                 step()
-                sleep(timeout / 2)
+                sleep(0.005)
 
         self.assertEqual(self.read_log(), [
                 'STARTING Foo',

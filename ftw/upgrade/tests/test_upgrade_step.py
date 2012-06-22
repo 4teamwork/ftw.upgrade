@@ -214,13 +214,6 @@ class TestUpgradeStep(TestCase):
                 csstool = self.getToolByName('portal_css')
                 ksstool = self.getToolByName('portal_kss')
 
-                testcase.assertNotEqual(
-                    len(jstool.concatenatedResourcesByTheme), 0)
-                testcase.assertNotEqual(
-                    len(csstool.concatenatedResourcesByTheme), 0)
-                testcase.assertNotEqual(
-                    len(ksstool.concatenatedResourcesByTheme), 0)
-
                 self.purge_resource_registries()
 
                 testcase.assertEqual(

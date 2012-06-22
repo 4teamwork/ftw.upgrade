@@ -179,6 +179,11 @@ class TestUpgradeStep(TestCase):
                 testcase.assertEqual(self.portal.getProperty(key),
                                      ('foo', 'bar', 'baz'))
 
+                self.portal.manage_delProperties([key])
+                self.add_lines_to_property(self.portal, key, ['foo', 'bar'])
+                testcase.assertEqual(self.portal.getProperty(key),
+                                     ('foo', 'bar'))
+
         Step.upgrade(self.portal_setup)
 
     def test_setup_install_profile(self):
@@ -189,6 +194,13 @@ class TestUpgradeStep(TestCase):
                 testcase.assertFalse(self.catalog_has_index('excludeFromNav'))
                 self.setup_install_profile(
                     'profile-ftw.upgrade.tests.profiles:navigation-index')
+                testcase.assertTrue(self.catalog_has_index('excludeFromNav'))
+
+                self.catalog_remove_index('excludeFromNav')
+                testcase.assertFalse(self.catalog_has_index('excludeFromNav'))
+                self.setup_install_profile(
+                    'profile-ftw.upgrade.tests.profiles:navigation-index',
+                    ['catalog'])
                 testcase.assertTrue(self.catalog_has_index('excludeFromNav'))
 
         Step.upgrade(self.portal_setup)
@@ -202,14 +214,20 @@ class TestUpgradeStep(TestCase):
                 csstool = self.getToolByName('portal_css')
                 ksstool = self.getToolByName('portal_kss')
 
-                testcase.assertNotEqual(len(jstool.concatenatedResourcesByTheme), 0)
-                testcase.assertNotEqual(len(csstool.concatenatedResourcesByTheme), 0)
-                testcase.assertNotEqual(len(ksstool.concatenatedResourcesByTheme), 0)
+                testcase.assertNotEqual(
+                    len(jstool.concatenatedResourcesByTheme), 0)
+                testcase.assertNotEqual(
+                    len(csstool.concatenatedResourcesByTheme), 0)
+                testcase.assertNotEqual(
+                    len(ksstool.concatenatedResourcesByTheme), 0)
 
                 self.purge_resource_registries()
 
-                testcase.assertEqual(len(jstool.concatenatedResourcesByTheme), 0)
-                testcase.assertEqual(len(csstool.concatenatedResourcesByTheme), 0)
-                testcase.assertEqual(len(ksstool.concatenatedResourcesByTheme), 0)
+                testcase.assertEqual(
+                    len(jstool.concatenatedResourcesByTheme), 0)
+                testcase.assertEqual(
+                    len(csstool.concatenatedResourcesByTheme), 0)
+                testcase.assertEqual(
+                    len(ksstool.concatenatedResourcesByTheme), 0)
 
         Step.upgrade(self.portal_setup)

@@ -119,9 +119,7 @@ class UpgradeStep(object):
         """
 
         if context.hasProperty(key):
-            data = getattr(context, key)
-            if isinstance(data, tuple):
-                data = list(data)
+            data = list(getattr(context, key))
 
             if isinstance(lines, (list, tuple)):
                 data.extend(lines)

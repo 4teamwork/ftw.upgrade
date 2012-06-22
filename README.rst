@@ -32,6 +32,15 @@ Add ``ftw.upgrade`` to the eggs section of your buildout configuration::
 - Install the generic setup profile of ``ftw.upgrade``.
 
 
+Manage upgrades
+===============
+
+The ``@@manage-upgrades`` view allows to upgrade multiple packages at once::
+
+.. image:: https://github.com/4teamwork/ftw.upgrade/raw/master/docs/manage-upgrades.png
+
+
+
 Upgrade step helpers
 ====================
 

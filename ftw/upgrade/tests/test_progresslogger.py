@@ -24,7 +24,7 @@ class TestProgressLogger(TestCase):
                             timeout=0.01) as step:
             for i in range(5):
                 step()
-                sleep(0.005)
+                sleep(0.006)
 
         self.assertEqual(self.read_log(), [
                 'STARTING Foo',

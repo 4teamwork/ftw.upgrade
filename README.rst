@@ -1,21 +1,21 @@
 Introduction
 ============
 
-This product aims to simplify running and writing third-party generic setup
-upgrade steps.
+This product aims to simplify running and writing third-party Generic Setup
+upgrade steps in Plone.
 
-It provides a view in the plone control panel for running multiple upgrades
-at once, based on the upgrade mechanism of generic setup (portal_setup).
+It provides a control panel for running multiple upgrades
+at once, based on the upgrade mechanism of Generic Setup (portal_setup).
 
-It also provides a base class for writing upgrade steps with variety of
-helpers for common tasks.
+Further a base class for writing upgrade steps with variety of
+helpers for common tasks is provided.
 
 
 Features
 ========
 
-* **Managing upgrades**: It provides an advanced view for upgrading
-  third-party plone packages using Generic Setup.
+* **Managing upgrades**: Provides an advanced view for upgrading
+  third-party Plone packages using Generic Setup.
   It allows to upgrade multiple packages at once with an easy to use user
   interface.
 
@@ -26,17 +26,15 @@ Features
 Installation
 ============
 
-- For using the upgrade view install the ``ftw.upgrade`` using buildout.
-  Add ``ftw.upgrade`` to the eggs section of your buildout configuration
-  and run bin/buildout::
+- Install ``ftw.upgrade`` by adding it to the list of eggs in your buildout.
+  Then run buildout and restart your instance::
 
     [instance]
     eggs +=
         ftw.upgrade
 
 
-- Install the generic setup profile of ``ftw.upgrade``, which registers the
-  upgrade view to the plone control panel.
+- Go to Site Setup of your Plone site and activate the ``ftw.upgrade`` add-on.
 
 
 Manage upgrades

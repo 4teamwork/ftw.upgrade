@@ -5,4 +5,5 @@ Changelog
 1.0b1 (unreleased)
 ------------------
 
-- Initial release
+- First implementation.
+  [jone]

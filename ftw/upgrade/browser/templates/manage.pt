@@ -69,7 +69,7 @@
                 <dl class="portalMessage warning">
                     <dt i18n:translate="">Cyclic dependencies</dt>
                     <dd i18n:translate="">
-                        There are cicly dependencies.
+                        There are cyclic dependencies.
                         The profiles could not be sorted by dependencies!
                     </dd>
                 </dl>

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-06-21 07:39+0000\n"
+"POT-Creation-Date: 2012-06-26 06:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -12,23 +12,27 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: DOMAIN\n"
 
-#: ./ftw/upgrade/browser/templates/manage.pt:149
+#: ./ftw/upgrade/browser/templates/manage.pt:162
 msgid "Back"
 msgstr "Zurück"
 
-#: ./ftw/upgrade/browser/templates/manage.pt:143
+#: ./ftw/upgrade/browser/templates/manage.pt:70
+msgid "Cyclic dependencies"
+msgstr "Zyklische Abhängigkeiten"
+
+#: ./ftw/upgrade/browser/templates/manage.pt:156
 msgid "Install"
 msgstr "Installieren"
 
-#: ./ftw/upgrade/browser/templates/manage.pt:67
+#: ./ftw/upgrade/browser/templates/manage.pt:80
 msgid "Select none"
 msgstr "Keine auswählen"
 
-#: ./ftw/upgrade/browser/templates/manage.pt:72
+#: ./ftw/upgrade/browser/templates/manage.pt:85
 msgid "Select not installed"
 msgstr "Vorgeschlagene auswählen"
 
-#: ./ftw/upgrade/browser/templates/manage.pt:120
+#: ./ftw/upgrade/browser/templates/manage.pt:133
 msgid "Something is wrong with this Upgrade step. This upgrade steps seems not to be installed but is not proposed. The target version may be newer than the filesystem profile version."
 msgstr "Dieser Upgrade-Step scheint falsch zu sein. Er ist nicht installiert, wird aber auch nicht vorgeschlagen. Die Zielversion ist möglicherweise neuer als die Dateisystem Version des Profils."
 
@@ -36,11 +40,15 @@ msgstr "Dieser Upgrade-Step scheint falsch zu sein. Er ist nicht installiert, wi
 msgid "The site configuration is outdated and needs to be upgraded! Upgrading add-ons is disabled while plone is outdated. <br /> ${continue_upgrade_link}"
 msgstr "Die Plone-Seite ist nicht mehr aktuell! Bitte aktualisieren Sie zuerst Plone.<br />${continue_upgrade_link}"
 
-#: ./ftw/upgrade/browser/templates/manage.pt:115
+#: ./ftw/upgrade/browser/templates/manage.pt:71
+msgid "There are cyclic dependencies. The profiles could not be sorted by dependencies!"
+msgstr "Wegen zyklischen Abhängigkeiten zwischen den Profilen konnten die Profile nicht nach Abhängigkeiten sortiert werden."
+
+#: ./ftw/upgrade/browser/templates/manage.pt:128
 msgid "This upgrade is already installed."
 msgstr "Dieses Upgrade ist bereits installiert."
 
-#: ./ftw/upgrade/browser/templates/manage.pt:110
+#: ./ftw/upgrade/browser/templates/manage.pt:123
 msgid "This upgrade is not installed yet."
 msgstr "Dieses Upgrade ist noch nicht installiert und wird für die Installation vorgeschlagen."
 
@@ -63,7 +71,7 @@ msgid "description_manage_upgrades"
 msgstr "Diese Ansicht listet alle Profile auf, die Aktualisierungen anbieten. Add-ons, die nicht installiert sind werden nicht aufgelistet. Installierte Aktualisierungen werden versteckt - klicken Sie auf den Profil-Titel um sie anzuzeigen."
 
 #. Default: "Filesystem: ${fs_version}, Database: ${db_version}"
-#: ./ftw/upgrade/browser/templates/manage.pt:92
+#: ./ftw/upgrade/browser/templates/manage.pt:105
 msgid "label_installed_version"
 msgstr "Dateisystem: ${fs_version}, Datenbank: ${db_version}"
 

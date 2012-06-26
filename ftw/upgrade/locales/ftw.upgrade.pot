@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-06-21 07:39+0000\n"
+"POT-Creation-Date: 2012-06-26 06:55+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,23 +17,27 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: ftw.upgrade\n"
 
-#: ./ftw/upgrade/browser/templates/manage.pt:149
+#: ./ftw/upgrade/browser/templates/manage.pt:162
 msgid "Back"
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:143
+#: ./ftw/upgrade/browser/templates/manage.pt:70
+msgid "Cyclic dependencies"
+msgstr ""
+
+#: ./ftw/upgrade/browser/templates/manage.pt:156
 msgid "Install"
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:67
+#: ./ftw/upgrade/browser/templates/manage.pt:80
 msgid "Select none"
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:72
+#: ./ftw/upgrade/browser/templates/manage.pt:85
 msgid "Select not installed"
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:120
+#: ./ftw/upgrade/browser/templates/manage.pt:133
 msgid "Something is wrong with this Upgrade step. This upgrade steps seems not to be installed but is not proposed. The target version may be newer than the filesystem profile version."
 msgstr ""
 
@@ -41,11 +45,15 @@ msgstr ""
 msgid "The site configuration is outdated and needs to be upgraded! Upgrading add-ons is disabled while plone is outdated. <br /> ${continue_upgrade_link}"
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:115
+#: ./ftw/upgrade/browser/templates/manage.pt:71
+msgid "There are cyclic dependencies. The profiles could not be sorted by dependencies!"
+msgstr ""
+
+#: ./ftw/upgrade/browser/templates/manage.pt:128
 msgid "This upgrade is already installed."
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:110
+#: ./ftw/upgrade/browser/templates/manage.pt:123
 msgid "This upgrade is not installed yet."
 msgstr ""
 
@@ -68,7 +76,7 @@ msgid "description_manage_upgrades"
 msgstr ""
 
 #. Default: "Filesystem: ${fs_version}, Database: ${db_version}"
-#: ./ftw/upgrade/browser/templates/manage.pt:92
+#: ./ftw/upgrade/browser/templates/manage.pt:105
 msgid "label_installed_version"
 msgstr ""
 

@@ -145,10 +145,9 @@ The ``UpgradeStep`` class has various helper functions:
 Progress logger
 ===============
 
-When doing a long lasting migration on a bunch of objects it is useful for
-the administrator to have information about the progress of the update.
-It is also important to have constant output for avoiding proxy timeouts when
-accessing Zope through a webserver / proxy.
+When an upgrade step is taking a long time to complete (e.g. while performing a data migration), the 
+administrator needs to have information about the progress of the update. It is also important to have 
+continuous output for avoiding proxy timeouts when accessing Zope through a webserver / proxy.
 
 With the ``ProgressLogger`` context manager it is very easy to log the
 progress::

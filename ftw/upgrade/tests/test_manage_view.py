@@ -1,7 +1,6 @@
 from Products.CMFCore.utils import getToolByName
 from StringIO import StringIO
 from ftw.upgrade.browser.manage import ResponseLogger
-from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
 from plone.app.testing import TEST_USER_NAME, TEST_USER_PASSWORD
 from plone.testing.z2 import Browser

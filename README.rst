@@ -26,8 +26,9 @@ Features
 Installation
 ============
 
-For using the upgrade view install the ``ftw.upgrade`` using buildout.
-Add ``ftw.upgrade`` to the eggs section of your buildout configuration::
+- For using the upgrade view install the ``ftw.upgrade`` using buildout.
+  Add ``ftw.upgrade`` to the eggs section of your buildout configuration
+  and run bin/buildout::
 
     [instance]
     eggs +=

@@ -4,8 +4,10 @@ import os
 version = '1.0b1dev'
 
 tests_require = [
-    'plone.app.testing',
     'ftw.testing',
+    'mocker',
+    'plone.app.testing',
+    'plone.testing',
     ]
 
 setup(name='ftw.upgrade',
@@ -38,8 +40,13 @@ setup(name='ftw.upgrade',
 
       install_requires=[
         'setuptools',
+        'Products.CMFCore',
+        'Products.GenericSetup',
+        'Products.ZCatalog',
         'plone.browserlayer',
-        'Plone',
+        'zope.component',
+        'zope.interface',
+        'zope.publisher',
         ],
 
       tests_require=tests_require,

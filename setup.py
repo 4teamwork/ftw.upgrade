@@ -8,6 +8,9 @@ tests_require = [
     'mocker',
     'plone.app.testing',
     'plone.testing',
+    'zope.configuration',
+    'unittest2',
+    'transaction',
     ]
 
 setup(name='ftw.upgrade',

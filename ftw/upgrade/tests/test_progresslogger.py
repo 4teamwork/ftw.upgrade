@@ -2,7 +2,7 @@ from StringIO import StringIO
 from ftw.upgrade.progresslogger import ProgressLogger
 from time import sleep
 from unittest2 import TestCase
-import  logging
+import logging
 
 
 class TestProgressLogger(TestCase):

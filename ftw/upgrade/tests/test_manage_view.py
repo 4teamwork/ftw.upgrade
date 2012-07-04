@@ -59,8 +59,19 @@ class TestManageUpgrades(TestCase):
             purge_old=False)
         transaction.commit()
 
+        catalog = getToolByName(self.layer['portal'], 'portal_catalog')
+        self.assertEqual(
+            type(catalog.Indexes.get('excludeFromNav')).__name__,
+            'KeywordIndex')
+
         self.browser.open(self.portal_url + '/@@manage-upgrades')
         self.assertIn('ftw.upgrade.tests.profiles:navigation-index',
                       self.browser.contents)
 
+        # This upgrade changes KeywordIndex -> FieldIndex
+
         self.browser.getControl(name='submitted').click()
+
+        self.assertEqual(
+            type(catalog.Indexes.get('excludeFromNav')).__name__,
+            'FieldIndex')

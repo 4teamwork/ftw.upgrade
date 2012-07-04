@@ -51,8 +51,9 @@ Upgrade step helpers
 
 The ``UpgradeStep`` base class provides various tools and helpers useful
 when writing upgrade steps.
-It can be used by registering the classmethod ``.upgrade`` as upgrade
-handler.
+It can be used by registering the classmethod directly.
+Be aware that the class is very special: it acts like a function and calls
+itself automatically.
 
 Example upgrade step definition (defined in a ``upgrades.py``)::
 
@@ -84,7 +85,7 @@ Registration in ``configure.zcml`` (assume its in the same directory)::
             source="4"
             destination="5"
             title="Update index 'foo'."
-            handler=".upgrades.UpdateFooIndex.upgrade"
+            handler=".upgrades.UpdateFooIndex"
             />
 
     </configure>
@@ -143,8 +144,8 @@ The ``UpgradeStep`` class has various helper functions:
 Progress logger
 ===============
 
-When an upgrade step is taking a long time to complete (e.g. while performing a data migration), the 
-administrator needs to have information about the progress of the update. It is also important to have 
+When an upgrade step is taking a long time to complete (e.g. while performing a data migration), the
+administrator needs to have information about the progress of the update. It is also important to have
 continuous output for avoiding proxy timeouts when accessing Zope through a webserver / proxy.
 
 With the ``ProgressLogger`` context manager it is very easy to log the

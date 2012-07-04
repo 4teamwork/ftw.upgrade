@@ -11,6 +11,15 @@ LOG = logging.getLogger('ftw.upgrade')
 class UpgradeStep(object):
     implements(IUpgradeStep)
 
+    def __new__(cls, *args, **kwargs):
+        """Let the class act as function since we cannot registry a
+        classmethod directly.
+        This does call the object immediately after instantiating.
+        """
+        obj = object.__new__(cls)
+        obj.__init__(*args, **kwargs)
+        return obj()
+
     def __init__(self, portal_setup):
         self.portal_setup = portal_setup
         self.portal = self.getToolByName('portal_url').getPortalObject()
@@ -20,13 +29,6 @@ class UpgradeStep(object):
         tasks the upgrade should perform.
         """
         raise NotImplementedError()
-
-    @classmethod
-    def upgrade(cls, portal_setup):
-        """Runs the upgrade step. This method is registered in ZCML
-        as upgrade step handler.
-        """
-        return cls(portal_setup)()
 
     def getToolByName(self, tool_name):
         """Returns the tool with the name ``tool_name`` of the upgraded

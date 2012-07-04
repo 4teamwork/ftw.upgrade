@@ -5,7 +5,9 @@ Changelog
 1.0b2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix the upgrade registration problem (using a classmethod does not work
+  since registration fails).
+  [jone]
 
 
 1.0b1 (2012-06-27)

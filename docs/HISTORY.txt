@@ -9,6 +9,9 @@ Changelog
   since registration fails).
   [jone]
 
+- Let @@manage-upgrade be usable without actually installing the GS profile.
+  [maethu]
+
 
 1.0b1 (2012-06-27)
 ------------------

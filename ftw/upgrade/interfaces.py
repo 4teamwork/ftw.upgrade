@@ -88,12 +88,6 @@ class IUpgradeStep(Interface):
         tasks the upgrade should perform.
         """
 
-    # @classmethod
-    def upgrade(portal_setup):
-        """Runs the upgrade step. This method is registered in ZCML
-        as upgrade step handler.
-        """
-
     def getToolByName(tool_name):
         """Returns the tool with the name ``tool_name`` of the upgraded
         site.

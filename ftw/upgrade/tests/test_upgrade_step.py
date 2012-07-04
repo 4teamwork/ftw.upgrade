@@ -20,7 +20,7 @@ class TestUpgradeStep(TestCase):
 
     def test_upgrade_classmethod(self):
         with self.assertRaises(NotImplementedError):
-            UpgradeStep.upgrade(self.portal_setup)
+            UpgradeStep(self.portal_setup)
 
     def test_portal_setup_attribute(self):
         testcase = self
@@ -29,7 +29,7 @@ class TestUpgradeStep(TestCase):
             def __call__(self):
                 testcase.assertEqual(self.portal_setup, testcase.portal_setup)
 
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)
 
     def test_portal_attribute(self):
         testcase = self
@@ -38,7 +38,7 @@ class TestUpgradeStep(TestCase):
             def __call__(self):
                 testcase.assertEqual(self.portal, testcase.portal)
 
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)
 
     def test_getToolByName(self):
         actions_tool = getToolByName(self.portal, 'portal_actions')
@@ -50,7 +50,7 @@ class TestUpgradeStep(TestCase):
                     self.getToolByName('portal_actions'),
                     actions_tool)
 
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)
 
     def test_catalog_rebuild_index(self):
         testcase = self
@@ -67,7 +67,7 @@ class TestUpgradeStep(TestCase):
 
         self.portal.invokeFactory('Folder', 'rebuild-index-test-obj',
                                   excludeFromNav=True)
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)
         self.portal.manage_delObjects(['rebuild-index-test-obj'])
 
     def test_catalog_has_index(self):
@@ -78,7 +78,7 @@ class TestUpgradeStep(TestCase):
                 testcase.assertTrue(self.catalog_has_index('sortable_title'))
                 testcase.assertFalse(self.catalog_has_index('foo'))
 
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)
 
     def test_catalog_add_and_remove_indexes(self):
         testcase = self
@@ -91,7 +91,7 @@ class TestUpgradeStep(TestCase):
                 self.catalog_remove_index('foo')
                 testcase.assertFalse(self.catalog_has_index('foo'))
 
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)
 
     def test_actions_remove_action(self):
         atool = getToolByName(self.portal, 'portal_actions')
@@ -105,7 +105,7 @@ class TestUpgradeStep(TestCase):
                 testcase.assertFalse(self.actions_remove_action(
                         'document_actions', 'rss'))
 
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)
         self.assertNotIn('rss', atool.get('document_actions'))
 
     def test_actions_remove_type_action(self):
@@ -128,7 +128,7 @@ class TestUpgradeStep(TestCase):
                     self.actions_remove_type_action('Event', 'history'))
                 testcase.assertFalse(self.event_has_action('history'))
 
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)
 
     def test_set_property(self):
         testcase = self
@@ -144,7 +144,7 @@ class TestUpgradeStep(TestCase):
                 self.set_property(self.portal, 'foo', 'baz')
                 testcase.assertEqual(self.portal.getProperty('foo'), 'baz')
 
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)
 
     def test_add_lines_to_property(self):
         testcase = self
@@ -184,7 +184,7 @@ class TestUpgradeStep(TestCase):
                 testcase.assertEqual(self.portal.getProperty(key),
                                      ('foo', 'bar'))
 
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)
 
     def test_setup_install_profile(self):
         testcase = self
@@ -203,7 +203,7 @@ class TestUpgradeStep(TestCase):
                     ['catalog'])
                 testcase.assertTrue(self.catalog_has_index('excludeFromNav'))
 
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)
 
     def test_purge_resource_registries(self):
         testcase = self
@@ -230,4 +230,4 @@ class TestUpgradeStep(TestCase):
                 testcase.assertEqual(
                     len(ksstool.concatenatedresources), 0)
 
-        Step.upgrade(self.portal_setup)
+        Step(self.portal_setup)

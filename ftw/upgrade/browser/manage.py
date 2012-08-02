@@ -7,18 +7,28 @@ from zope.publisher.browser import BrowserView
 import logging
 
 
+LOG = logging.getLogger('ftw.upgrade')
+
+
 class ResponseLogger(object):
 
     def __init__(self, response):
         self.response = response
         self.handler = None
+        self.formatter = None
 
     def __enter__(self):
         self.handler = logging.StreamHandler(self)
-        self.handler.setFormatter(logging.root.handlers[-1].formatter)
+        self.formatter = logging.root.handlers[-1].formatter
+        self.handler.setFormatter(self.formatter)
         logging.root.addHandler(self.handler)
 
     def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is not None:
+            LOG.error('FAILED')
+            self.write(self.formatter.formatException(
+                    (exc_type, exc_value, traceback)))
+
         logging.root.removeHandler(self.handler)
 
     def write(self, line):

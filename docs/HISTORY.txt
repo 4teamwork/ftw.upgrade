@@ -5,7 +5,8 @@ Changelog
 1.0b3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Print exceptions to browser log stream.
+  [jone]
 
 
 1.0b2 (2012-07-04)

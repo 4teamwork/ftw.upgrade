@@ -5,6 +5,7 @@ from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from zope.component import getAdapter
 from zope.publisher.browser import BrowserView
 import logging
+import traceback
 
 
 LOG = logging.getLogger('ftw.upgrade')
@@ -23,11 +24,10 @@ class ResponseLogger(object):
         self.handler.setFormatter(self.formatter)
         logging.root.addHandler(self.handler)
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, tb):
         if exc_type is not None:
             LOG.error('FAILED')
-            self.write(self.formatter.formatException(
-                    (exc_type, exc_value, traceback)))
+            traceback.print_exception(exc_type, exc_value, tb, None, self)
 
         logging.root.removeHandler(self.handler)
 
@@ -35,9 +35,12 @@ class ResponseLogger(object):
         if isinstance(line, unicode):
             line = line.encode('utf8')
 
-        if isinstance(line, str):
-            self.response.write(line)
-            self.response.flush()
+        self.response.write(line)
+        self.response.flush()
+
+    def writelines(self, lines):
+        for line in lines:
+            self.write(line)
 
 
 class ManageUpgrades(BrowserView):

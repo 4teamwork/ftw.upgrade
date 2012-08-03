@@ -6,6 +6,7 @@ from plone.app.testing import TEST_USER_NAME, TEST_USER_PASSWORD
 from plone.testing.z2 import Browser
 from unittest2 import TestCase
 import logging
+import re
 import transaction
 
 
@@ -21,6 +22,29 @@ class TestResponseLogger(TestCase):
         response.seek(0)
         self.assertEqual(response.read().strip().split('\n'),
                          ['foo', u'bar'])
+
+    def test_logging_exceptions(self):
+        response = StringIO()
+
+        with self.assertRaises(KeyError):
+            with ResponseLogger(response):
+                raise KeyError('foo')
+
+        response.seek(0)
+        output = response.read().strip()
+        # Dynamically replace paths so that it works on all machines
+        output = re.sub(r'(File ").*(ftw.upgrade/ftw/upgrade/.*")',
+                        r'\1/.../\2', output)
+
+        self.assertEqual(
+            output.split('\n'),
+
+            ['FAILED',
+             'Traceback (most recent call last):',
+             '  File "/.../ftw.upgrade/ftw/upgrade/tests/'
+             'test_manage_view.py", line 31, in test_logging_exceptions',
+             "    raise KeyError('foo')",
+             "KeyError: 'foo'"])
 
 
 class TestManageUpgrades(TestCase):

@@ -33,7 +33,7 @@ class TestResponseLogger(TestCase):
         response.seek(0)
         output = response.read().strip()
         # Dynamically replace paths so that it works on all machines
-        output = re.sub(r'(File ").*(ftw.upgrade/ftw/upgrade/.*")',
+        output = re.sub(r'(File ").*(ftw/upgrade/.*")',
                         r'\1/.../\2', output)
 
         self.assertEqual(
@@ -41,7 +41,7 @@ class TestResponseLogger(TestCase):
 
             ['FAILED',
              'Traceback (most recent call last):',
-             '  File "/.../ftw.upgrade/ftw/upgrade/tests/'
+             '  File "/.../ftw/upgrade/tests/'
              'test_manage_view.py", line 31, in test_logging_exceptions',
              "    raise KeyError('foo')",
              "KeyError: 'foo'"])

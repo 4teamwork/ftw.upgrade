@@ -42,7 +42,9 @@
         var height = ($('#portal-column-one').height() -
                       $('#portal-column-content').height());
         $('#upgrade-output').show();
-        $('#upgrade-output').css('height', height);
+        if(height > 0) {
+            $('#upgrade-output').css('height', height);
+        }
     });
 
     $('#back-to-upgrades').live('click', function(e) {

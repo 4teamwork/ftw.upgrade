@@ -5,6 +5,9 @@ Changelog
 1.0b3 (unreleased)
 ------------------
 
+- Set min-height of upgrade output frame to 500px.
+  [jone]
+
 - Print exceptions to browser log stream.
   [jone]
 

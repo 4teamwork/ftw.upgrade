@@ -55,6 +55,7 @@
 
 #upgrade-output {
   width: 100%;
+  min-height: 500px;
   border: 1px solid #eee;
   display: none;
   overflow: visible;

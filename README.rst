@@ -136,10 +136,6 @@ The ``UpgradeStep`` class has various helper functions:
     If a list step names is passed with ``steps`` (e.g. ['actions']),
     only those steps are installed. All steps are installed by default.
 
-``self.purge_resource_registries()``
-    Resets the resource registries ``portal_css``,
-    ``portal_javascripts`` and ``portal_kss``.
-
 
 Progress logger
 ===============

@@ -152,16 +152,3 @@ class UpgradeStep(object):
                                                  step,
                                                  run_dependencies=False,
                                                  purge_old=False)
-
-    def purge_resource_registries(self):
-        """Resets the resource registries ``portal_css``,
-        ``portal_javascripts`` and ``portal_kss``.
-        """
-
-        jstool = self.getToolByName('portal_javascripts')
-        csstool = self.getToolByName('portal_css')
-        ksstool = self.getToolByName('portal_kss')
-
-        jstool.clearResources()
-        csstool.clearResources()
-        ksstool.clearResources()

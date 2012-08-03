@@ -5,6 +5,9 @@ Changelog
 1.0b3 (unreleased)
 ------------------
 
+- Remove ``purge_resource_registries()`` helper because it does not behave as expected.
+  [jone]
+
 - Set min-height of upgrade output frame to 500px.
   [jone]
 

@@ -204,30 +204,3 @@ class TestUpgradeStep(TestCase):
                 testcase.assertTrue(self.catalog_has_index('excludeFromNav'))
 
         Step(self.portal_setup)
-
-    def test_purge_resource_registries(self):
-        testcase = self
-
-        class Step(UpgradeStep):
-            def __call__(self):
-                jstool = self.getToolByName('portal_javascripts')
-                csstool = self.getToolByName('portal_css')
-                ksstool = self.getToolByName('portal_kss')
-
-                testcase.assertNotEqual(
-                    len(jstool.concatenatedresources), 0)
-                testcase.assertNotEqual(
-                    len(csstool.concatenatedresources), 0)
-                testcase.assertNotEqual(
-                    len(ksstool.concatenatedresources), 0)
-
-                self.purge_resource_registries()
-
-                testcase.assertEqual(
-                    len(jstool.concatenatedresources), 0)
-                testcase.assertEqual(
-                    len(csstool.concatenatedresources), 0)
-                testcase.assertEqual(
-                    len(ksstool.concatenatedresources), 0)
-
-        Step(self.portal_setup)

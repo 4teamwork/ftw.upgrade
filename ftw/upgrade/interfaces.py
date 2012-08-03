@@ -136,8 +136,3 @@ class IUpgradeStep(Interface):
         If a list step names is passed with ``steps`` (e.g. ['actions']),
         only those steps are installed. All steps are installed by default.
         """
-
-    def purge_resource_registries():
-        """Resets the resource registries ``portal_css``,
-        ``portal_javascripts`` and ``portal_kss``.
-        """

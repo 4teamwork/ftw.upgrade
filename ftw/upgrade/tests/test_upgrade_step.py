@@ -204,3 +204,21 @@ class TestUpgradeStep(TestCase):
                 testcase.assertTrue(self.catalog_has_index('excludeFromNav'))
 
         Step(self.portal_setup)
+
+    def test_migrate_class(self):
+        from Products.ATContentTypes.content.folder import ATBTreeFolder
+
+        container = self.portal.get(
+            self.portal.invokeFactory('Folder', 'class-migration-test'))
+        obj = container.get(container.invokeFactory('Folder', 'sub-folder'))
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                self.migrate_class(obj, ATBTreeFolder)
+
+        self.assertEqual(obj.__class__.__name__, 'ATFolder')
+        Step(self.portal_setup)
+        self.assertEqual(obj.__class__.__name__, 'ATBTreeFolder')
+
+
+        self.portal.manage_delObjects(['class-migration-test'])

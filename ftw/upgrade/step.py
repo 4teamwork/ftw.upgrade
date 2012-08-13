@@ -1,3 +1,5 @@
+from Acquisition import aq_base, aq_parent
+from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ProgressHandler import ZLogHandler
 from ftw.upgrade.interfaces import IUpgradeStep
@@ -152,3 +154,24 @@ class UpgradeStep(object):
                                                  step,
                                                  run_dependencies=False,
                                                  purge_old=False)
+
+    def migrate_class(self, obj, new_class):
+        """Changes the class of a object and notifies the container so that
+        the change is persistent.
+        It has a special handling for BTreeFolder2Base based containers.
+        """
+        obj.__class__ = new_class
+
+        base = aq_base(obj)
+        base._ofs_migrated = True
+        base._p_changed = True
+
+        parent = aq_base(aq_parent(obj))
+        id_ = base.getId()
+
+        if isinstance(parent, BTreeFolder2Base):
+            del parent._tree[id_]
+            parent._tree[id_] = base
+
+        else:
+            parent._p_changed = True

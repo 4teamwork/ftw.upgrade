@@ -5,6 +5,9 @@ Changelog
 1.0b3 (unreleased)
 ------------------
 
+- Add ``migrate_class`` helper with _p_changed implementation supporting BTreeFolder2Base containers.
+  [jone]
+
 - Remove ``purge_resource_registries()`` helper because it does not behave as expected.
   [jone]
 

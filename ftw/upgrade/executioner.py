@@ -4,6 +4,7 @@ from ftw.upgrade.interfaces import IExecutioner
 from zope.component import adapts
 from zope.interface import implements
 import logging
+import transaction
 
 
 logger = logging.getLogger('ftw.upgrade')
@@ -34,7 +35,13 @@ class Executioner(object):
     def _do_upgrade(self, profileid, upgradeid):
         step = _upgrade_registry.getUpgradeStep(profileid, upgradeid)
         step.doStep(self.portal_setup)
+
         msg = "Ran upgrade step %s for profile %s" % (
             step.title, profileid)
         logger.log(logging.INFO, msg)
+
+        transaction_note = '%s -> %s (%s)' % (
+            step.profile, '.'.join(step.dest), step.title)
+        transaction.get().note(transaction_note)
+
         return step.dest

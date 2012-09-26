@@ -45,11 +45,13 @@ setup(name='ftw.upgrade',
         'setuptools',
         'Products.CMFCore',
         'Products.GenericSetup',
-        'Products.ZCatalog',
         'plone.browserlayer',
         'zope.component',
         'zope.interface',
         'zope.publisher',
+
+        # 'Products.ZCatalog',  # breaks plone 4.0 compatibilty, since zope 2.12.10 includes it in Zope2 egg.
+        'Zope2',
         ],
 
       tests_require=tests_require,

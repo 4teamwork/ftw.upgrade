@@ -54,7 +54,16 @@ class UpgradeInformationGatherer(object):
 
         data = {'upgrades': self._get_profile_upgrades(profileid),
                 'db_version': db_version}
-        data.update(self.portal_setup.getProfileInfo(profileid))
+
+        try:
+            data.update(self.portal_setup.getProfileInfo(profileid))
+        except KeyError, exc:
+            if exc.args and exc.args[0] == profileid:
+                # package was removed - profile is no longer available.
+                return {'upgrades': []}
+            else:
+                raise
+
         return data
 
     def _get_profile_upgrades(self, profileid):

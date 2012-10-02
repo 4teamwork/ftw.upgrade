@@ -281,3 +281,28 @@ class TestUpgradeInformationGatherer(MockTestCase):
 
         self.assertEqual(simple, ['bar:default',
                                   'foo:default'])
+
+    def test_no_longer_existing_profiles_are_silently_removed(self):
+        self.mock_profile('foo:default', '1.2', db_version='1.0')
+        self.mock_upgrade('foo:default', '1.0', '1.1', 'foo1')
+        self.mock_upgrade('foo:default', '1.1', '1.2', 'foo2')
+
+        self.mock_profile('removed:default', '1.1', db_version='1.0')
+        self.mock_upgrade('removed:default', '1.0', '1.1', 'removed1')
+
+        self.expect(self.setup_tool.getProfileInfo(u'removed:default')
+                    ).throw(KeyError(u'removed:default'))
+        self.replay()
+
+        gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
+        data = gatherer.get_upgrades()
+        self.assertNotEqual(data, [])
+
+        self.assertIn('foo2', str(self.setup_tool.listUpgrades(
+                    'foo:default', show_old=True)))
+
+        simple = simplify_data(data)
+        self.assertEqual(simple, {
+                'foo:default': {
+                    'proposed': ['foo1', 'foo2'],
+                    'done': []}})

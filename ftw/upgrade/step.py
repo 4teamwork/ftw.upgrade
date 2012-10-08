@@ -3,6 +3,7 @@ from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ProgressHandler import ZLogHandler
 from ftw.upgrade.interfaces import IUpgradeStep
+from ftw.upgrade.progresslogger import ProgressLogger
 from ftw.upgrade.utils import SizedGenerator
 from zope.interface import implements
 import logging
@@ -52,6 +53,22 @@ class UpgradeStep(object):
         catalog.reindexIndex(name, None, pghandler=pghandler)
 
         LOG.info("Reindexing index %s DONE" % name)
+
+    def catalog_reindex_objects(self, query, idxs=None):
+        """Reindex all objects found in the catalog with `query`.
+        A list of indexes can be passed as `idxs` for limiting the
+        indexed indexes.
+        """
+        if idxs is None:
+            idxs = []
+
+        title = '.'.join((self.__module__, self.__class__.__name__))
+        objects = self.catalog_unrestricted_search(query, full_objects=True)
+
+        with ProgressLogger(title, objects) as step:
+            for obj in objects:
+                obj.reindexObject(idxs=idxs)
+                step()
 
     def catalog_has_index(self, name):
         """Returns whether there is a catalog index ``name``.

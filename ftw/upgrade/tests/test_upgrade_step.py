@@ -70,6 +70,28 @@ class TestUpgradeStep(TestCase):
         Step(self.portal_setup)
         self.portal.manage_delObjects(['rebuild-index-test-obj'])
 
+    def test_catalog_reindex_objects(self):
+        testcase = self
+
+        folder = self.portal.get(
+            self.portal.invokeFactory('Folder', 'catalog-reindex-objects'))
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                ctool = self.getToolByName('portal_catalog')
+                name = 'getExcludeFromNav'
+
+                self.catalog_add_index(name, 'BooleanIndex')
+                testcase.assertEqual(len(ctool._catalog.getIndex(name)), 0)
+
+                self.catalog_reindex_objects({'portal_type': 'Folder'})
+
+                self.catalog_rebuild_index(name)
+                testcase.assertEqual(len(ctool._catalog.getIndex(name)), 1)
+
+        Step(self.portal_setup)
+        self.portal.manage_delObjects([folder.id])
+
     def test_catalog_has_index(self):
         testcase = self
 

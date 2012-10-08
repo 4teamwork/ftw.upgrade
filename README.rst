@@ -103,6 +103,11 @@ The ``UpgradeStep`` class has various helper functions:
 ``self.catalog_rebuild_index(name)``
     Reindex the ``portal_catalog`` index identified by ``name``.
 
+``self.catalog_reindex_objects(query, idxs=None)``
+    Reindex all objects found in the catalog with `query`.
+    A list of indexes can be passed as `idxs` for limiting the
+    indexed indexes.
+
 ``self.catalog_has_index(name)``
     Returns whether there is a catalog index ``name``.
 

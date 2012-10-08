@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.1 (unreleased)
+1.1 (2012-10-08)
 ----------------
 
 - Add catalog_unrestricted_get_object and catalog_unrestricted_search methods to step class.

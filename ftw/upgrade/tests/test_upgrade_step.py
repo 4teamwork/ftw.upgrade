@@ -93,6 +93,64 @@ class TestUpgradeStep(TestCase):
 
         Step(self.portal_setup)
 
+    def test_catalog_unrestricted_get_object(self):
+        testcase = self
+        folder = self.portal.get(
+            self.portal.invokeFactory('Folder', 'catalog-get-obj-test'))
+        folder_path = '/'.join(folder.getPhysicalPath())
+
+        folder.invokeFactory('Document', 'page-one')
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                query = {'path': folder_path,
+                         'portal_type': 'Document'}
+                brains = self.catalog_unrestricted_search(query)
+
+                brain = brains[0]
+                testcase.assertEqual(type(brain).__name__,
+                                     'ImplicitAcquisitionWrapper')
+
+                obj = self.catalog_unrestricted_get_object(brain)
+                testcase.assertEqual(type(obj).__name__,
+                                     'ImplicitAcquisitionWrapper')
+
+        Step(self.portal_setup)
+        self.portal.manage_delObjects([folder.id])
+
+
+    def test_catalog_unrestricted_search(self):
+        testcase = self
+        folder = self.portal.get(
+            self.portal.invokeFactory('Folder', 'catalog-search-test'))
+        folder_path = '/'.join(folder.getPhysicalPath())
+
+        folder.invokeFactory('Document', 'page-one')
+        folder.invokeFactory('Document', 'page-two')
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                query = {'path': folder_path,
+                         'portal_type': 'Document'}
+                brains = self.catalog_unrestricted_search(query)
+
+                testcase.assertEqual(len(brains), 2)
+                testcase.assertEqual([brain.id for brain in brains],
+                                     ['page-one', 'page-two'])
+                testcase.assertEqual(type(brains[0]).__name__,
+                                     'ImplicitAcquisitionWrapper')
+
+                objects = list(self.catalog_unrestricted_search(
+                        query, full_objects=True))
+                testcase.assertEqual(len(objects), 2)
+                testcase.assertEqual([obj.id for obj in objects],
+                                     ['page-one', 'page-two'])
+                testcase.assertEqual(type(objects[0]).__name__,
+                                     'ImplicitAcquisitionWrapper')
+
+        Step(self.portal_setup)
+        self.portal.manage_delObjects([folder.id])
+
     def test_actions_remove_action(self):
         atool = getToolByName(self.portal, 'portal_actions')
         self.assertIn('rss', atool.get('document_actions'))

@@ -116,6 +116,17 @@ The ``UpgradeStep`` class has various helper functions:
     Removes an action identified by ``action_id`` from
     the ``portal_actions`` tool from a particulary ``category``.
 
+``self.catalog_unrestricted_get_object(brain)``
+    Removes the unrestricted object of a brain.
+
+``self.catalog_unrestricted_search(query, full_objects=False)``
+    Searches the catalog without checking security.
+    When `full_objects` is `True`, unrestricted objects are
+    returned instead of brains.
+    Upgrade steps should generally use unrestricted catalog access
+    since all objects should be upgraded - even if the manager
+    running the upgrades has no access on the objects.
+
 ``self.actions_remove_type_action(portal_type, action_id)``
     Removes a ``portal_types`` action from the type identified
     by ``portal_type`` with the action id ``action_id``.

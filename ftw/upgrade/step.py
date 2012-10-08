@@ -71,6 +71,26 @@ class UpgradeStep(object):
         catalog = self.getToolByName('portal_catalog')
         return catalog.delIndex(name)
 
+    def catalog_unrestricted_get_object(self, brain):
+        """Returns the unrestricted object of a brain.
+        """
+        return self.portal.unrestrictedTraverse(brain.getPath())
+
+    def catalog_unrestricted_search(self, query, full_objects=False):
+        """Search catalog without security checks.
+        If `full_objects` is `True`, objects instead of brains
+        are returned.
+        """
+        catalog = self.getToolByName('portal_catalog')
+        brains = catalog.unrestrictedSearchResults(query)
+
+        if full_objects:
+            return (self.catalog_unrestricted_get_object(brain)
+                    for brain in brains)
+
+        else:
+            return brains
+
     def actions_remove_action(self, category, action_id):
         """Removes an action identified by ``action_id`` from
         the ``portal_actions`` tool from a particulary ``category``.

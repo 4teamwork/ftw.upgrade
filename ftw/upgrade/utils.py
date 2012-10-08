@@ -66,3 +66,16 @@ def topological_sort(items, partial_order):
         # There is a loop in the input.
         return None
     return sorted_
+
+
+class SizedGenerator(object):
+
+    def __init__(self, generator, length):
+        self._length = length
+        self._generator = generator
+
+    def __iter__(self):
+        return self._generator.__iter__()
+
+    def __len__(self):
+        return self._length

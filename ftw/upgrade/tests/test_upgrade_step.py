@@ -140,9 +140,10 @@ class TestUpgradeStep(TestCase):
                 testcase.assertEqual(type(brains[0]).__name__,
                                      'ImplicitAcquisitionWrapper')
 
-                objects = list(self.catalog_unrestricted_search(
-                        query, full_objects=True))
+                objects = self.catalog_unrestricted_search(
+                        query, full_objects=True)
                 testcase.assertEqual(len(objects), 2)
+                objects = list(objects)
                 testcase.assertEqual([obj.id for obj in objects],
                                      ['page-one', 'page-two'])
                 testcase.assertEqual(type(objects[0]).__name__,

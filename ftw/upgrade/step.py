@@ -3,6 +3,7 @@ from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ProgressHandler import ZLogHandler
 from ftw.upgrade.interfaces import IUpgradeStep
+from ftw.upgrade.utils import SizedGenerator
 from zope.interface import implements
 import logging
 
@@ -85,8 +86,9 @@ class UpgradeStep(object):
         brains = catalog.unrestrictedSearchResults(query)
 
         if full_objects:
-            return (self.catalog_unrestricted_get_object(brain)
-                    for brain in brains)
+            generator = (self.catalog_unrestricted_get_object(brain)
+                         for brain in brains)
+            return SizedGenerator(generator, len(brains))
 
         else:
             return brains

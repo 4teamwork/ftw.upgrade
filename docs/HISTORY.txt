@@ -5,6 +5,9 @@ Changelog
 1.1 (unreleased)
 ----------------
 
+- Add catalog_unrestricted_get_object and catalog_unrestricted_search methods to step class.
+  [jone]
+
 - Handle profiles of packages which were removed but have leftover generic setup entries.
   [jone]
 

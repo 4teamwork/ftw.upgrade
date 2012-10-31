@@ -1,3 +1,4 @@
+from AccessControl.SecurityInfo import ClassSecurityInformation
 from Products.GenericSetup.interfaces import ISetupTool
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
@@ -24,13 +25,17 @@ class UpgradeInformationGatherer(object):
     implements(IUpgradeInformationGatherer)
     adapts(ISetupTool)
 
+    security = ClassSecurityInformation()
+
     def __init__(self, portal_setup):
         self.portal_setup = portal_setup
         self.cyclic_dependencies = False
 
+    security.declarePrivate('get_upgrades')
     def get_upgrades(self):
         return self._sort_profiles_by_dependencies(self._get_profiles())
 
+    security.declarePrivate('_get_profiles')
     def _get_profiles(self):
         for profileid in self.portal_setup.listProfilesWithUpgrades():
             if not self._is_profile_installed(profileid):
@@ -47,6 +52,7 @@ class UpgradeInformationGatherer(object):
 
             yield data
 
+    security.declarePrivate('_get_profile_data')
     def _get_profile_data(self, profileid):
         db_version = self.portal_setup.getLastVersionForProfile(profileid)
         if isinstance(db_version, (tuple, list)):
@@ -66,6 +72,7 @@ class UpgradeInformationGatherer(object):
 
         return data
 
+    security.declarePrivate('_get_profile_upgrades')
     def _get_profile_upgrades(self, profileid):
         proposed_ids = set()
         upgrades = []
@@ -89,10 +96,12 @@ class UpgradeInformationGatherer(object):
 
         return upgrades
 
+    security.declarePrivate('_is_profile_installed')
     def _is_profile_installed(self, profileid):
         version = self.portal_setup.getLastVersionForProfile(profileid)
         return version != 'unknown'
 
+    security.declarePrivate('_sort_profiles_by_dependencies')
     def _sort_profiles_by_dependencies(self, profiles):
         """Sort the profiles so that the profiles are listed after its
         dependencies since it is safer to first install dependencies.

@@ -1,3 +1,4 @@
+from AccessControl.SecurityInfo import ClassSecurityInformation
 from time import time
 import logging
 
@@ -6,6 +7,8 @@ class ProgressLogger(object):
     """Loggs the proggress of a process to the passed
     logger.
     """
+
+    security = ClassSecurityInformation()
 
     def __init__(self, message, iterable, logger=None,
                  timeout=5):
@@ -21,10 +24,12 @@ class ProgressLogger(object):
         self._timestamp = None
         self._counter = 0
 
+    security.declarePrivate('__enter__')
     def __enter__(self):
         self.logger.info('STARTING %s' % self.message)
         return self
 
+    security.declarePrivate('__exit__')
     def __exit__(self, exc_type, exc_value, traceback):
         if not exc_type:
             self.logger.info('DONE %s' % self.message)
@@ -35,6 +40,7 @@ class ProgressLogger(object):
                     str(exc_type.__name__),
                     str(exc_value)))
 
+    security.declarePrivate('__call__')
     def __call__(self):
         self._counter += 1
         if not self.should_be_logged():
@@ -47,6 +53,7 @@ class ProgressLogger(object):
                 percent,
                 self.message))
 
+    security.declarePrivate('should_be_logged')
     def should_be_logged(self):
         now = float(time())
 

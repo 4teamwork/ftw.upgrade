@@ -1,3 +1,4 @@
+from AccessControl.SecurityInfo import ClassSecurityInformation
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import _upgrade_registry
 from ftw.upgrade.interfaces import IExecutioner
@@ -14,14 +15,17 @@ class Executioner(object):
 
     implements(IExecutioner)
     adapts(ISetupTool)
+    security = ClassSecurityInformation()
 
     def __init__(self, portal_setup):
         self.portal_setup = portal_setup
 
+    security.declarePrivate('install')
     def install(self, data):
         for profileid, upgradeids in data:
             self._upgrade_profile(profileid, upgradeids)
 
+    security.declarePrivate('_upgrade_profile')
     def _upgrade_profile(self, profileid, upgradeids):
         last_dest_version = None
 
@@ -32,6 +36,7 @@ class Executioner(object):
         self.portal_setup.setLastVersionForProfile(
             profileid, last_dest_version)
 
+    security.declarePrivate('_do_upgrade')
     def _do_upgrade(self, profileid, upgradeid):
         step = _upgrade_registry.getUpgradeStep(profileid, upgradeid)
         step.doStep(self.portal_setup)

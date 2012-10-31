@@ -5,6 +5,9 @@ Changelog
 1.2 (unreleased)
 ----------------
 
+- Add security declarations.
+  [jone]
+
 - Fix wrong tool usage when installing a profile in step class.
   [jone]
 

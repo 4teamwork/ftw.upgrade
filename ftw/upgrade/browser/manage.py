@@ -1,3 +1,4 @@
+from AccessControl.SecurityInfo import ClassSecurityInformation
 from Products.CMFCore.utils import getToolByName
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.interfaces import IExecutioner
@@ -12,6 +13,8 @@ LOG = logging.getLogger('ftw.upgrade')
 
 
 class ResponseLogger(object):
+
+    security = ClassSecurityInformation()
 
     def __init__(self, response):
         self.response = response
@@ -31,6 +34,7 @@ class ResponseLogger(object):
 
         logging.root.removeHandler(self.handler)
 
+    security.declarePrivate('write')
     def write(self, line):
         if isinstance(line, unicode):
             line = line.encode('utf8')
@@ -38,12 +42,15 @@ class ResponseLogger(object):
         self.response.write(line)
         self.response.flush()
 
+    security.declarePrivate('writelines')
     def writelines(self, lines):
         for line in lines:
             self.write(line)
 
 
 class ManageUpgrades(BrowserView):
+
+    security = ClassSecurityInformation()
 
     def __init__(self, *args, **kwargs):
         super(ManageUpgrades, self).__init__(*args, **kwargs)
@@ -62,6 +69,7 @@ class ManageUpgrades(BrowserView):
 
         return super(ManageUpgrades, self).__call__(self)
 
+    security.declarePrivate('install')
     def install(self):
         """Installs the selected upgrades.
         """
@@ -73,6 +81,7 @@ class ManageUpgrades(BrowserView):
         logging.getLogger('ftw.upgrade').info(
             'FINISHED')
 
+    security.declarePrivate('install_with_ajax_stream')
     def install_with_ajax_stream(self):
         """Installs the selected upgrades and streams the log into
         the HTTP response.
@@ -92,6 +101,7 @@ class ManageUpgrades(BrowserView):
         response.write('</body>')
         response.write('</html>')
 
+    security.declarePrivate('get_data')
     def get_data(self):
         gstool = getToolByName(self.context, 'portal_setup')
         gatherer = getAdapter(gstool, IUpgradeInformationGatherer)
@@ -101,10 +111,12 @@ class ManageUpgrades(BrowserView):
             self.cyclic_dependencies = True
             return exc.dependencies
 
+    security.declarePrivate('plone_needs_upgrading')
     def plone_needs_upgrading(self):
         portal_migration = getToolByName(self.context, 'portal_migration')
         return portal_migration.needUpgrading()
 
+    security.declarePrivate('_get_upgrades_to_install')
     def _get_upgrades_to_install(self):
         """Returns a dict where the key is a profileid and the value
         is a list of upgrade ids.

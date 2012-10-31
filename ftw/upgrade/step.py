@@ -1,3 +1,4 @@
+from AccessControl.SecurityInfo import ClassSecurityInformation
 from Acquisition import aq_base, aq_parent
 from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.utils import getToolByName
@@ -14,6 +15,7 @@ LOG = logging.getLogger('ftw.upgrade')
 
 class UpgradeStep(object):
     implements(IUpgradeStep)
+    security = ClassSecurityInformation()
 
     def __new__(cls, *args, **kwargs):
         """Let the class act as function since we cannot registry a
@@ -28,18 +30,21 @@ class UpgradeStep(object):
         self.portal_setup = portal_setup
         self.portal = self.getToolByName('portal_url').getPortalObject()
 
+    security.declarePrivate('__call__')
     def __call__(self):
         """This method is implemented in each upgrade step with the
         tasks the upgrade should perform.
         """
         raise NotImplementedError()
 
+    security.declarePrivate('getToolByName')
     def getToolByName(self, tool_name):
         """Returns the tool with the name ``tool_name`` of the upgraded
         site.
         """
         return getToolByName(self.portal_setup, tool_name)
 
+    security.declarePrivate('catalog_rebuild_index')
     def catalog_rebuild_index(self, name):
         """Reindex the ``portal_catalog`` index identified by ``name``.
         """
@@ -54,6 +59,7 @@ class UpgradeStep(object):
 
         LOG.info("Reindexing index %s DONE" % name)
 
+    security.declarePrivate('catalog_reindex_objects')
     def catalog_reindex_objects(self, query, idxs=None):
         """Reindex all objects found in the catalog with `query`.
         A list of indexes can be passed as `idxs` for limiting the
@@ -70,6 +76,7 @@ class UpgradeStep(object):
                 obj.reindexObject(idxs=idxs)
                 step()
 
+    security.declarePrivate('catalog_has_index')
     def catalog_has_index(self, name):
         """Returns whether there is a catalog index ``name``.
         """
@@ -77,23 +84,27 @@ class UpgradeStep(object):
         index_names = catalog.indexes()
         return name in index_names
 
+    security.declarePrivate('catalog_add_index')
     def catalog_add_index(self, name, type_, extra=None):
         """Adds a new index to the ``portal_catalog`` tool.
         """
         catalog = self.getToolByName('portal_catalog')
         return catalog.addIndex(name, type_, extra=extra)
 
+    security.declarePrivate('catalog_remove_index')
     def catalog_remove_index(self, name):
         """Removes an index to from ``portal_catalog`` tool.
         """
         catalog = self.getToolByName('portal_catalog')
         return catalog.delIndex(name)
 
+    security.declarePrivate('catalog_unrestricted_get_object')
     def catalog_unrestricted_get_object(self, brain):
         """Returns the unrestricted object of a brain.
         """
         return self.portal.unrestrictedTraverse(brain.getPath())
 
+    security.declarePrivate('catalog_unrestricted_search')
     def catalog_unrestricted_search(self, query, full_objects=False):
         """Search catalog without security checks.
         If `full_objects` is `True`, objects instead of brains
@@ -110,6 +121,7 @@ class UpgradeStep(object):
         else:
             return brains
 
+    security.declarePrivate('actions_remove_action')
     def actions_remove_action(self, category, action_id):
         """Removes an action identified by ``action_id`` from
         the ``portal_actions`` tool from a particulary ``category``.
@@ -125,6 +137,7 @@ class UpgradeStep(object):
         else:
             return False
 
+    security.declarePrivate('actions_remove_type_action')
     def actions_remove_type_action(self, portal_type, action_id):
         """Removes a ``portal_types`` action from the type identified
         by ``portal_type`` with the action id ``action_id``.
@@ -144,6 +157,7 @@ class UpgradeStep(object):
         fti._actions = tuple(actions)  # pylint: disable=W0212
         return found
 
+    security.declarePrivate('set_property')
     def set_property(self, context, key, value, data_type='string'):
         """Set a property with the key ``value`` and the value ``value``
         on the ``context`` safely. The property is created with the
@@ -157,6 +171,7 @@ class UpgradeStep(object):
             context._setProperty(key, value, data_type)
         # pylint: enable=W0212
 
+    security.declarePrivate('add_lines_to_property')
     def add_lines_to_property(self, context, key, lines):
         """Updates a property with key ``key`` on the object ``context``
         adding ``lines``. The property is expected to by of type "lines".
@@ -179,6 +194,7 @@ class UpgradeStep(object):
 
         self.set_property(context, key, data, data_type='lines')
 
+    security.declarePrivate('setup_install_profile')
     def setup_install_profile(self, profileid, steps=None):
         """Installs the generic setup profile identified by ``profileid``.
         If a list step names is passed with ``steps`` (e.g. ['actions']),
@@ -194,6 +210,7 @@ class UpgradeStep(object):
                                                run_dependencies=False,
                                                purge_old=False)
 
+    security.declarePrivate('migrate_class')
     def migrate_class(self, obj, new_class):
         """Changes the class of a object and notifies the container so that
         the change is persistent.

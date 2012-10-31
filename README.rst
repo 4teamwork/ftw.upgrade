@@ -224,6 +224,7 @@ Registration in ZCML:
     >>> <configure xmlns="http://namespaces.zope.org/zope">
     ...     <adapter
     ...         factory=".adapters.MyPostUpgradeAdapter"
+    ...         provides="ftw.upgrade.interfaces.IPostUpgrade"
     ...         for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot
     ...              zope.interface.Interface"
     ...         name="my.package:default" />

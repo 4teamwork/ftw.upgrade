@@ -136,3 +136,26 @@ class IUpgradeStep(Interface):
         If a list step names is passed with ``steps`` (e.g. ['actions']),
         only those steps are installed. All steps are installed by default.
         """
+
+
+class IPostUpgrade(Interface):
+    """Post upgrade adapters are called after each time upgrades are
+    installed using the ``@@ftw.upgrade`` view.
+
+    Using named adapters allows us to have multiple post upgrade adapters.
+    The name should be the name of the profile of the package (e.g.
+    "ftw.upgrade:default"), so that ftw.upgrade is able to order the adapters
+    using the dependency graph.
+    By doing this we assure that adapters integration / policy packages are
+    executed at the end.
+
+    The adapter adapts the portal and the request.
+    """
+
+    def __init__(portal, request):
+        """The adapter adapts portal and request.
+        """
+
+    def __call__():
+        """Runs the post upgrade adapter.
+        """

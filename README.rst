@@ -195,6 +195,42 @@ Example log output::
     INFO ftw.upgrade DONE: Migrate MyType
 
 
+IPostUpgrade adapter
+====================
+
+By registering an ``IPostUpgrade`` adapter it is possible to run custom code
+after running upgrades.
+All adapters are executed after each time upgrades were run, not depending on
+which upgrades are run.
+The name of the adapters should be the profile of the package, so that
+``ftw.upgrade`` is able to execute the adapters in order of the GS dependencies.
+
+Example adapter:
+
+    >>> from ftw.upgrade.interfaces import IPostUpgrade
+    >>> from zope.interface import implements
+    >>>
+    >>> class MyPostUpgradeAdapter(object):
+    ...
+    ...     def __init__(self, portal, request):
+    ...         self.portal = portal
+    ...         self.request = request
+    ...
+    ...     def __call__(self):
+    ...         # custom code, e.g. import a generic setup profile for customizations
+
+Registration in ZCML:
+
+    >>> <configure xmlns="http://namespaces.zope.org/zope">
+    ...     <adapter
+    ...         factory=".adapters.MyPostUpgradeAdapter"
+    ...         for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot
+    ...              zope.interface.Interface"
+    ...         name="my.package:default" />
+    ... </configure>
+
+
+
 Links
 =====
 

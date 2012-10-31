@@ -184,15 +184,15 @@ class UpgradeStep(object):
         If a list step names is passed with ``steps`` (e.g. ['actions']),
         only those steps are installed. All steps are installed by default.
         """
-        catalog = self.getToolByName('portal_catalog')
+        setup = self.getToolByName('portal_setup')
         if steps is None:
-            catalog.runAllImportStepsFromProfile(profileid, purge_old=False)
+            setup.runAllImportStepsFromProfile(profileid, purge_old=False)
         else:
             for step in steps:
-                catalog.runImportStepFromProfile(profileid,
-                                                 step,
-                                                 run_dependencies=False,
-                                                 purge_old=False)
+                setup.runImportStepFromProfile(profileid,
+                                               step,
+                                               run_dependencies=False,
+                                               purge_old=False)
 
     def migrate_class(self, obj, new_class):
         """Changes the class of a object and notifies the container so that

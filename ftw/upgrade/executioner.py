@@ -1,8 +1,12 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
+from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import _upgrade_registry
 from ftw.upgrade.interfaces import IExecutioner
+from ftw.upgrade.interfaces import IPostUpgrade
+from ftw.upgrade.utils import get_sorted_profile_ids
 from zope.component import adapts
+from zope.component import getAdapters
 from zope.interface import implements
 import logging
 import transaction
@@ -24,6 +28,9 @@ class Executioner(object):
     def install(self, data):
         for profileid, upgradeids in data:
             self._upgrade_profile(profileid, upgradeids)
+
+        for adapter in self._get_sorted_post_upgrade_adapters():
+            adapter()
 
     security.declarePrivate('_upgrade_profile')
     def _upgrade_profile(self, profileid, upgradeids):
@@ -50,3 +57,37 @@ class Executioner(object):
         transaction.get().note(transaction_note)
 
         return step.dest
+
+    security.declarePrivate('_get_sorted_post_upgrade_adapters')
+    def _get_sorted_post_upgrade_adapters(self):
+        """Returns a list of post upgrade adapters, sorted by
+        profile dependencies.
+        Assumes that the names of the adapters are profile names
+        (e.g. "ftw.upgrade:default").
+        """
+
+        profile_order = get_sorted_profile_ids(self.portal_setup)
+
+        portal_url = getToolByName(self.portal_setup, 'portal_url')
+        portal = portal_url.getPortalObject()
+        adapters = list(getAdapters((portal, portal.REQUEST), IPostUpgrade))
+
+        def _sorter(a, b):
+            name_a = a[0]
+            name_b = b[0]
+
+            if name_a not in profile_order and name_b not in profile_order:
+                return 0
+
+            elif name_a not in profile_order:
+                return -1
+
+            elif name_b not in profile_order:
+                return 1
+
+            else:
+                return cmp(profile_order.index(name_a),
+                           profile_order.index(name_b))
+
+        adapters.sort(_sorter)
+        return [adapter for name, adapter in adapters]

@@ -1,3 +1,6 @@
+from ftw.upgrade.exceptions import CyclicDependencies
+
+
 def topological_sort(items, partial_order):
     """Perform topological sort.
     items is a list of items to be sorted.
@@ -79,3 +82,38 @@ class SizedGenerator(object):
 
     def __len__(self):
         return self._length
+
+
+def get_sorted_profile_ids(portal_setup):
+    """Returns a sorted list of profile ids (without profile- prefix).
+    The sorting is done by resolving the dependencies and performing
+    a topological graph sort.
+    If there are circular dependencies a CyclicDependencies exception
+    is thrown.
+    """
+    profile_ids = []
+    dependencies = []
+
+    for profile in portal_setup.listProfileInfo():
+        profile_ids.append(profile['id'])
+
+    for profile in portal_setup.listProfileInfo():
+        if not profile.get('dependencies'):
+            continue
+
+        for dependency in profile.get('dependencies'):
+            if dependency.startswith('profile-'):
+                dependency = dependency.split('profile-', 1)[1]
+            else:
+                continue
+
+            if dependency not in profile_ids:
+                continue
+            dependencies.append((profile['id'], dependency))
+
+    order = topological_sort(profile_ids, dependencies)
+
+    if order is None:
+        raise CyclicDependencies(dependencies)
+    else:
+        return list(reversed(order))

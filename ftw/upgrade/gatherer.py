@@ -1,8 +1,7 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from Products.GenericSetup.interfaces import ISetupTool
-from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
-from ftw.upgrade.utils import topological_sort
+from ftw.upgrade.utils import get_sorted_profile_ids
 from zope.component import adapts
 from zope.interface import implements
 
@@ -106,32 +105,7 @@ class UpgradeInformationGatherer(object):
         """Sort the profiles so that the profiles are listed after its
         dependencies since it is safer to first install dependencies.
         """
-        profile_ids = []
-        dependencies = []
 
-        for profile in self.portal_setup.listProfileInfo():
-            profile_ids.append(profile['id'])
-
-        for profile in self.portal_setup.listProfileInfo():
-            if not profile.get('dependencies'):
-                continue
-
-            for dependency in profile.get('dependencies'):
-                if dependency.startswith('profile-'):
-                    dependency = dependency.split('profile-', 1)[1]
-                else:
-                    continue
-
-                if dependency not in profile_ids:
-                    continue
-                dependencies.append((profile['id'], dependency))
-
-        order = topological_sort(profile_ids, dependencies)
-        if order is None:
-            # cyclic
-            profiles = sorted(profiles, key=lambda p: p.get('id'))
-            raise CyclicDependencies(profiles)
-
-        else:
-            order = list(reversed(order))
-            return sorted(profiles, key=lambda p: order.index(p.get('id')))
+        sorted_profile_ids = get_sorted_profile_ids(self.portal_setup)
+        return sorted(profiles,
+                      key=lambda p: sorted_profile_ids.index(p.get('id')))

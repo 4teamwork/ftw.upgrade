@@ -276,11 +276,8 @@ class TestUpgradeInformationGatherer(MockTestCase):
             gatherer.get_upgrades()
 
         data = cm.exception.dependencies
-        simple = simplify_data(data, keep_order=True,
-                               profile_only=True)
-
-        self.assertEqual(simple, ['bar:default',
-                                  'foo:default'])
+        self.assertEqual(data, [('bar:default', 'foo:default'),
+                                ('foo:default', 'bar:default')])
 
     def test_no_longer_existing_profiles_are_silently_removed(self):
         self.mock_profile('foo:default', '1.2', db_version='1.0')

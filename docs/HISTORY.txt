@@ -5,6 +5,9 @@ Changelog
 1.2 (unreleased)
 ----------------
 
+- Refactor dependency sorting into seperate function.
+  [jone]
+
 - Add security declarations.
   [jone]
 

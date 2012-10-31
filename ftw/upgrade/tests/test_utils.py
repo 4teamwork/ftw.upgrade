@@ -1,4 +1,7 @@
+from ftw.testing import MockTestCase
+from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.utils import SizedGenerator
+from ftw.upgrade.utils import get_sorted_profile_ids
 from ftw.upgrade.utils import topological_sort
 from unittest2 import TestCase
 
@@ -53,3 +56,42 @@ class TestSizedGenerator(TestCase):
     def test_iterating(self):
         generator = SizedGenerator((i for i in range(3)), 3)
         self.assertEqual(list(generator), [0, 1, 2])
+
+
+class TestSortedProfileIds(MockTestCase):
+
+    def test_dependencies_resolved(self):
+        portal_setup = self.mocker.mock()
+        self.expect(portal_setup.listProfileInfo()).result([
+                {'id': 'baz',
+                 'dependencies': [
+                        'profile-foo',
+                        'profile-bar']},
+
+                {'id': 'foo'},
+
+                {'id': 'bar',
+                 'dependencies': ['profile-foo']}]).count(1, 2)
+
+        self.replay()
+
+        self.assertEqual(
+            get_sorted_profile_ids(portal_setup),
+            ['foo', 'bar', 'baz'])
+
+    def test_cyclic_dependencies(self):
+        portal_setup = self.mocker.mock()
+        self.expect(portal_setup.listProfileInfo()).result([
+                {'id': 'foo',
+                 'dependencies': ['profile-bar']},
+
+                {'id': 'bar',
+                 'dependencies': ['profile-foo']}]).count(1, 2)
+
+        self.replay()
+
+        with self.assertRaises(CyclicDependencies) as cm:
+            get_sorted_profile_ids(portal_setup)
+
+        self.assertEqual(cm.exception.dependencies,
+                         [('foo', 'bar'), ('bar', 'foo')])

@@ -5,6 +5,9 @@ Changelog
 1.2 (unreleased)
 ----------------
 
+- Add IPostUpgrade adapter hook.
+  [jone]
+
 - Refactor dependency sorting into seperate function.
   [jone]
 

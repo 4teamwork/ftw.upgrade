@@ -205,7 +205,7 @@ which upgrades are run.
 The name of the adapters should be the profile of the package, so that
 ``ftw.upgrade`` is able to execute the adapters in order of the GS dependencies.
 
-Example adapter:
+Example adapter::
 
     >>> from ftw.upgrade.interfaces import IPostUpgrade
     >>> from zope.interface import implements
@@ -219,7 +219,7 @@ Example adapter:
     ...     def __call__(self):
     ...         # custom code, e.g. import a generic setup profile for customizations
 
-Registration in ZCML:
+Registration in ZCML::
 
     >>> <configure xmlns="http://namespaces.zope.org/zope">
     ...     <adapter

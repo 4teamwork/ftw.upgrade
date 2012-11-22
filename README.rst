@@ -122,7 +122,7 @@ The ``UpgradeStep`` class has various helper functions:
     the ``portal_actions`` tool from a particulary ``category``.
 
 ``self.catalog_unrestricted_get_object(brain)``
-    Removes the unrestricted object of a brain.
+    Returns the unrestricted object of a brain.
 
 ``self.catalog_unrestricted_search(query, full_objects=False)``
     Searches the catalog without checking security.

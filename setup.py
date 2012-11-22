@@ -45,6 +45,7 @@ setup(name='ftw.upgrade',
       install_requires=[
         'setuptools',
         'Products.CMFCore',
+        'Products.CMFPlone',
         'Products.GenericSetup',
         'plone.browserlayer',
         'zope.component',

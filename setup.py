@@ -4,13 +4,15 @@ import os
 version = '1.2.dev0'
 
 tests_require = [
-    'ftw.testing',
-    'mocker',
-    'plone.app.testing',
-    'plone.testing',
-    'zope.configuration',
     'unittest2',
+    'mocker',
+    'ftw.testing',
+    'plone.testing',
+    'plone.app.testing',
+
+    'zope.configuration',
     'transaction',
+    'Products.ATContentTypes',
     ]
 
 setup(name='ftw.upgrade',
@@ -44,16 +46,23 @@ setup(name='ftw.upgrade',
 
       install_requires=[
         'setuptools',
-        'Products.CMFCore',
-        'Products.CMFPlone',
-        'Products.GenericSetup',
-        'plone.browserlayer',
+
+        # Zope
+        'AccessControl',
+        'Acquisition',
+        'transaction',
+        'Products.BTreeFolder2',
+        'Products.ZCatalog',
         'zope.component',
         'zope.interface',
         'zope.publisher',
-
-        # 'Products.ZCatalog',  # breaks plone 4.0 compatibilty, since zope 2.12.10 includes it in Zope2 egg.
         'Zope2',
+
+        # Plone
+        'Products.GenericSetup',
+        'plone.browserlayer',
+        'Products.CMFCore',
+        'Products.CMFPlone',
         ],
 
       tests_require=tests_require,

@@ -24,6 +24,7 @@ setup(name='ftw.upgrade',
       classifiers=[
         'Framework :: Plone',
         'Framework :: Plone :: 4.1',
+        'Framework :: Plone :: 4.2',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License (GPL)',
         'Programming Language :: Python',

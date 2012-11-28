@@ -211,6 +211,7 @@ Example adapter::
     >>> from zope.interface import implements
     >>>
     >>> class MyPostUpgradeAdapter(object):
+    ...     implements(IPostUpgrade)
     ...
     ...     def __init__(self, portal, request):
     ...         self.portal = portal

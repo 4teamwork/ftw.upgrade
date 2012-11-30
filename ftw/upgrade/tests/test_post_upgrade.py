@@ -36,6 +36,7 @@ class TestPostUpgrade(MockTestCase):
     layer = UPGRADES_REGISTERED_FUNCTIONAL
 
     def setUp(self):
+        super(TestPostUpgrade, self).setUp()
         self.portal_setup = getToolByName(
             self.layer['portal'], 'portal_setup')
 

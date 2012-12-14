@@ -61,11 +61,16 @@ class UpgradeInformationGatherer(object):
                 'db_version': db_version}
 
         try:
-            data.update(self.portal_setup.getProfileInfo(profileid))
+            profile_info = self.portal_setup.getProfileInfo(profileid).copy()
+            if 'for' in profile_info:
+                del profile_info['for']
+            data.update(profile_info)
+
         except KeyError, exc:
             if exc.args and exc.args[0] == profileid:
                 # package was removed - profile is no longer available.
                 return {'upgrades': []}
+
             else:
                 raise
 
@@ -86,6 +91,8 @@ class UpgradeInformationGatherer(object):
 
         for upgrade in all_upgrades:
             upgrade = upgrade.copy()
+            if 'step' in upgrade:
+                del upgrade['step']
 
             if upgrade['id'] not in proposed_ids:
                 upgrade['proposed'] = False

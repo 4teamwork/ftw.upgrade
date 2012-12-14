@@ -5,6 +5,10 @@ Changelog
 1.2 (unreleased)
 ----------------
 
+- Remove 'step' and 'for' values from internal data structure.
+  This is needed for allowing us to serialize the data (json).
+  [jone]
+
 - Add IPostUpgrade adapter hook.
   [jone]
 

@@ -33,7 +33,6 @@ class IUpgradeInformationGatherer(Interface):
         ...   'product': 'Products.CMFEditions',
         ...   'description': u'Extension profile for default ' + \
         ...       'CMFEditions setup.',
-        ...   'for': None,
         ...   'title': u'CMFEditions',
         ...   'version': u'3',
         ...   'upgrades': [
@@ -48,7 +47,6 @@ class IUpgradeInformationGatherer(Interface):
         ...        'sortkey': 0,
         ...        'source': ('2',
         ...                   '0'),
-        ...        'step': <Products.GenericSetup.upgrade...>,
         ...        'done': True,
         ...        'id': '8159946379289711266',
         ...        'sdest': '3'}],

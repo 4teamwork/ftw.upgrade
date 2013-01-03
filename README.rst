@@ -4,6 +4,12 @@ Introduction
 This product aims to simplify running and writing third-party Generic Setup
 upgrade steps in Plone.
 
+.. figure:: http://onegov.ch/approved.png/image
+   :align: right
+   :target: http://onegov.ch/community/zertifizierte-module/ftw.upgrade
+
+   Certified: 01/2013
+
 It provides a control panel for running multiple upgrades
 at once, based on the upgrade mechanism of Generic Setup (portal_setup).
 

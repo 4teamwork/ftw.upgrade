@@ -5,6 +5,9 @@ Changelog
 1.2 (unreleased)
 ----------------
 
+- onegov.ch approved: add badge to readme.
+  [jone]
+
 - Remove 'step' and 'for' values from internal data structure.
   This is needed for allowing us to serialize the data (json).
   [jone]

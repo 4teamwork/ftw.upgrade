@@ -254,3 +254,7 @@ Copyright
 This package is copyright by `4teamwork <http://www.4teamwork.ch/>`_.
 
 ``ftw.upgrade`` is licensed under GNU General Public License, version 2.
+
+.. image:: https://cruel-carlota.pagodabox.com/88d65094039a7fe0cbeb07e422ca9c15
+   :alt: githalytics.com
+   :target: http://githalytics.com/4teamwork/ftw.upgrade

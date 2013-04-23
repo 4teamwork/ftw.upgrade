@@ -5,8 +5,8 @@ Changelog
 1.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
+- Keep modification date on reindexObject wihtout idxs.
+  [mathias.leimgruber]
 
 1.2 (2013-01-24)
 ----------------

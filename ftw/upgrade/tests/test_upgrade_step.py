@@ -1,7 +1,8 @@
-from Products.CMFCore.utils import getToolByName
+from DateTime import DateTime
 from ftw.upgrade import UpgradeStep
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
+from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
 from zope.interface.verify import verifyClass
 
@@ -92,6 +93,33 @@ class TestUpgradeStep(TestCase):
         Step(self.portal_setup)
         self.portal.manage_delObjects([folder.id])
 
+    def test_catalog_reindex_objects_keeps_modification_date(self):
+        testcase = self
+
+        folder = self.portal.get(
+            self.portal.invokeFactory('Folder', 'catalog-reindex-objects'))
+        folder.processForm()
+
+        modification_date = DateTime('2010/12/31')
+        folder.setModificationDate(modification_date)
+        folder.reindexObject(idxs=['modified'])
+
+        class Step(UpgradeStep):
+            def __call__(self):
+
+                brain = self.catalog_unrestricted_search(
+                    {'UID': folder.UID()})[0]
+                testcase.assertEquals(brain.modified, modification_date)
+
+                self.catalog_reindex_objects({})
+
+                brain = self.catalog_unrestricted_search(
+                    {'UID': folder.UID()})[0]
+                testcase.assertEquals(brain.modified, modification_date)
+
+        Step(self.portal_setup)
+        self.portal.manage_delObjects([folder.id])
+
     def test_catalog_has_index(self):
         testcase = self
 
@@ -139,7 +167,6 @@ class TestUpgradeStep(TestCase):
 
         Step(self.portal_setup)
         self.portal.manage_delObjects([folder.id])
-
 
     def test_catalog_unrestricted_search(self):
         testcase = self
@@ -300,6 +327,5 @@ class TestUpgradeStep(TestCase):
         self.assertEqual(obj.__class__.__name__, 'ATFolder')
         Step(self.portal_setup)
         self.assertEqual(obj.__class__.__name__, 'ATBTreeFolder')
-
 
         self.portal.manage_delObjects(['class-migration-test'])

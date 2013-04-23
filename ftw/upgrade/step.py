@@ -65,15 +65,23 @@ class UpgradeStep(object):
         A list of indexes can be passed as `idxs` for limiting the
         indexed indexes.
         """
-        if idxs is None:
-            idxs = []
 
         title = '.'.join((self.__module__, self.__class__.__name__))
         objects = self.catalog_unrestricted_search(query, full_objects=True)
 
         with ProgressLogger(title, objects) as step:
             for obj in objects:
-                obj.reindexObject(idxs=idxs)
+                if idxs is None:
+                    # Store modification date
+                    modification_date = obj.modified()
+                    obj.reindexObject()
+
+                    # Restore modification date
+                    obj.setModificationDate(modification_date)
+                    obj.reindexObject(idxs=['modified'])
+
+                else:
+                    obj.reindexObject(idxs=idxs)
                 step()
 
     security.declarePrivate('catalog_has_index')

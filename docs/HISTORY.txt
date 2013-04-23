@@ -5,7 +5,8 @@ Changelog
 1.2.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Added remove_broken_browserlayer method to step class.
+  [lgraf]
 
 
 1.2.1 (2013-04-23)

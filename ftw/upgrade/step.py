@@ -1,11 +1,12 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from Acquisition import aq_base, aq_parent
-from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
-from Products.CMFCore.utils import getToolByName
-from Products.ZCatalog.ProgressHandler import ZLogHandler
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.progresslogger import ProgressLogger
 from ftw.upgrade.utils import SizedGenerator
+from plone.browserlayer.interfaces import ILocalBrowserLayerType
+from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
+from Products.CMFCore.utils import getToolByName
+from Products.ZCatalog.ProgressHandler import ZLogHandler
 from zope.interface import implements
 import logging
 
@@ -239,3 +240,25 @@ class UpgradeStep(object):
 
         else:
             parent._p_changed = True
+
+    security.declarePrivate('remove_broken_browserlayer')
+    def remove_broken_browserlayer(self, name, dottedname):
+        """Removes a browser layer registration, whose interface can't be
+        imported any more, from the persistent registry.
+        """
+        iface_name = dottedname.split('.')[-1]
+        sm = self.portal.getSiteManager()
+        adapters = sm.utilities._adapters
+        subscribers = sm.utilities._subscribers
+
+        # Remove adapters ...
+        if name in adapters[0][ILocalBrowserLayerType]:
+            del adapters[0][ILocalBrowserLayerType][name]
+
+        # ... as well as subscribers
+        layer_subscribers = subscribers[0][ILocalBrowserLayerType]
+        remaining_layers = tuple([layer for layer in layer_subscribers['']
+                                if not layer.__name__ == iface_name])
+        layer_subscribers[''] = remaining_layers
+
+        sm.utilities._p_changed = True

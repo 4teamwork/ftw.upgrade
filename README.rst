@@ -162,6 +162,14 @@ The ``UpgradeStep`` class has various helper functions:
     Changes the class of an object. It has a special handling for BTreeFolder2Base
     based containers.
 
+``self.remove_broken_browserlayer(name, dottedname)``
+    Removes a browser layer registration whose interface can't be imported any
+    more from the persistent registry.
+    Messages like these on instance boot time can be an indication for this
+    problem:
+    ``WARNING OFS.Uninstalled Could not import class 'IMyProductSpecific' from
+    module 'my.product.interfaces'``
+
 
 Progress logger
 ===============

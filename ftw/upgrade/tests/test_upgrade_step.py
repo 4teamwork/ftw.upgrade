@@ -2,9 +2,16 @@ from DateTime import DateTime
 from ftw.upgrade import UpgradeStep
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
+from plone.browserlayer.utils import register_layer
 from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
+from zope.interface import Interface
 from zope.interface.verify import verifyClass
+
+
+class IMyProductLayer(Interface):
+    """Dummy class used in test_remove_broken_browserlayer()
+    """
 
 
 class TestUpgradeStep(TestCase):
@@ -329,3 +336,17 @@ class TestUpgradeStep(TestCase):
         self.assertEqual(obj.__class__.__name__, 'ATBTreeFolder')
 
         self.portal.manage_delObjects(['class-migration-test'])
+
+    def test_remove_broken_browserlayer(self):
+        # TODO: Currently, this test doesn't really test that the removal
+        # works, it only checks that the Step method can be called without
+        # causing problems.
+
+        register_layer(IMyProductLayer, 'my.product')
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                self.remove_broken_browserlayer('my.product',
+                                                'IMyProductLayer')
+        Step(self.portal_setup)
+

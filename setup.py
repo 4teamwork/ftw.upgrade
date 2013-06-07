@@ -13,6 +13,7 @@ tests_require = [
     'zope.configuration',
     'transaction',
     'Products.ATContentTypes',
+    'Products.CMFPlacefulWorkflow',
     ]
 
 setup(name='ftw.upgrade',

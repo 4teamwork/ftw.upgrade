@@ -209,6 +209,55 @@ Example log output::
     INFO ftw.upgrade DONE: Migrate MyType
 
 
+Placeful Workflow Policy Activator
+==================================
+
+When manually activating a placeful workflow policy all objects with a new
+workflow might be reset to the initial state of the new workflow.
+
+ftw.upgrade has a tool for enabling placeful workflow policies without
+breaking the review state by mapping it from the old to the new workflows:
+
+.. code:: python
+
+    from ftw.upgrade.placefulworkflow import PlacefulWorkflowPolicyActivator
+    from ftw.upgrade import UpgradeStep
+
+    class ActivatePlacefulWorkflowPolicy(UpgradeStep):
+
+        def __call__(self):
+            portal_url = self.getToolByName('portal_url')
+            portal = portal_url.getPortalObject()
+
+            context = portal.unrestrictedTraverse('path/to/object')
+
+            activator = PlacefulWorkflowPolicyActivator(contextg)
+            activator.activate_policy(
+                'local_policy',
+                review_state_mapping={
+                    ('intranet_workflow', 'plone_workflow'): {
+                        'external': 'published',
+                        'pending': 'pending'}})
+
+The above example activates a placeful workflow policy recursively on the
+object under "path/to/object", enabling the placeful workflow policy
+"local_policy".
+
+The mapping then maps the "intranet_workflow" to the "plone_workflow" by
+defining which old states (key, intranet_workflow) should be changed to
+the new states (value, plone_workflow).
+
+**Options**
+
+- `activate_in`: Activates the placeful workflow policy for the passed in
+  object (`True` by default).
+- `activate_below`: Activates the placeful workflow policy for the children
+  of the passed in object, recursively (`True` by default).
+- `update_security`: Update object security and reindex
+  allowedRolesAndUsers (`True` by default).
+
+
+
 IPostUpgrade adapter
 ====================
 

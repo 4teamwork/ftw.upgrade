@@ -4,6 +4,7 @@ from plone.app.testing import IntegrationTesting
 from plone.app.testing import PloneSandboxLayer
 from plone.app.testing import applyProfile
 from plone.app.testing import setRoles, TEST_USER_ID, TEST_USER_NAME, login
+from plone.testing import z2
 from plone.testing import zca
 from zope.configuration import xmlconfig
 
@@ -27,6 +28,10 @@ ZCML_LAYER = ZCMLLayer()
 class FtwUpgradeLayer(PloneSandboxLayer):
 
     def setUpZope(self, app, configurationContext):
+        import Products.CMFPlacefulWorkflow
+        xmlconfig.file('configure.zcml', Products.CMFPlacefulWorkflow,
+                       context=configurationContext)
+
         import ftw.upgrade
         xmlconfig.file('configure.zcml', ftw.upgrade,
                        context=configurationContext)
@@ -39,7 +44,11 @@ class FtwUpgradeLayer(PloneSandboxLayer):
         xmlconfig.file('navigation.zcml', ftw.upgrade.tests.upgrades,
                        context=configurationContext)
 
+        z2.installProduct(app, 'Products.CMFPlacefulWorkflow')
+
     def setUpPloneSite(self, portal):
+        applyProfile(
+            portal, 'Products.CMFPlacefulWorkflow:CMFPlacefulWorkflow')
         applyProfile(portal, 'ftw.upgrade:default')
 
         setRoles(portal, TEST_USER_ID, ['Manager'])

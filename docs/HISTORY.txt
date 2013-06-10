@@ -5,6 +5,9 @@ Changelog
 1.2.2 (unreleased)
 ------------------
 
+- Implement a placeful workflow policy activator.
+  [jone]
+
 - Added remove_broken_browserlayer method to step class.
   [lgraf]
 

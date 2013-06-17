@@ -131,7 +131,8 @@ class PlacefulWorkflowPolicyActivator(object):
 
                 obj = portal.unrestrictedTraverse(path)
                 wf_tool.setStatusOf(wf_after, obj, {
-                        'review_state': new_review_state})
+                        'review_state': new_review_state,
+                        'action': ''})
                 step()
 
     def _update_object_security(self):

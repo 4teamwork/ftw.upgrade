@@ -201,6 +201,13 @@ The ``UpgradeStep`` class has various helper functions:
     ``WARNING OFS.Uninstalled Could not import class 'IMyProductSpecific' from
     module 'my.product.interfaces'``
 
+``self.update_security(obj, reindex_security=True)``
+    Update the security of a single object (checkboxes in manage_access).
+    This is usefuly in combination with the ``ProgressLogger``.
+    It is possible to not reindex the object security in the catalog
+    (``allowedRolesAndUsers``). This speeds up the update but should only be disabled
+    when there are no changes for the ``View`` permission.
+
 
 Progress logger
 ===============

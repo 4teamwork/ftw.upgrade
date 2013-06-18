@@ -1,4 +1,5 @@
 from ftw.testing.layer import ComponentRegistryLayer
+from ftw.upgrade.tests.builders import BuilderSession
 from plone.app.testing import FunctionalTesting
 from plone.app.testing import IntegrationTesting
 from plone.app.testing import PloneSandboxLayer
@@ -53,6 +54,12 @@ class FtwUpgradeLayer(PloneSandboxLayer):
 
         setRoles(portal, TEST_USER_ID, ['Manager'])
         login(portal, TEST_USER_NAME)
+
+    def testSetUp(self):
+        self.builder_session = BuilderSession.instance()
+
+    def testTearDown(self):
+        self.builder_session.reset()
 
 
 FTW_UPGRADE_FIXTURE = FtwUpgradeLayer()

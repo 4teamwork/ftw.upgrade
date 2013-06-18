@@ -1,12 +1,13 @@
 from Products.CMFCore.utils import getToolByName
 from ftw.upgrade.placefulworkflow import PlacefulWorkflowPolicyActivator
 from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
+from ftw.upgrade.tests.builders import Builder
+from ftw.upgrade.tests.builders import create
 from plone.app.testing import TEST_USER_ID
 from plone.app.testing import TEST_USER_NAME
 from plone.app.testing import login
 from plone.app.testing import setRoles
 from unittest2 import TestCase
-from zope.container.interfaces import INameChooser
 
 
 class TestPlacefulWorkflowPolicyActivator(TestCase):
@@ -24,17 +25,19 @@ class TestPlacefulWorkflowPolicyActivator(TestCase):
                                 to_workflow='intranet_workflow')
 
     def test_activate_placeful_workflow_policy_with_mapping(self):
-        container = self.create_folder(
-            titled='Container',
-            with_review_state='external')
-        subfolder = self.create_folder(
-            titled='Subfolder',
-            within=container,
-            with_review_state='pending')
-        document = self.create_document(
-            titled='The Document',
-            within=subfolder,
-            with_review_state='internally_published')
+        container = create(Builder('folder')
+                           .titled('Container')
+                           .in_state('external'))
+
+        subfolder = create(Builder('folder')
+                           .within(container)
+                           .titled('Subfolder')
+                           .in_state('pending'))
+
+        document = create(Builder('document')
+                          .within(subfolder)
+                          .titled('The Document')
+                          .in_state('internally_published'))
 
         self.create_placeful_workflow_policy(
             named='local_workflow',
@@ -55,9 +58,9 @@ class TestPlacefulWorkflowPolicyActivator(TestCase):
                 document: 'internally_published'})
 
     def test_object_security_is_updated(self):
-        container = self.create_folder(
-            titled='Container',
-            with_review_state='external')
+        container = create(Builder('folder')
+                           .titled('Container')
+                           .in_state('external'))
 
         self.create_placeful_workflow_policy(
             named='local_workflow',
@@ -74,8 +77,9 @@ class TestPlacefulWorkflowPolicyActivator(TestCase):
         self.assertSecurityIsUpToDate()
 
     def test_object_security_is_reindexed(self):
-        container = self.create_folder(titled='Container',
-                                       with_review_state='external')
+        container = create(Builder('folder')
+                           .titled('Container')
+                           .in_state('internal'))
 
         self.assertIn('Member',
                       self.get_allowed_roles_and_users(for_object=container))
@@ -90,7 +94,7 @@ class TestPlacefulWorkflowPolicyActivator(TestCase):
             'local_workflow',
             review_state_mapping={
                 ('intranet_workflow', 'plone_workflow'): {
-                    'external': 'published'}})
+                    'internal': 'published'}})
 
         self.assertEquals(
             ['Anonymous'],
@@ -100,39 +104,6 @@ class TestPlacefulWorkflowPolicyActivator(TestCase):
         wftool = getToolByName(self.portal, 'portal_workflow')
         wftool.setChainForPortalTypes((for_type,),
                                       (to_workflow,))
-
-    def create_folder(self, **kwargs):
-        return self.create_object(portal_type='Folder', **kwargs)
-
-    def create_document(self, **kwargs):
-        return self.create_object(portal_type='Document', **kwargs)
-
-    def create_object(self, portal_type, titled, within=None,
-                      with_review_state=None):
-
-        if not within:
-            within = self.portal
-
-        chooser = INameChooser(within)
-        newid = chooser.chooseName(titled, within)
-        within.invokeFactory(portal_type, newid, title=titled)
-        obj = within.get(newid)
-
-        if with_review_state:
-            wftool = getToolByName(self.portal, 'portal_workflow')
-            chain = wftool.getChainFor(portal_type)
-            self.assertTrue(
-                len(chain) == 1,
-                'Cannot change state of "%s" object - seems to have no'
-                ' or too many workflows: %s' % (
-                    portal_type, chain))
-
-            wftool.setStatusOf(chain[0], obj, {
-                    'review_state': with_review_state})
-
-        obj.processForm()
-
-        return obj
 
     def create_placeful_workflow_policy(self, named, with_workflows):
         placeful_wf_tool = getToolByName(

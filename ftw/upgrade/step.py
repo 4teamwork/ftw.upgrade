@@ -262,3 +262,34 @@ class UpgradeStep(object):
         layer_subscribers[''] = remaining_layers
 
         sm.utilities._p_changed = True
+
+    security.declarePrivate('update_security')
+    def update_security(self, obj, reindex_security=True):
+        """Update the object security and reindex the security indexes in
+        the catalog.
+        """
+
+        wftool = self.getToolByName('portal_workflow')
+
+        changed = False
+        for permission in obj.permission_settings():
+            roles_checked = [True for role in permission.get('roles', ())
+                             if role.get('checked')]
+
+            if roles_checked or not permission.get('acquire'):
+                obj.manage_permission(permission['name'], roles=[],
+                                      acquire=True)
+                changed = True
+
+        for workflow_id in wftool.getChainFor(obj):
+            workflow = wftool.get(workflow_id)
+            if not hasattr(aq_base(workflow), 'updateRoleMappingsFor'):
+                continue
+
+            if workflow.updateRoleMappingsFor(obj):
+                changed = True
+
+        if changed and reindex_security:
+            obj.reindexObjectSecurity()
+
+        return changed

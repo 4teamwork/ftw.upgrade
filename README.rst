@@ -13,7 +13,7 @@ upgrade steps in Plone.
 It provides a control panel for running multiple upgrades
 at once, based on the upgrade mechanism of Generic Setup (portal_setup).
 
-Further a base class for writing upgrade steps with variety of
+Further a base class for writing upgrade steps with a variety of
 helpers for common tasks is provided.
 
 
@@ -24,6 +24,8 @@ Features
   third-party Plone packages using Generic Setup.
   It allows to upgrade multiple packages at once with an easy to use user
   interface.
+  By resolving the dependency graph it is able to optimize the upgrade
+  step order so that the upgrade is hassle free.
 
 * **Writing upgrades**: The package provides a base upgrade class with
   various helpers for tasks often done in upgrades.

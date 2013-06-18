@@ -33,7 +33,9 @@ Installation
 ============
 
 - Install ``ftw.upgrade`` by adding it to the list of eggs in your buildout.
-  Then run buildout and restart your instance::
+  Then run buildout and restart your instance:
+
+.. code:: ini
 
     [instance]
     eggs +=
@@ -61,25 +63,30 @@ It can be used by registering the classmethod directly.
 Be aware that the class is very special: it acts like a function and calls
 itself automatically.
 
-Example upgrade step definition (defined in a ``upgrades.py``)::
+Example upgrade step definition (defined in a ``upgrades.py``):
 
-    >>> from ftw.upgrade import UpgradeStep
-    >>>
-    >>> class UpdateFooIndex(UpgradeStep):
-    ...    """The index ``foo`` is a ``FieldIndex`` instead of a
-    ...    ``KeywordIndex``. This upgrade step changes the index type
-    ...    and reindexes the objects.
-    ...    """
-    ...
-    ...    def __call__(self):
-    ..         index_name = 'foo'
-    ...        if self.catalog_has_index(index_name):
-    ...            self.catalog_remove_index(index_name)
-    ...
-    ...        self.catalog_add_index(index_name, 'KeywordIndex')
-    ...        self.catalog_rebuild_index(index_name)
+.. code:: python
 
-Registration in ``configure.zcml`` (assume its in the same directory)::
+    from ftw.upgrade import UpgradeStep
+
+    class UpdateFooIndex(UpgradeStep):
+       """The index ``foo`` is a ``FieldIndex`` instead of a
+       ``KeywordIndex``. This upgrade step changes the index type
+       and reindexes the objects.
+       """
+
+       def __call__(self):
+           index_name = 'foo'
+           if self.catalog_has_index(index_name):
+               self.catalog_remove_index(index_name)
+
+           self.catalog_add_index(index_name, 'KeywordIndex')
+           self.catalog_rebuild_index(index_name)
+
+
+Registration in ``configure.zcml`` (assume its in the same directory):
+
+.. code:: xml
 
     <configure
         xmlns="http://namespaces.zope.org/zope"
@@ -179,24 +186,26 @@ administrator needs to have information about the progress of the update. It is 
 continuous output for avoiding proxy timeouts when accessing Zope through a webserver / proxy.
 
 With the ``ProgressLogger`` context manager it is very easy to log the
-progress::
+progress:
 
-    >>> from ftw.upgrade import ProgressLogger
-    >>> from ftw.upgrade import UpgradeStep
-    >>>
-    >>> class MyUpgrade(UpgradeStep):
-    ...
-    ...    def __call__(self):
-    ...        catalog = self.getToolByName('portal_catalog')
-    ...        brains = catalog('MyType')
-    ...
-    ...        with ProgressLogger('Migrate MyType', brains) as step:
-    ...            for brain in brains:
-    ...                self.upgrade_obj(brain.getObject())
-    ...                step()
-    ...
-    ...    def upgrade_obj(self, obj):
-    ...        do_something_with(obj)
+.. code:: python
+
+    from ftw.upgrade import ProgressLogger
+    from ftw.upgrade import UpgradeStep
+
+    class MyUpgrade(UpgradeStep):
+
+       def __call__(self):
+           catalog = self.getToolByName('portal_catalog')
+           brains = catalog('MyType')
+
+           with ProgressLogger('Migrate MyType', brains) as step:
+               for brain in brains:
+                   self.upgrade_obj(brain.getObject())
+                   step()
+
+       def upgrade_obj(self, obj):
+           do_something_with(obj)
 
 
 The logger will log the current progress every 5 seconds (default).
@@ -268,31 +277,35 @@ which upgrades are run.
 The name of the adapters should be the profile of the package, so that
 ``ftw.upgrade`` is able to execute the adapters in order of the GS dependencies.
 
-Example adapter::
+Example adapter:
 
-    >>> from ftw.upgrade.interfaces import IPostUpgrade
-    >>> from zope.interface import implements
-    >>>
-    >>> class MyPostUpgradeAdapter(object):
-    ...     implements(IPostUpgrade)
-    ...
-    ...     def __init__(self, portal, request):
-    ...         self.portal = portal
-    ...         self.request = request
-    ...
-    ...     def __call__(self):
-    ...         # custom code, e.g. import a generic setup profile for customizations
+.. code:: python
 
-Registration in ZCML::
+    from ftw.upgrade.interfaces import IPostUpgrade
+    from zope.interface import implements
 
-    >>> <configure xmlns="http://namespaces.zope.org/zope">
-    ...     <adapter
-    ...         factory=".adapters.MyPostUpgradeAdapter"
-    ...         provides="ftw.upgrade.interfaces.IPostUpgrade"
-    ...         for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot
-    ...              zope.interface.Interface"
-    ...         name="my.package:default" />
-    ... </configure>
+    class MyPostUpgradeAdapter(object):
+        implements(IPostUpgrade)
+
+        def __init__(self, portal, request):
+            self.portal = portal
+            self.request = request
+
+        def __call__(self):
+            # custom code, e.g. import a generic setup profile for customizations
+
+Registration in ZCML:
+
+.. code:: xml
+
+    <configure xmlns="http://namespaces.zope.org/zope">
+        <adapter
+            factory=".adapters.MyPostUpgradeAdapter"
+            provides="ftw.upgrade.interfaces.IPostUpgrade"
+            for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot
+                 zope.interface.Interface"
+            name="my.package:default" />
+    </configure>
 
 
 

@@ -1,9 +1,11 @@
 from DateTime import DateTime
+from Products.CMFCore.utils import getToolByName
 from ftw.upgrade import UpgradeStep
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
+from ftw.upgrade.tests.builders import Builder
+from ftw.upgrade.tests.builders import create
 from plone.browserlayer.utils import register_layer
-from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
@@ -73,16 +75,15 @@ class TestUpgradeStep(TestCase):
                 self.catalog_rebuild_index(name)
                 testcase.assertEqual(len(ctool._catalog.getIndex(name)), 1)
 
-        self.portal.invokeFactory('Folder', 'rebuild-index-test-obj',
-                                  excludeFromNav=True)
+        create(Builder('folder')
+               .titled('Rebuild Index Test Obj')
+               .having(excludeFromNav=True))
+
         Step(self.portal_setup)
-        self.portal.manage_delObjects(['rebuild-index-test-obj'])
 
     def test_catalog_reindex_objects(self):
         testcase = self
-
-        folder = self.portal.get(
-            self.portal.invokeFactory('Folder', 'catalog-reindex-objects'))
+        create(Builder('folder'))
 
         class Step(UpgradeStep):
             def __call__(self):
@@ -98,14 +99,10 @@ class TestUpgradeStep(TestCase):
                 testcase.assertEqual(len(ctool._catalog.getIndex(name)), 1)
 
         Step(self.portal_setup)
-        self.portal.manage_delObjects([folder.id])
 
     def test_catalog_reindex_objects_keeps_modification_date(self):
         testcase = self
-
-        folder = self.portal.get(
-            self.portal.invokeFactory('Folder', 'catalog-reindex-objects'))
-        folder.processForm()
+        folder = create(Builder('folder'))
 
         modification_date = DateTime('2010/12/31')
         folder.setModificationDate(modification_date)
@@ -125,7 +122,6 @@ class TestUpgradeStep(TestCase):
                 testcase.assertEquals(brain.modified, modification_date)
 
         Step(self.portal_setup)
-        self.portal.manage_delObjects([folder.id])
 
     def test_catalog_has_index(self):
         testcase = self
@@ -152,11 +148,10 @@ class TestUpgradeStep(TestCase):
 
     def test_catalog_unrestricted_get_object(self):
         testcase = self
-        folder = self.portal.get(
-            self.portal.invokeFactory('Folder', 'catalog-get-obj-test'))
-        folder_path = '/'.join(folder.getPhysicalPath())
+        folder = create(Builder('folder'))
+        create(Builder('document').within(folder))
 
-        folder.invokeFactory('Document', 'page-one')
+        folder_path = '/'.join(folder.getPhysicalPath())
 
         class Step(UpgradeStep):
             def __call__(self):
@@ -173,16 +168,15 @@ class TestUpgradeStep(TestCase):
                                      'ImplicitAcquisitionWrapper')
 
         Step(self.portal_setup)
-        self.portal.manage_delObjects([folder.id])
 
     def test_catalog_unrestricted_search(self):
         testcase = self
-        folder = self.portal.get(
-            self.portal.invokeFactory('Folder', 'catalog-search-test'))
-        folder_path = '/'.join(folder.getPhysicalPath())
 
-        folder.invokeFactory('Document', 'page-one')
-        folder.invokeFactory('Document', 'page-two')
+        folder = create(Builder('folder'))
+        create(Builder('document').titled('Page One').within(folder))
+        create(Builder('document').titled('Page Two').within(folder))
+
+        folder_path = '/'.join(folder.getPhysicalPath())
 
         class Step(UpgradeStep):
             def __call__(self):
@@ -206,7 +200,6 @@ class TestUpgradeStep(TestCase):
                                      'ImplicitAcquisitionWrapper')
 
         Step(self.portal_setup)
-        self.portal.manage_delObjects([folder.id])
 
     def test_actions_remove_action(self):
         atool = getToolByName(self.portal, 'portal_actions')
@@ -323,19 +316,17 @@ class TestUpgradeStep(TestCase):
     def test_migrate_class(self):
         from Products.ATContentTypes.content.folder import ATBTreeFolder
 
-        container = self.portal.get(
-            self.portal.invokeFactory('Folder', 'class-migration-test'))
-        obj = container.get(container.invokeFactory('Folder', 'sub-folder'))
+        folder = create(Builder('folder'))
+        subfolder = create(Builder('folder').within(folder))
+
 
         class Step(UpgradeStep):
             def __call__(self):
-                self.migrate_class(obj, ATBTreeFolder)
+                self.migrate_class(subfolder, ATBTreeFolder)
 
-        self.assertEqual(obj.__class__.__name__, 'ATFolder')
+        self.assertEqual(subfolder.__class__.__name__, 'ATFolder')
         Step(self.portal_setup)
-        self.assertEqual(obj.__class__.__name__, 'ATBTreeFolder')
-
-        self.portal.manage_delObjects(['class-migration-test'])
+        self.assertEqual(subfolder.__class__.__name__, 'ATBTreeFolder')
 
     def test_remove_broken_browserlayer(self):
         # TODO: Currently, this test doesn't really test that the removal
@@ -349,4 +340,3 @@ class TestUpgradeStep(TestCase):
                 self.remove_broken_browserlayer('my.product',
                                                 'IMyProductLayer')
         Step(self.portal_setup)
-

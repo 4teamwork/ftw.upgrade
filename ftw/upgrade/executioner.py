@@ -46,6 +46,10 @@ class Executioner(object):
     security.declarePrivate('_do_upgrade')
     def _do_upgrade(self, profileid, upgradeid):
         step = _upgrade_registry.getUpgradeStep(profileid, upgradeid)
+        logger.log(logging.INFO, '_' * 70)
+        logger.log(logging.INFO, 'UPGRADE STEP %s: %s' % (
+                profileid, step.title))
+
         step.doStep(self.portal_setup)
 
         msg = "Ran upgrade step %s for profile %s" % (

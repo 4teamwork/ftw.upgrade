@@ -4,11 +4,13 @@ from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import _upgrade_registry
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IPostUpgrade
+from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
 from zope.component import adapts
 from zope.component import getAdapters
 from zope.interface import implements
 import logging
+import time
 import transaction
 
 
@@ -45,20 +47,24 @@ class Executioner(object):
 
     security.declarePrivate('_do_upgrade')
     def _do_upgrade(self, profileid, upgradeid):
+        start = time.time()
+
         step = _upgrade_registry.getUpgradeStep(profileid, upgradeid)
         logger.log(logging.INFO, '_' * 70)
         logger.log(logging.INFO, 'UPGRADE STEP %s: %s' % (
                 profileid, step.title))
 
         step.doStep(self.portal_setup)
+        transaction_note = '%s -> %s (%s)' % (
+            step.profile, '.'.join(step.dest), step.title)
+        transaction.get().note(transaction_note)
 
         msg = "Ran upgrade step %s for profile %s" % (
             step.title, profileid)
         logger.log(logging.INFO, msg)
 
-        transaction_note = '%s -> %s (%s)' % (
-            step.profile, '.'.join(step.dest), step.title)
-        transaction.get().note(transaction_note)
+        logger.log(logging.INFO, 'Upgrade step duration: %s' % format_duration(
+                time.time() - start))
 
         return step.dest
 

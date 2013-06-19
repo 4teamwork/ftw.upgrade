@@ -3,9 +3,11 @@ from Products.CMFCore.utils import getToolByName
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.utils import format_duration
 from zope.component import getAdapter
 from zope.publisher.browser import BrowserView
 import logging
+import time
 import traceback
 
 
@@ -73,13 +75,18 @@ class ManageUpgrades(BrowserView):
     def install(self):
         """Installs the selected upgrades.
         """
+        start = time.time()
+
         gstool = getToolByName(self.context, 'portal_setup')
         executioner = getAdapter(gstool, IExecutioner)
         data = self._get_upgrades_to_install()
         executioner.install(data)
 
+        logging.getLogger('ftw.upgrade').info('FINISHED')
+
         logging.getLogger('ftw.upgrade').info(
-            'FINISHED')
+            'Duration for all selected upgrade steps: %s' % (
+                format_duration(time.time() - start)))
 
     security.declarePrivate('install_with_ajax_stream')
     def install_with_ajax_stream(self):

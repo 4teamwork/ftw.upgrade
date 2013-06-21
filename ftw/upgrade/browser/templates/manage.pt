@@ -121,17 +121,17 @@
                                                        name string:upgrade.${upgrade/id}:records" />
 
                                 <img tal:condition="upgrade/proposed|nothing"
-                                     tal:attributes="src string:$portal_url/error_icon.png"
+                                     tal:attributes="src string:$portal_url/++resource++ftw.upgrade/upgrade-proposed.png"
                                      title="This upgrade is not installed yet."
                                      i18n:attributes="title" />
 
                                 <img tal:condition="upgrade/done|nothing"
-                                     tal:attributes="src string:$portal_url/confirm_icon.gif"
+                                     tal:attributes="src string:$portal_url/++resource++ftw.upgrade/upgrade-installed.png"
                                      title="This upgrade is already installed."
                                      i18n:attributes="title" />
 
                                 <img tal:condition="python: not upgrade['done'] and not upgrade['proposed']"
-                                     tal:attributes="src string:$portal_url/delete_icon.png"
+                                     tal:attributes="src string:$portal_url/++resource++ftw.upgrade/upgrade-error.png"
                                      title="Something is wrong with this Upgrade step. This upgrade steps seems not to be installed but is not proposed. The target version may be newer than the filesystem profile version."
                                      i18n:attributes="title" />
                             </span>

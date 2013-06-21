@@ -1,4 +1,5 @@
 from ftw.upgrade.exceptions import CyclicDependencies
+import math
 
 
 def topological_sort(items, partial_order):
@@ -117,3 +118,35 @@ def get_sorted_profile_ids(portal_setup):
         raise CyclicDependencies(dependencies)
     else:
         return list(reversed(order))
+
+
+def format_duration(seconds):
+    """Makes a duration in seconds human readable.
+    Supports hours, minutes and seconds.
+    """
+
+    seconds = math.ceil(seconds)
+    hours, remainder = divmod(seconds, 60 * 60)
+    minutes, seconds = divmod(remainder, 60)
+
+    result = []
+
+    if hours == 1:
+        result.append('1 hour')
+    elif hours > 1:
+        result.append('%i hours' % hours)
+
+    if minutes == 1:
+        result.append('1 minute')
+    elif minutes > 1:
+        result.append('%i minutes' % minutes)
+
+    if seconds == 1:
+        result.append('1 second')
+    elif seconds > 1:
+        result.append('%i seconds' % seconds)
+
+    if len(result) == 0:
+        return '0 seconds'
+    else:
+        return ', '.join(result)

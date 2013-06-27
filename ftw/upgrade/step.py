@@ -82,22 +82,19 @@ class UpgradeStep(object):
         """
 
         title = '.'.join((self.__module__, self.__class__.__name__))
-        objects = self.catalog_unrestricted_search(query, full_objects=True)
 
-        with ProgressLogger(title, objects) as step:
-            for obj in objects:
-                if idxs is None:
-                    # Store modification date
-                    modification_date = obj.modified()
-                    obj.reindexObject()
+        for obj in self.objects(query, title):
+            if idxs is None:
+                # Store modification date
+                modification_date = obj.modified()
+                obj.reindexObject()
 
-                    # Restore modification date
-                    obj.setModificationDate(modification_date)
-                    obj.reindexObject(idxs=['modified'])
+                # Restore modification date
+                obj.setModificationDate(modification_date)
+                obj.reindexObject(idxs=['modified'])
 
-                else:
-                    obj.reindexObject(idxs=idxs)
-                step()
+            else:
+                obj.reindexObject(idxs=idxs)
 
     security.declarePrivate('catalog_has_index')
     def catalog_has_index(self, name):

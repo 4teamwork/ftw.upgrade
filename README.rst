@@ -128,8 +128,8 @@ Registration in ``configure.zcml`` (assume its in the same directory):
     </configure>
 
 
-UpgradeStep helper methods
-==========================
+Methods
+-------
 
 The ``UpgradeStep`` class has various helper functions:
 
@@ -210,7 +210,7 @@ The ``UpgradeStep`` class has various helper functions:
 
 
 Progress logger
-===============
+---------------
 
 When an upgrade step is taking a long time to complete (e.g. while performing a data migration), the
 administrator needs to have information about the progress of the update. It is also important to have
@@ -247,7 +247,7 @@ Example log output::
 
 
 Placeful Workflow Policy Activator
-==================================
+----------------------------------
 
 When manually activating a placeful workflow policy all objects with a new
 workflow might be reset to the initial state of the new workflow.

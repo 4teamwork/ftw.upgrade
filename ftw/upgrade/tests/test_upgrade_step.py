@@ -37,7 +37,7 @@ class TestUpgradeStep(TestCase):
 
         class Step(UpgradeStep):
             def __call__(self):
-                testcase.assertEqual(self.portal_setup, testcase.portal_setup)
+                testcase.assertEqual(testcase.portal_setup, self.portal_setup)
 
         Step(self.portal_setup)
 
@@ -46,7 +46,7 @@ class TestUpgradeStep(TestCase):
 
         class Step(UpgradeStep):
             def __call__(self):
-                testcase.assertEqual(self.portal, testcase.portal)
+                testcase.assertEqual(testcase.portal, self.portal)
 
         Step(self.portal_setup)
 
@@ -57,8 +57,8 @@ class TestUpgradeStep(TestCase):
         class Step(UpgradeStep):
             def __call__(self):
                 testcase.assertEqual(
-                    self.getToolByName('portal_actions'),
-                    actions_tool)
+                    actions_tool,
+                    self.getToolByName('portal_actions'))
 
         Step(self.portal_setup)
 
@@ -71,9 +71,9 @@ class TestUpgradeStep(TestCase):
                 name = 'getExcludeFromNav'
 
                 self.catalog_add_index(name, 'BooleanIndex')
-                testcase.assertEqual(len(ctool._catalog.getIndex(name)), 0)
+                testcase.assertEqual(0, len(ctool._catalog.getIndex(name)))
                 self.catalog_rebuild_index(name)
-                testcase.assertEqual(len(ctool._catalog.getIndex(name)), 1)
+                testcase.assertEqual(1, len(ctool._catalog.getIndex(name)))
 
         create(Builder('folder')
                .titled('Rebuild Index Test Obj')
@@ -91,12 +91,12 @@ class TestUpgradeStep(TestCase):
                 name = 'getExcludeFromNav'
 
                 self.catalog_add_index(name, 'BooleanIndex')
-                testcase.assertEqual(len(ctool._catalog.getIndex(name)), 0)
+                testcase.assertEqual(0, len(ctool._catalog.getIndex(name)))
 
                 self.catalog_reindex_objects({'portal_type': 'Folder'})
 
                 self.catalog_rebuild_index(name)
-                testcase.assertEqual(len(ctool._catalog.getIndex(name)), 1)
+                testcase.assertEqual(1, len(ctool._catalog.getIndex(name)))
 
         Step(self.portal_setup)
 
@@ -113,13 +113,13 @@ class TestUpgradeStep(TestCase):
 
                 brain = self.catalog_unrestricted_search(
                     {'UID': folder.UID()})[0]
-                testcase.assertEquals(brain.modified, modification_date)
+                testcase.assertEquals(modification_date, brain.modified)
 
                 self.catalog_reindex_objects({})
 
                 brain = self.catalog_unrestricted_search(
                     {'UID': folder.UID()})[0]
-                testcase.assertEquals(brain.modified, modification_date)
+                testcase.assertEquals(modification_date, brain.modified)
 
         Step(self.portal_setup)
 
@@ -160,12 +160,14 @@ class TestUpgradeStep(TestCase):
                 brains = self.catalog_unrestricted_search(query)
 
                 brain = brains[0]
-                testcase.assertEqual(type(brain).__name__,
-                                     'ImplicitAcquisitionWrapper')
+                testcase.assertEqual(
+                    'ImplicitAcquisitionWrapper',
+                    type(brain).__name__)
 
                 obj = self.catalog_unrestricted_get_object(brain)
-                testcase.assertEqual(type(obj).__name__,
-                                     'ImplicitAcquisitionWrapper')
+                testcase.assertEqual(
+                    'ImplicitAcquisitionWrapper',
+                    type(obj).__name__)
 
         Step(self.portal_setup)
 
@@ -184,20 +186,20 @@ class TestUpgradeStep(TestCase):
                          'portal_type': 'Document'}
                 brains = self.catalog_unrestricted_search(query)
 
-                testcase.assertEqual(len(brains), 2)
-                testcase.assertEqual([brain.id for brain in brains],
-                                     ['page-one', 'page-two'])
-                testcase.assertEqual(type(brains[0]).__name__,
-                                     'ImplicitAcquisitionWrapper')
+                testcase.assertEqual(2, len(brains))
+                testcase.assertEqual(['page-one', 'page-two'],
+                                     [brain.id for brain in brains])
+                testcase.assertEqual('ImplicitAcquisitionWrapper',
+                                     type(brains[0]).__name__)
 
                 objects = self.catalog_unrestricted_search(
-                        query, full_objects=True)
-                testcase.assertEqual(len(objects), 2)
+                    query, full_objects=True)
+                testcase.assertEqual(2, len(objects))
                 objects = list(objects)
-                testcase.assertEqual([obj.id for obj in objects],
-                                     ['page-one', 'page-two'])
-                testcase.assertEqual(type(objects[0]).__name__,
-                                     'ImplicitAcquisitionWrapper')
+                testcase.assertEqual(['page-one', 'page-two'],
+                                     [obj.id for obj in objects])
+                testcase.assertEqual('ImplicitAcquisitionWrapper',
+                                     type(objects[0]).__name__)
 
         Step(self.portal_setup)
 
@@ -247,10 +249,10 @@ class TestUpgradeStep(TestCase):
 
                 self.set_property(self.portal, 'foo', 'bar')
                 testcase.assertTrue(self.portal.hasProperty('foo'))
-                testcase.assertEqual(self.portal.getProperty('foo'), 'bar')
+                testcase.assertEqual('bar', self.portal.getProperty('foo'))
 
                 self.set_property(self.portal, 'foo', 'baz')
-                testcase.assertEqual(self.portal.getProperty('foo'), 'baz')
+                testcase.assertEqual('baz', self.portal.getProperty('foo'))
 
         Step(self.portal_setup)
 
@@ -264,33 +266,33 @@ class TestUpgradeStep(TestCase):
                 testcase.assertFalse(self.portal.hasProperty(key))
 
                 self.add_lines_to_property(self.portal, key, 'foo')
-                testcase.assertEqual(self.portal.getProperty(key),
-                                     ('foo',))
+                testcase.assertEqual(('foo',),
+                                     self.portal.getProperty(key))
 
                 self.add_lines_to_property(self.portal, key, ['bar'])
-                testcase.assertEqual(self.portal.getProperty(key),
-                                     ('foo', 'bar'))
+                testcase.assertEqual(('foo', 'bar'),
+                                     self.portal.getProperty(key))
 
                 self.add_lines_to_property(self.portal, key, 'baz')
-                testcase.assertEqual(self.portal.getProperty(key),
-                                     ('foo', 'bar', 'baz'))
+                testcase.assertEqual(('foo', 'bar', 'baz'),
+                                     self.portal.getProperty(key))
 
                 self.set_property(self.portal, key, ('foo'))
-                testcase.assertEqual(self.portal.getProperty(key),
-                                     ('foo',))
+                testcase.assertEqual(('foo',),
+                                     self.portal.getProperty(key))
 
                 self.add_lines_to_property(self.portal, key, ['bar'])
-                testcase.assertEqual(self.portal.getProperty(key),
-                                     ('foo', 'bar'))
+                testcase.assertEqual(('foo', 'bar'),
+                                     self.portal.getProperty(key))
 
                 self.add_lines_to_property(self.portal, key, ('baz',))
-                testcase.assertEqual(self.portal.getProperty(key),
-                                     ('foo', 'bar', 'baz'))
+                testcase.assertEqual(('foo', 'bar', 'baz'),
+                                     self.portal.getProperty(key))
 
                 self.portal.manage_delProperties([key])
                 self.add_lines_to_property(self.portal, key, ['foo', 'bar'])
-                testcase.assertEqual(self.portal.getProperty(key),
-                                     ('foo', 'bar'))
+                testcase.assertEqual(('foo', 'bar'),
+                                     self.portal.getProperty(key))
 
         Step(self.portal_setup)
 
@@ -324,9 +326,9 @@ class TestUpgradeStep(TestCase):
             def __call__(self):
                 self.migrate_class(subfolder, ATBTreeFolder)
 
-        self.assertEqual(subfolder.__class__.__name__, 'ATFolder')
+        self.assertEqual('ATFolder', subfolder.__class__.__name__)
         Step(self.portal_setup)
-        self.assertEqual(subfolder.__class__.__name__, 'ATBTreeFolder')
+        self.assertEqual('ATBTreeFolder', subfolder.__class__.__name__)
 
     def test_remove_broken_browserlayer(self):
         # TODO: Currently, this test doesn't really test that the removal

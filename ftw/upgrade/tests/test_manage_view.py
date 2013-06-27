@@ -20,8 +20,9 @@ class TestResponseLogger(TestCase):
             logging.error('bar')
 
         response.seek(0)
-        self.assertEqual(response.read().strip().split('\n'),
-                         ['foo', u'bar'])
+        self.assertEqual(
+            ['foo', u'bar'],
+            response.read().strip().split('\n'))
 
     def test_logging_exceptions(self):
         response = StringIO()
@@ -35,16 +36,16 @@ class TestResponseLogger(TestCase):
         # Dynamically replace paths so that it works on all machines
         output = re.sub(r'(File ").*(ftw/upgrade/.*")',
                         r'\1/.../\2', output)
+        output = re.sub(r'(line )\d*', r'line XX', output)
 
         self.assertEqual(
-            output.split('\n'),
-
             ['FAILED',
              'Traceback (most recent call last):',
              '  File "/.../ftw/upgrade/tests/'
-             'test_manage_view.py", line 31, in test_logging_exceptions',
+             'test_manage_view.py", line XX, in test_logging_exceptions',
              "    raise KeyError('foo')",
-             "KeyError: 'foo'"])
+             "KeyError: 'foo'"],
+            output.split('\n'))
 
 
 class TestManageUpgrades(TestCase):
@@ -64,14 +65,13 @@ class TestManageUpgrades(TestCase):
     def test_registered_in_controlpanel(self):
         self.browser.open(self.portal_url + '/@@overview-controlpanel')
         link = self.browser.getLink('Upgrades')
-        self.assertEqual(link.url, self.portal_url + '/@@manage-upgrades')
+        self.assertEqual(self.portal_url + '/@@manage-upgrades', link.url)
 
     def test_manage_view_renders(self):
         self.browser.open(self.portal_url + '/@@manage-upgrades')
 
         link = self.browser.getLink('Up to Site Setup')
-        self.assertEqual(link.url,
-                         self.portal_url + '/@@overview-controlpanel')
+        self.assertEqual(self.portal_url + '/@@overview-controlpanel', link.url)
 
         self.assertIn('plone.app.discussion:default', self.browser.contents)
 
@@ -85,8 +85,8 @@ class TestManageUpgrades(TestCase):
 
         catalog = getToolByName(self.layer['portal'], 'portal_catalog')
         self.assertEqual(
-            type(catalog.Indexes.get('excludeFromNav')).__name__,
-            'KeywordIndex')
+            'KeywordIndex',
+            type(catalog.Indexes.get('excludeFromNav')).__name__)
 
         self.browser.open(self.portal_url + '/@@manage-upgrades')
         self.assertIn('ftw.upgrade.tests.profiles:navigation-index',
@@ -97,5 +97,5 @@ class TestManageUpgrades(TestCase):
         self.browser.getControl(name='submitted').click()
 
         self.assertEqual(
-            type(catalog.Indexes.get('excludeFromNav')).__name__,
-            'FieldIndex')
+            'FieldIndex',
+            type(catalog.Indexes.get('excludeFromNav')).__name__)

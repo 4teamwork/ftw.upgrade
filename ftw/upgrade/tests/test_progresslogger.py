@@ -26,12 +26,12 @@ class TestProgressLogger(TestCase):
                 step()
                 sleep(0.0151)
 
-        self.assertEqual(self.read_log(), [
-                'STARTING Foo',
-                '1 of 5 (20%): Foo',
-                '3 of 5 (60%): Foo',
-                '5 of 5 (100%): Foo',
-                'DONE Foo'])
+        self.assertEqual(['STARTING Foo',
+                          '1 of 5 (20%): Foo',
+                          '3 of 5 (60%): Foo',
+                          '5 of 5 (100%): Foo',
+                          'DONE Foo'],
+                         self.read_log())
 
     def test_failing_logging(self):
         timeout = 0
@@ -48,9 +48,9 @@ class TestProgressLogger(TestCase):
 
                     step()
 
-        self.assertEqual(self.read_log(), [
-                'STARTING Bar',
-                '1 of 5 (20%): Bar',
-                '2 of 5 (40%): Bar',
-                '3 of 5 (60%): Bar',
-                'FAILED Bar (ValueError: baz)'])
+        self.assertEqual(['STARTING Bar',
+                          '1 of 5 (20%): Bar',
+                          '2 of 5 (40%): Bar',
+                          '3 of 5 (60%): Bar',
+                          'FAILED Bar (ValueError: baz)'],
+                         self.read_log())

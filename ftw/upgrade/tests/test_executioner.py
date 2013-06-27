@@ -34,7 +34,7 @@ class TestExecutioner(TestCase):
     def test_component_is_registered(self):
         setup_tool = getToolByName(self.layer['portal'], 'portal_setup')
         executioner = queryAdapter(setup_tool, IExecutioner)
-        self.assertNotEqual(executioner, None)
+        self.assertNotEqual(None, executioner)
 
     def test_implements_interface(self):
         verifyClass(IExecutioner, Executioner)
@@ -43,17 +43,17 @@ class TestExecutioner(TestCase):
         profileid = 'ftw.upgrade.tests:foo'
         setup_tool = getToolByName(self.layer['portal'], 'portal_setup')
 
-        self.assertEqual(queryUtility(IFoo), None)
-        self.assertEqual(
-            setup_tool.getLastVersionForProfile(profileid), 'unknown')
+        self.assertEqual(None, queryUtility(IFoo))
+        self.assertEqual('unknown',
+                         setup_tool.getLastVersionForProfile(profileid))
 
         upgrades = setup_tool.listUpgrades('ftw.upgrade.tests:foo')
-        self.assertEqual(len(upgrades), 1)
+        self.assertEqual(1, len(upgrades))
         id_ = upgrades[0]['id']
 
         executioner = queryAdapter(setup_tool, IExecutioner)
         executioner.install([(profileid, [id_])])
 
-        self.assertNotEqual(queryUtility(IFoo), None)
-        self.assertEqual(
-            setup_tool.getLastVersionForProfile(profileid), ('2',))
+        self.assertNotEqual(None, queryUtility(IFoo))
+        self.assertEqual(('2',),
+                         setup_tool.getLastVersionForProfile(profileid))

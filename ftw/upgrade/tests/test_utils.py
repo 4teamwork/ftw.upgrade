@@ -15,8 +15,8 @@ class TestTopologicalSort(TestCase):
             ('a', 'b'),
             ('b', 'c'))
 
-        self.assertEqual(topological_sort(items, dependencies),
-                         ['a', 'b', 'c'])
+        self.assertEqual(['a', 'b', 'c'],
+                         topological_sort(items, dependencies))
 
     def test_advanced(self):
         items = ['a', 'c', 'b', 'd']
@@ -26,8 +26,8 @@ class TestTopologicalSort(TestCase):
             ('b', 'd'),
             ('b', 'c'))
 
-        self.assertEqual(topological_sort(items, dependencies),
-                         ['a', 'b', 'c', 'd'])
+        self.assertEqual(['a', 'b', 'c', 'd'],
+                         topological_sort(items, dependencies))
 
     def test_duplicated(self):
         items = ['a', 'b', 'a']
@@ -35,8 +35,8 @@ class TestTopologicalSort(TestCase):
             ('b', 'a'),
             )
 
-        self.assertEqual(topological_sort(items, dependencies),
-                         ['b', 'a'])
+        self.assertEqual(['b', 'a'],
+                         topological_sort(items, dependencies))
 
     def test_cyclic(self):
         items = ['a', 'b']
@@ -44,19 +44,19 @@ class TestTopologicalSort(TestCase):
             ('a', 'b'),
             ('b', 'a'))
 
-        self.assertEqual(topological_sort(items, dependencies),
-                         None)
+        self.assertEqual(None,
+                         topological_sort(items, dependencies))
 
 
 class TestSizedGenerator(TestCase):
 
     def test_length(self):
         generator = SizedGenerator((i for i in range(3)), 3)
-        self.assertEqual(len(generator), 3)
+        self.assertEqual(3, len(generator))
 
     def test_iterating(self):
         generator = SizedGenerator((i for i in range(3)), 3)
-        self.assertEqual(list(generator), [0, 1, 2])
+        self.assertEqual([0, 1, 2], list(generator))
 
 
 class TestSortedProfileIds(MockTestCase):
@@ -77,8 +77,8 @@ class TestSortedProfileIds(MockTestCase):
         self.replay()
 
         self.assertEqual(
-            get_sorted_profile_ids(portal_setup),
-            ['foo', 'bar', 'baz'])
+            ['foo', 'bar', 'baz'],
+            get_sorted_profile_ids(portal_setup))
 
     def test_cyclic_dependencies(self):
         portal_setup = self.mocker.mock()
@@ -94,8 +94,8 @@ class TestSortedProfileIds(MockTestCase):
         with self.assertRaises(CyclicDependencies) as cm:
             get_sorted_profile_ids(portal_setup)
 
-        self.assertEqual(cm.exception.dependencies,
-                         [('foo', 'bar'), ('bar', 'foo')])
+        self.assertEqual([('foo', 'bar'), ('bar', 'foo')],
+                         cm.exception.dependencies)
 
 
 class TestFormatDuration(TestCase):

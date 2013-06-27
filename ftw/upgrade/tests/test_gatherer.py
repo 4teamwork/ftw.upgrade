@@ -147,7 +147,7 @@ class TestUpgradeInformationGatherer(MockTestCase):
     def test_component_is_registered(self):
         self.replay()
         gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
-        self.assertNotEqual(gatherer, None)
+        self.assertNotEqual(None, gatherer)
 
     def test_implements_interface(self):
         self.replay()
@@ -164,19 +164,20 @@ class TestUpgradeInformationGatherer(MockTestCase):
 
         gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
         data = gatherer.get_upgrades()
-        self.assertNotEqual(data, [])
+        self.assertNotEqual([], data)
 
         self.assertIn('foo2', str(self.setup_tool.listUpgrades(
                     'foo:default', show_old=True)))
 
         simple = simplify_data(data)
-        self.assertEqual(simple, {
-                'foo:default': {
+        self.assertEqual(
+            {'foo:default': {
                     'proposed': ['foo1', 'foo2'],
                     'done': []},
-                'bar:default': {
+             'bar:default': {
                     'proposed': ['bar1'],
-                    'done': []}})
+                    'done': []}},
+            simple)
 
     def test_get_upgrades_proposed(self):
         self.mock_profile('foo:default', '1.2', db_version='1.1')
@@ -191,16 +192,17 @@ class TestUpgradeInformationGatherer(MockTestCase):
 
         gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
         data = gatherer.get_upgrades()
-        self.assertNotEqual(data, [])
+        self.assertNotEqual([], data)
 
         simple = simplify_data(data)
-        self.assertEqual(simple, {
-                'foo:default': {
+        self.assertEqual(
+            {'foo:default': {
                     'proposed': ['foo2'],
                     'done': ['foo1']},
-                'bar:default': {
+             'bar:default': {
                     'proposed': [],
-                    'done': ['bar1']}})
+                    'done': ['bar1']}},
+            simple)
 
     def test_profile_with_no_upgrades_is_not_listed(self):
         self.mock_profile('no-upgrades:default', '1.0',
@@ -211,7 +213,7 @@ class TestUpgradeInformationGatherer(MockTestCase):
         self.replay()
 
         gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
-        self.assertEqual(gatherer.get_upgrades(), [])
+        self.assertEqual([], gatherer.get_upgrades())
 
     def test_not_installed_profile_is_not_listed(self):
         self.mock_profile('not-installed:default', '2', installed=False)
@@ -220,7 +222,7 @@ class TestUpgradeInformationGatherer(MockTestCase):
         self.replay()
 
         gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
-        self.assertEqual(gatherer.get_upgrades(), [])
+        self.assertEqual([], gatherer.get_upgrades())
 
     def test_plone_profile_is_removed(self):
         self.mock_profile('Products.CMFPlone:plone', '3', db_version='2')
@@ -229,7 +231,7 @@ class TestUpgradeInformationGatherer(MockTestCase):
         self.replay()
 
         gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
-        self.assertEqual(gatherer.get_upgrades(), [])
+        self.assertEqual([], gatherer.get_upgrades())
 
     def test_dependency_ordering(self):
         self.mock_profile('baz:default', '1.1', db_version='1.0')
@@ -252,13 +254,15 @@ class TestUpgradeInformationGatherer(MockTestCase):
 
         gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
         data = gatherer.get_upgrades()
-        self.assertNotEqual(data, [])
+        self.assertNotEqual([], data)
 
         simple = simplify_data(data, keep_order=True,
                                profile_only=True)
-        self.assertEqual(simple, ['baz:default',
-                                  'bar:default',
-                                  'foo:default'])
+        self.assertEqual(
+            ['baz:default',
+             'bar:default',
+             'foo:default'],
+            simple)
 
     def test_cyclic_dependencies_raise_exception(self):
         self.mock_profile('foo:default', '1.2', db_version='1.0',
@@ -276,8 +280,10 @@ class TestUpgradeInformationGatherer(MockTestCase):
             gatherer.get_upgrades()
 
         data = cm.exception.dependencies
-        self.assertEqual(data, [('bar:default', 'foo:default'),
-                                ('foo:default', 'bar:default')])
+        self.assertEqual(
+            [('bar:default', 'foo:default'),
+             ('foo:default', 'bar:default')],
+            data)
 
     def test_no_longer_existing_profiles_are_silently_removed(self):
         self.mock_profile('foo:default', '1.2', db_version='1.0')
@@ -293,13 +299,14 @@ class TestUpgradeInformationGatherer(MockTestCase):
 
         gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
         data = gatherer.get_upgrades()
-        self.assertNotEqual(data, [])
+        self.assertNotEqual([], data)
 
         self.assertIn('foo2', str(self.setup_tool.listUpgrades(
                     'foo:default', show_old=True)))
 
         simple = simplify_data(data)
-        self.assertEqual(simple, {
-                'foo:default': {
+        self.assertEqual(
+            {'foo:default': {
                     'proposed': ['foo1', 'foo2'],
-                    'done': []}})
+                    'done': []}},
+            simple)

@@ -170,7 +170,7 @@ The ``UpgradeStep`` class has various helper functions:
 ``self.getToolByName(tool_name)``
     Returns the tool with the name ``tool_name`` of the upgraded site.
 
-``objects(catalog_query, message, logger=None)``
+``self.objects(catalog_query, message, logger=None)``
     Queries the catalog (unrestricted) and an iterator with full objects.
     The iterator configures and calls a ``ProgressLogger`` with the
     passed ``message``.

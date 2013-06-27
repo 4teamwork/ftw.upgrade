@@ -54,3 +54,32 @@ class TestProgressLogger(TestCase):
                           '3 of 5 (60%): Bar',
                           'FAILED Bar (ValueError: baz)'],
                          self.read_log())
+
+    def test_accepts_iterable_object(self):
+        items = range(5)
+
+        with ProgressLogger('Foo', items, logger=self.logger) as step:
+            for _item in items:
+                step()
+
+        self.assertEqual(['STARTING Foo',
+                          '1 of 5 (20%): Foo',
+                          'DONE Foo'],
+                         self.read_log())
+
+    def test_acts_as_iterable_wrapper(self):
+        items = range(5)
+
+        result = []
+
+        for item in ProgressLogger('Foo', items, logger=self.logger):
+            result.append(item)
+
+        self.assertEqual(['STARTING Foo',
+                          '1 of 5 (20%): Foo',
+                          'DONE Foo'],
+                         self.read_log())
+
+        self.assertEqual(
+            items, result,
+            'Iterating over the progresslogger yields the original items.')

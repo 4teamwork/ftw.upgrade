@@ -5,6 +5,10 @@ Changelog
 1.4 (unreleased)
 ----------------
 
+- Add `objects` method to `UpgradeStep` for easy querying the catalog
+  and doing stuff with progress logging combined.
+  [jone]
+
 - Make ProgressLogger an iterator too, because it is easier to use.
   [jone]
 

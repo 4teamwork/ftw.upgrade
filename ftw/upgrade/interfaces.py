@@ -91,6 +91,13 @@ class IUpgradeStep(Interface):
         site.
         """
 
+    def objects(catalog_query, message, logger=None):
+        """Queries the catalog (unrestricted) and an iterator with full
+        objects.
+        The iterator configures and calls a ``ProgressLogger`` with the
+        passed ``message``.
+        """
+
     def catalog_rebuild_index(name):
         """Reindex the ``portal_catalog`` index identified by ``name``.
         """

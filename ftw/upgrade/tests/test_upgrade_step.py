@@ -1,5 +1,6 @@
 from DateTime import DateTime
 from Products.CMFCore.utils import getToolByName
+from StringIO import StringIO
 from ftw.upgrade import UpgradeStep
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
@@ -9,6 +10,7 @@ from plone.browserlayer.utils import register_layer
 from unittest2 import TestCase
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
+import logging
 
 
 class IMyProductLayer(Interface):
@@ -24,6 +26,13 @@ class TestUpgradeStep(TestCase):
         super(TestUpgradeStep, self).setUp()
         self.portal = self.layer['portal']
         self.portal_setup = getToolByName(self.portal, 'portal_setup')
+
+        self.log = StringIO()
+        self.logger = logging.getLogger('ftw.upgrade')
+        self.logger.setLevel(logging.DEBUG)
+
+        handler = logging.StreamHandler(self.log)
+        self.logger.addHandler(handler)
 
     def test_implements_interface(self):
         verifyClass(IUpgradeStep, UpgradeStep)
@@ -61,6 +70,30 @@ class TestUpgradeStep(TestCase):
                     self.getToolByName('portal_actions'))
 
         Step(self.portal_setup)
+
+    def test_objects_method_yields_objects_with_logging(self):
+        testcase = self
+        create(Builder('folder').titled('Foo'))
+        create(Builder('folder').titled('Bar'))
+        create(Builder('folder').titled('Baz'))
+
+        object_titles = []
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                for obj in self.objects({'portal_type': 'Folder'},
+                                        'Log message',
+                                        logger=testcase.logger):
+                    object_titles.append(obj.Title())
+
+        Step(self.portal_setup)
+
+        self.assertEquals(set(['Foo', 'Bar', 'Baz']), set(object_titles))
+
+        self.assertEquals(['STARTING Log message',
+                           '1 of 3 (33%): Log message',
+                           'DONE Log message'],
+                          self.read_log())
 
     def test_catalog_rebuild_index(self):
         testcase = self
@@ -451,3 +484,7 @@ class TestUpgradeStep(TestCase):
         rid = catalog.getrid(path)
         index_data = catalog.getIndexDataForRID(rid)
         return index_data.get('allowedRolesAndUsers')
+
+    def read_log(self):
+        self.log.seek(0)
+        return self.log.read().strip().split('\n')

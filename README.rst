@@ -128,14 +128,52 @@ Registration in ``configure.zcml`` (assume its in the same directory):
     </configure>
 
 
-UpgradeStep helper methods
-==========================
+Updating objects with progress logging
+--------------------------------------
+
+Since an upgrade step often updates a set of objects indexed in the catalog,
+there is a useful helper method combining querying the catalog with the
+`ProgressLogger` (see below).
+The catalog is queried unrestricted so that we handle all the objects.
+
+Here is an example for updating all objects of a particular type:
+
+.. code:: python
+
+    from ftw.upgrade import ProgressLogger
+    from ftw.upgrade import UpgradeStep
+
+    class ExcludeFilesFromNavigation(UpgradeStep):
+
+       def __call__(self):
+           for obj in self.objects({'portal_type': 'File'},
+                                   'Enable exclude from navigation for files'):
+               obj.setExcludeFromNav(True)
+
+
+When running the upgrade step you'll have a progress log::
+
+    INFO ftw.upgrade STARTING Enable exclude from navigation for files
+    INFO ftw.upgrade 1 of 10 (10%): Enable exclude from navigation for files
+    INFO ftw.upgrade 5 of 50 (50%): Enable exclude from navigation for files
+    INFO ftw.upgrade 10 of 10 (100%): Enable exclude from navigation for files
+    INFO ftw.upgrade DONE: Enable exclude from navigation for files
+
+
+
+Methods
+-------
 
 The ``UpgradeStep`` class has various helper functions:
 
 
 ``self.getToolByName(tool_name)``
     Returns the tool with the name ``tool_name`` of the upgraded site.
+
+``objects(catalog_query, message, logger=None)``
+    Queries the catalog (unrestricted) and an iterator with full objects.
+    The iterator configures and calls a ``ProgressLogger`` with the
+    passed ``message``.
 
 ``self.catalog_rebuild_index(name)``
     Reindex the ``portal_catalog`` index identified by ``name``.
@@ -210,7 +248,7 @@ The ``UpgradeStep`` class has various helper functions:
 
 
 Progress logger
-===============
+---------------
 
 When an upgrade step is taking a long time to complete (e.g. while performing a data migration), the
 administrator needs to have information about the progress of the update. It is also important to have
@@ -227,7 +265,7 @@ With the ``ProgressLogger`` it is very easy to log the progress:
 
        def __call__(self):
            objects = self.catalog_unrestricted_search(
-               {'portal_type': 'MyType'}, full_objects=False)
+               {'portal_type': 'MyType'}, full_objects=True)
 
            for obj in ProgressLogger('Migrate my type', objects):
                self.upgrade_obj(obj)
@@ -247,7 +285,7 @@ Example log output::
 
 
 Placeful Workflow Policy Activator
-==================================
+----------------------------------
 
 When manually activating a placeful workflow policy all objects with a new
 workflow might be reset to the initial state of the new workflow.

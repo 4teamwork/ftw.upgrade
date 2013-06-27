@@ -227,7 +227,7 @@ With the ``ProgressLogger`` it is very easy to log the progress:
 
        def __call__(self):
            objects = self.catalog_unrestricted_search(
-               {'portal_type': 'MyType'}, full_objects=False)
+               {'portal_type': 'MyType'}, full_objects=True)
 
            for obj in ProgressLogger('Migrate my type', objects):
                self.upgrade_obj(obj)

@@ -45,6 +45,20 @@ class UpgradeStep(object):
         """
         return getToolByName(self.portal_setup, tool_name)
 
+    security.declarePrivate('objects')
+    def objects(self, catalog_query, message, logger=None):
+        """Queries the catalog (unrestricted) and an iterator with full
+        objects.
+        The iterator configures and calls a ``ProgressLogger`` with the
+        passed ``message``.
+        """
+
+        objects = self.catalog_unrestricted_search(
+            catalog_query, full_objects=True)
+
+        return ProgressLogger(message, objects, logger=logger)
+
+
     security.declarePrivate('catalog_rebuild_index')
     def catalog_rebuild_index(self, name):
         """Reindex the ``portal_catalog`` index identified by ``name``.

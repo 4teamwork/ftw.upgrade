@@ -216,8 +216,7 @@ When an upgrade step is taking a long time to complete (e.g. while performing a 
 administrator needs to have information about the progress of the update. It is also important to have
 continuous output for avoiding proxy timeouts when accessing Zope through a webserver / proxy.
 
-With the ``ProgressLogger`` context manager it is very easy to log the
-progress:
+With the ``ProgressLogger`` it is very easy to log the progress:
 
 .. code:: python
 
@@ -227,13 +226,11 @@ progress:
     class MyUpgrade(UpgradeStep):
 
        def __call__(self):
-           catalog = self.getToolByName('portal_catalog')
-           brains = catalog('MyType')
+           objects = self.catalog_unrestricted_search(
+               {'portal_type': 'MyType'}, full_objects=False)
 
-           with ProgressLogger('Migrate MyType', brains) as step:
-               for brain in brains:
-                   self.upgrade_obj(brain.getObject())
-                   step()
+           for obj in ProgressLogger('Migrate my type', objects):
+               self.upgrade_obj(obj)
 
        def upgrade_obj(self, obj):
            do_something_with(obj)

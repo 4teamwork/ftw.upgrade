@@ -14,6 +14,7 @@ class ProgressLogger(object):
                  timeout=5):
         self.logger = logger or logging.getLogger('ftw.upgrade')
         self.message = message
+        self.iterable = iterable
 
         if isinstance(iterable, (int, long, float)):
             self.length = iterable
@@ -52,6 +53,13 @@ class ProgressLogger(object):
                 self.length,
                 percent,
                 self.message))
+
+    security.declarePrivate('__iter__')
+    def __iter__(self):
+        with self as step:
+            for item in self.iterable:
+                yield item
+                step()
 
     security.declarePrivate('should_be_logged')
     def should_be_logged(self):

@@ -5,6 +5,9 @@ Changelog
 1.4 (unreleased)
 ----------------
 
+- Make ProgressLogger an iterator too, because it is easier to use.
+  [jone]
+
 - Improve logging while installing upgrade steps.
   Show duration for installing.
   [jone]

@@ -49,6 +49,8 @@ setup(name='ftw.upgrade',
 
       install_requires=[
         'setuptools',
+        'argparse',
+        'argcomplete',
 
         # Zope
         'AccessControl',
@@ -75,5 +77,11 @@ setup(name='ftw.upgrade',
       # -*- Entry points: -*-
       [z3c.autoinclude.plugin]
       target = plone
+
+      [zopectl.command]
+      upgrade = ftw.upgrade.commands:upgrade_handler
+
+      [plone.recipe.zope2instance.ctl]
+      upgrade_http = ftw.upgrade.commands:upgrade_http_handler
       ''',
       )

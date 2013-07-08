@@ -1,5 +1,6 @@
 from ftw.upgrade.exceptions import CyclicDependencies
 import math
+import json
 
 
 def topological_sort(items, partial_order):
@@ -150,3 +151,25 @@ def format_duration(seconds):
         return '0 seconds'
     else:
         return ', '.join(result)
+
+
+def pretty_json(fn):
+    """Decorator to encode a method's result in JSON and pretty print it.
+    """
+    def wrapper(self):
+        return json.dumps(fn(self),
+                          sort_keys=True,
+                          indent=4,
+                          separators=(',', ': '))
+
+    # set docstring for wrapped method, otherwise it won't get published
+    wrapper.__doc__ = fn.__doc__
+    return wrapper
+
+
+def join_lines(fn):
+    """Decorator that joins a sequence of lines with newlines.
+    """
+    def wrapped(self, *args, **kwargs):
+        return '\n'.join(fn(self, *args, **kwargs))
+    return wrapped

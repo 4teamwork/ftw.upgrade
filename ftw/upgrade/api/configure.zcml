@@ -1,0 +1,18 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="ftw.upgrade">
+
+    <adapter factory=".adapters.UpgradablePloneSite" />
+    <adapter factory=".adapters.UpgradableZopeApp" />
+
+    <browser:page
+        name="upgrade-api"
+        for="OFS.interfaces.IApplication"
+        class=".json_api.JsonAPIView"
+        permission="zope.Public"
+        allowed_attributes="list_upgrades list_sites run_all_upgrades"
+        />
+
+</configure>

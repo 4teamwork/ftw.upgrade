@@ -125,8 +125,8 @@ class ManageUpgrades(BrowserView):
 
     security.declarePrivate('_get_upgrades_to_install')
     def _get_upgrades_to_install(self):
-        """Returns a dict where the key is a profileid and the value
-        is a list of upgrade ids.
+        """Returns a list of key/value tuples where the key is a profileid and
+        the value is a list of upgrade ids.
         """
 
         data = {}

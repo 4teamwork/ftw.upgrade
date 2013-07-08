@@ -8,3 +8,8 @@ class CyclicDependencies(Exception):
         super(CyclicDependencies, self).__init__(
             'Cyclic dependencies detected.')
         self.dependencies = dependencies
+
+
+class APIError(Exception):
+    """ftw.upgrade API Exception
+    """

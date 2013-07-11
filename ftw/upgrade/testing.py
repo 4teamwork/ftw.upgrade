@@ -1,7 +1,10 @@
+from ftw.builder.session import BuilderSession
+from ftw.builder.testing import BUILDER_LAYER
+from ftw.builder.testing import set_builder_session_factory
 from ftw.testing.layer import ComponentRegistryLayer
-from ftw.upgrade.tests.builders import BuilderSession
 from plone.app.testing import FunctionalTesting
 from plone.app.testing import IntegrationTesting
+from plone.app.testing import PLONE_FIXTURE
 from plone.app.testing import PloneSandboxLayer
 from plone.app.testing import applyProfile
 from plone.app.testing import setRoles, TEST_USER_ID, TEST_USER_NAME, login
@@ -26,7 +29,15 @@ class ZCMLLayer(ComponentRegistryLayer):
 ZCML_LAYER = ZCMLLayer()
 
 
+def functional_session_factory():
+    sess = BuilderSession()
+    sess.auto_commit = True
+    return sess
+
+
 class FtwUpgradeLayer(PloneSandboxLayer):
+
+    defaultBases = (PLONE_FIXTURE, BUILDER_LAYER)
 
     def setUpZope(self, app, configurationContext):
         import Products.CMFPlacefulWorkflow
@@ -55,15 +66,11 @@ class FtwUpgradeLayer(PloneSandboxLayer):
         setRoles(portal, TEST_USER_ID, ['Manager'])
         login(portal, TEST_USER_NAME)
 
-    def testSetUp(self):
-        self.builder_session = BuilderSession.instance()
-
-    def testTearDown(self):
-        self.builder_session.reset()
-
 
 FTW_UPGRADE_FIXTURE = FtwUpgradeLayer()
 FTW_UPGRADE_INTEGRATION_TESTING = IntegrationTesting(
     bases=(FTW_UPGRADE_FIXTURE,), name="FtwUpgrade:Integration")
 FTW_UPGRADE_FUNCTIONAL_TESTING = FunctionalTesting(
-    bases=(FTW_UPGRADE_FIXTURE,), name='FtwUpgrade:Functional')
+    bases=(FTW_UPGRADE_FIXTURE,
+           set_builder_session_factory(functional_session_factory)),
+    name='FtwUpgrade:Functional')

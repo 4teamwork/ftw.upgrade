@@ -7,6 +7,7 @@ tests_require = [
     'unittest2',
     'mocker',
     'ftw.testing',
+    'ftw.builder',
     'plone.testing',
     'plone.app.testing',
 

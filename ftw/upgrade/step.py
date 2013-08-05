@@ -1,12 +1,13 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from Acquisition import aq_base, aq_parent
+from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
+from Products.CMFCore.ActionInformation import ActionInformation
+from Products.CMFCore.utils import getToolByName
+from Products.ZCatalog.ProgressHandler import ZLogHandler
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.progresslogger import ProgressLogger
 from ftw.upgrade.utils import SizedGenerator
 from plone.browserlayer.interfaces import ILocalBrowserLayerType
-from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
-from Products.CMFCore.utils import getToolByName
-from Products.ZCatalog.ProgressHandler import ZLogHandler
 from zope.interface import implements
 import logging
 
@@ -57,7 +58,6 @@ class UpgradeStep(object):
             catalog_query, full_objects=True)
 
         return ProgressLogger(message, objects, logger=logger)
-
 
     security.declarePrivate('catalog_rebuild_index')
     def catalog_rebuild_index(self, name):
@@ -176,6 +176,32 @@ class UpgradeStep(object):
 
         fti._actions = tuple(actions)  # pylint: disable=W0212
         return found
+
+    security.declarePrivate('actions_add_type_action')
+    def actions_add_type_action(self, portal_type, after, action_id, **kwargs):
+        """Add a ``portal_type`` action from the type identified
+        by ``portal_type``, the position could be definded by the
+        ``after`` attribute. If the after action could not be found,
+        the action will be inserted at the end of the list."""
+
+        actions = []
+        found = False
+
+        ttool = self.getToolByName('portal_types')
+        fti = ttool.get(portal_type)
+
+        new_action = ActionInformation(id=action_id, **kwargs)
+
+        for action in fti._actions:  # pylint: disable=W0212
+            actions.append(action)
+            if action.id == after:
+                actions.append(new_action)
+                found = True
+
+        if not found:
+            actions.append(new_action)
+
+        fti._actions = tuple(actions)  # pylint: disable=W0212
 
     security.declarePrivate('set_property')
     def set_property(self, context, key, value, data_type='string'):

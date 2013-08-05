@@ -5,6 +5,9 @@ Changelog
 1.4 (unreleased)
 ----------------
 
+- Added helper for adding a type_action.
+  [phgross]
+
 - Add `objects` method to `UpgradeStep` for easy querying the catalog
   and doing stuff with progress logging combined.
   [jone]

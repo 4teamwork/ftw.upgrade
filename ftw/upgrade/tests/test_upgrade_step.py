@@ -273,6 +273,45 @@ class TestUpgradeStep(TestCase):
 
         Step(self.portal_setup)
 
+    def test_actions_add_type_action(self):
+        testcase = self
+
+        class Step(UpgradeStep):
+            def get_event_action(self, actionid):
+                ttool = self.getToolByName('portal_types')
+                fti = ttool.get('Event')
+
+                for action in fti._actions:
+                    if action.id == actionid:
+                        return action
+
+            def get_action_ids(self):
+                ttool = self.getToolByName('portal_types')
+                fti = ttool.get('Event')
+
+                return [action.id for action in fti._actions]
+
+            def __call__(self):
+                testcase.assertEquals(
+                    None, self.get_event_action('additional'))
+                testcase.assertEquals(
+                    ['view', 'edit', 'history', 'external_edit'],
+                    self.get_action_ids())
+
+                self.actions_add_type_action(
+                    'Event', 'history', action_id='additional', title='Additional',
+                    action='string:#', permissions=('View', ))
+
+                testcase.assertEquals(
+                    ['view', 'edit', 'history', 'additional', 'external_edit'],
+                    self.get_action_ids())
+
+                action = self.get_event_action('additional')
+                testcase.assertEquals('Additional', action.title)
+                testcase.assertEquals('string:#', action.action.text)
+
+        Step(self.portal_setup)
+
     def test_set_property(self):
         testcase = self
 

@@ -4,6 +4,7 @@ from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.ActionInformation import ActionInformation
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ProgressHandler import ZLogHandler
+from ftw.upgrade.helpers import update_security_for
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.progresslogger import ProgressLogger
 from ftw.upgrade.utils import SizedGenerator
@@ -305,28 +306,4 @@ class UpgradeStep(object):
         """Update the object security and reindex the security indexes in
         the catalog.
         """
-
-        wftool = self.getToolByName('portal_workflow')
-
-        changed = False
-        for permission in obj.permission_settings():
-            roles_checked = [True for role in permission.get('roles', ())
-                             if role.get('checked')]
-
-            if roles_checked or not permission.get('acquire'):
-                obj.manage_permission(permission['name'], roles=[],
-                                      acquire=True)
-                changed = True
-
-        for workflow_id in wftool.getChainFor(obj):
-            workflow = wftool.get(workflow_id)
-            if not hasattr(aq_base(workflow), 'updateRoleMappingsFor'):
-                continue
-
-            if workflow.updateRoleMappingsFor(obj):
-                changed = True
-
-        if changed and reindex_security:
-            obj.reindexObjectSecurity()
-
-        return changed
+        return update_security_for(obj, reindex_security=reindex_security)

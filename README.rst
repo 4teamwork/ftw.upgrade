@@ -306,7 +306,7 @@ breaking the review state by mapping it from the old to the new workflows:
 
             context = portal.unrestrictedTraverse('path/to/object')
 
-            activator = PlacefulWorkflowPolicyActivator(contextg)
+            activator = PlacefulWorkflowPolicyActivator(context)
             activator.activate_policy(
                 'local_policy',
                 review_state_mapping={

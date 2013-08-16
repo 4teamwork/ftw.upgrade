@@ -5,7 +5,10 @@ Changelog
 1.4.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add a ``WorkflowChainUpdater`` for changing workflow chains without
+  resetting existing objects to the initial review state of the new
+  workflow.
+  [jone]
 
 
 1.4.0 (2013-07-18)

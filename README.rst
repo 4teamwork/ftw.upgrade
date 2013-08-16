@@ -284,6 +284,41 @@ Example log output::
     INFO ftw.upgrade DONE: Migrate MyType
 
 
+Workflow Chain Updater
+----------------------
+
+When the workflow is changed for a content type, the workflow state is
+reset to the init state of new workflow for every existing object of this
+type. This can be really annoying.
+
+The `WorkflowChainUpdater` takes care of setting every object to the right
+state after changing the chain (the workflow for the type):
+
+.. code:: python
+
+    from ftw.upgrade.workflow import WorkflowChainUpdater
+    from ftw.upgrade import UpgradeStep
+
+    class UpdateWorkflowChains(UpgradeStep):
+
+        def __call__(self):
+            query = {'portal_type': ['Document', 'Folder']}
+            objects = self.catalog_unrestricted_search(
+                query, full_objects=True)
+
+            review_state_mapping={
+                ('intranet_workflow', 'plone_workflow'): {
+                    'external': 'published',
+                    'pending': 'pending'}})
+
+            with WorkflowChainUpdater(objects, review_state_mapping):
+                # assume that the profile 1002 does install a new workflow
+                # chain for Document and Folder.
+                self.setup_install_profile('profile-my.package.upgrades:1002')
+
+
+
+
 Placeful Workflow Policy Activator
 ----------------------------------
 

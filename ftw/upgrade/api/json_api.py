@@ -5,6 +5,7 @@ from ftw.upgrade.utils import pretty_json
 from Products.CMFCore.utils import getToolByName
 from zope.component import getAdapter
 from zope.component import queryAdapter
+from zope.component.hooks import setSite
 from zope.publisher.browser import BrowserView
 import logging
 
@@ -42,6 +43,7 @@ class CoreAPI(object):
         If `proposed` is False, *all* upgrades, proposed or not, will be run.
         """
         portal = self.app.restrictedTraverse(plone_site_id)
+        setSite(portal)
         profiles = self.list_upgrades(plone_site_id, proposed=proposed)
 
         # upgrade_instructions is a list of key/value tuples where the key is a

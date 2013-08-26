@@ -67,6 +67,15 @@ class CoreAPI(object):
             results[site_id] = self.run_upgrades(site_id, proposed=True)
         return results
 
+    def set_profile_version(self, plone_site_id, profile_id, version):
+        """Set DB version for a particular profile.
+        """
+        portal = self.app.restrictedTraverse(plone_site_id)
+        upgradable_site = queryAdapter(portal, IUpgradablePloneSite)
+        results = upgradable_site.set_profile_version(profile_id=profile_id,
+                                                      version=version)
+        results = list(results)
+        return results
 
 
 class JsonAPIView(BrowserView):
@@ -88,6 +97,7 @@ class JsonAPIView(BrowserView):
         @@upgrade-api/list_sites
         @@upgrade-api/list_upgrades?site=[site_id]
         @@upgrade-api/run_all_upgrades
+        @@upgrade-api/set_profile_version
         """
         return __doc__
 
@@ -142,4 +152,15 @@ class JsonAPIView(BrowserView):
             result[site_id] = self.core_api.list_upgrades(site_id,
                                                           proposed=proposed)
         return result
+
+    @pretty_json
+    def set_profile_version(self):
+        """Set DB version for a particular profile.
+        """
+        site = self.request.form.get('site')
+        profile = self.request.form.get('profile')
+        version = self.request.form.get('version')
+
+        if site:
+            return self.core_api.set_profile_version(site, profile, version)
 

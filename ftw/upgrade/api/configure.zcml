@@ -12,7 +12,7 @@
         for="OFS.interfaces.IApplication"
         class=".json_api.JsonAPIView"
         permission="zope.Public"
-        allowed_attributes="list_upgrades list_sites run_all_upgrades"
+        allowed_attributes="list_upgrades list_sites run_all_upgrades set_profile_version"
         />
 
 </configure>

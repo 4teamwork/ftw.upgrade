@@ -1,16 +1,14 @@
+from ftw.upgrade.api.interfaces import IUpgradablePloneSite
+from ftw.upgrade.api.interfaces import IUpgradableZopeApp
+from ftw.upgrade.exceptions import APIError
+from ftw.upgrade.exceptions import CyclicDependencies
+from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from OFS.interfaces import IApplication
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces import IPloneSiteRoot
 from zope.component import adapts
-from zope.interface import implements
 from zope.component import queryAdapter
-from ftw.upgrade.interfaces import IUpgradeInformationGatherer
-from ftw.upgrade.exceptions import CyclicDependencies
-
-
-from ftw.upgrade.api.interfaces import IUpgradablePloneSite
-from ftw.upgrade.api.interfaces import IUpgradableZopeApp
-from ftw.upgrade.exceptions import APIError
+from zope.interface import implements
 
 
 class UpgradablePloneSite(object):
@@ -63,6 +61,18 @@ class UpgradablePloneSite(object):
         except CyclicDependencies, exc:
             print exc.dependencies
             raise exc
+
+    def set_profile_version(self, profile_id, version):
+        """Set the DB version for a particular profile.
+        """
+
+        ps = getToolByName(self.portal, 'portal_setup')
+        if not len(profile_id.split(':')) == 2:
+            raise Exception("Invalid profile id '%s'" % profile_id)
+        ps.setLastVersionForProfile(profile_id, unicode(version))
+        assert(ps.getLastVersionForProfile(profile_id) == (version, ))
+        print "Set version for '%s' to '%s'." % (profile_id, version)
+        return [version]
 
     # def execute_upgrades(self):
     #     raise NotImplemented

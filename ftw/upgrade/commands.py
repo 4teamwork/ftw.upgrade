@@ -92,6 +92,27 @@ class UpgradeCommand(object):
                          action='store_true',
                          help='Display detailed upgrade progress')
 
+        # "set-profile-version" command
+        spv = subparsers.add_parser(
+            'set-profile-version',
+            help='Set installed version for a particular profile')
+
+        spv.add_argument('-s',
+                        '--site',
+                        required=True,
+                        type=str,
+                        help='Plone Site ID')
+
+        spv.add_argument('-p',
+                        '--profile',
+                        required=True,
+                        type=str,
+                        help='Profile name')
+
+        spv.add_argument('version',
+                        type=str,
+                        help='Profile version')
+
         return parser.parse_args(arglist)
 
 
@@ -144,6 +165,14 @@ class UpgradeHTTP(UpgradeCommand):
             elif options.cmd == 'run-all-upgrades':
                 url = "%s/run_all_upgrades" % url
                 params = {'progress': options.progress}
+                response = requests.get(url, params=params)
+                print response.content
+
+            elif options.cmd == 'set-profile-version':
+                url = "%s/set_profile_version" % url
+                params = {'site': options.site,
+                          'profile': options.profile,
+                          'version': options.version}
                 response = requests.get(url, params=params)
                 print response.content
 

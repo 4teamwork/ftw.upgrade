@@ -5,7 +5,9 @@ Changelog
 1.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Implement new ``importProfile`` directive for creating upgrade steps
+  that just import a specific upgrade step generic setup profile.
+  [jone]
 
 
 1.5 (2013-08-16)

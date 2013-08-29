@@ -132,7 +132,7 @@ class UpgradeStep(object):
         are returned.
         """
         catalog = self.getToolByName('portal_catalog')
-        brains = catalog.unrestrictedSearchResults(query)
+        brains = tuple(catalog.unrestrictedSearchResults(query))
 
         if full_objects:
             generator = (self.catalog_unrestricted_get_object(brain)

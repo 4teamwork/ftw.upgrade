@@ -1,0 +1,16 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:upgrade-step="http://namespaces.zope.org/ftw.upgrade"
+    i18n_domain="ftw.upgrade">
+
+    <include package="ftw.upgrade" file="meta.zcml" />
+
+    <upgrade-step:importProfile
+        title="Update email address"
+        profile="ftw.upgrade.tests.profiles:bar"
+        source="1"
+        destination="2"
+        directory="profiles/bar-2"
+        />
+
+</configure>

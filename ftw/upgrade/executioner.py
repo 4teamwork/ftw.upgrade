@@ -27,20 +27,21 @@ class Executioner(object):
         self.portal_setup = portal_setup
 
     security.declarePrivate('install')
-    def install(self, data):
+    def install(self, data, counter=None):
         for profileid, upgradeids in data:
-            self._upgrade_profile(profileid, upgradeids)
+            self._upgrade_profile(profileid, upgradeids, counter=counter)
 
         for adapter in self._get_sorted_post_upgrade_adapters():
             adapter()
 
     security.declarePrivate('_upgrade_profile')
-    def _upgrade_profile(self, profileid, upgradeids):
+    def _upgrade_profile(self, profileid, upgradeids, counter=None):
         last_dest_version = None
 
         for upgradeid in upgradeids:
             last_dest_version = self._do_upgrade(profileid, upgradeid) \
                 or last_dest_version
+            counter and counter.upgrade_step_executed()
 
         self.portal_setup.setLastVersionForProfile(
             profileid, last_dest_version)

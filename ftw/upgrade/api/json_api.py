@@ -1,5 +1,7 @@
+from AccessControl.SecurityManagement import newSecurityManager
 from ftw.upgrade.api.adapters import IUpgradablePloneSite
 from ftw.upgrade.api.adapters import IUpgradableZopeApp
+from ftw.upgrade.browser.manage import DebugResponseLogger
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.utils import pretty_json
 from Products.CMFCore.utils import getToolByName
@@ -8,9 +10,33 @@ from zope.component import queryAdapter
 from zope.component.hooks import setSite
 from zope.publisher.browser import BrowserView
 import logging
+from operator import itemgetter
 
 
 log = logging.getLogger('ftw.upgrade')
+
+PROGRESS_MARKER = 'PROGRESS'
+
+
+class UpgradeStepCounter(object):
+    def __init__(self, data, stream=None):
+        self.data = data
+        # Calculate number of total upgrade steps
+        self.total_steps = sum(map(len, map(itemgetter(1), data)))
+        self.stream = stream
+        self.count = 0
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        pass
+
+    def upgrade_step_executed(self):
+        self.count += 1
+        self.stream.write("%s: %s/%s\n" % (
+            PROGRESS_MARKER, self.count, self.total_steps))
+        self.stream.flush()
 
 
 class CoreAPI(object):
@@ -44,6 +70,12 @@ class CoreAPI(object):
         """
         portal = self.app.restrictedTraverse(plone_site_id)
         setSite(portal)
+
+        # Set up Manager security context
+        user = self.app.acl_users.getUser('zopemaster')
+        user = user.__of__(self.app.acl_users)
+        newSecurityManager(self.app, user)
+
         profiles = self.list_upgrades(plone_site_id, proposed=proposed)
 
         # upgrade_instructions is a list of key/value tuples where the key is a
@@ -56,10 +88,12 @@ class CoreAPI(object):
 
         gstool = getToolByName(portal, 'portal_setup')
         executioner = getAdapter(gstool, IExecutioner)
-        executioner.install(upgrade_instructions)
+
+        response = self.app.REQUEST.response
+        with UpgradeStepCounter(upgrade_instructions, stream=response) as counter:
+            executioner.install(upgrade_instructions, counter=counter)
 
         return {'status': 'SUCCESS'}
-
 
     def run_all_upgrades(self):
         """Run all proposed upgrades for all Plone sites.
@@ -132,7 +166,13 @@ class JsonAPIView(BrowserView):
     def run_all_upgrades(self):
         """Run all proposed upgrades for all Plone sites.
         """
-        return self.core_api.run_all_upgrades()
+        request = self.app.REQUEST
+        response = request.RESPONSE
+        response.setHeader('Content-Type', 'text/plain')
+        response.setHeader('Transfer-Encoding', 'chunked')
+        with DebugResponseLogger(response):
+            result = self.core_api.run_all_upgrades()
+        response.write(str(result))
 
     def _list_upgrades_for(self, site_id, proposed=False):
         """List all proposed upgrades for a specific Plone site.

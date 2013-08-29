@@ -1,11 +1,13 @@
 from argparse import HelpFormatter
+from ftw.upgrade.cockpit.cluster import SimpleClusterUpgrader
+from ftw.upgrade.cockpit.ui import CockpitApplication
+from ftw.upgrade.utils import join_lines
 from requests.exceptions import ConnectionError
 import argparse
 import json
 import requests
 import shlex
 import sys
-from ftw.upgrade.utils import join_lines
 
 
 class Log(object):
@@ -42,6 +44,11 @@ class UpgradeCommand(object):
             action='store_true',
             help='Produce machine readable JSON output. Default is human '
                  'readable.')
+
+        parser.add_argument(
+            '--progress-info',
+            action='store_true',
+            help='Display machine readable progress info on STDOUT')
 
         # Commands
         #
@@ -165,8 +172,9 @@ class UpgradeHTTP(UpgradeCommand):
             elif options.cmd == 'run-all-upgrades':
                 url = "%s/run_all_upgrades" % url
                 params = {'progress': options.progress}
-                response = requests.get(url, params=params)
-                print response.content
+                response = requests.get(url, params=params, stream=True)
+                for line in response.iter_lines():
+                    print line
 
             elif options.cmd == 'set-profile-version':
                 url = "%s/set_profile_version" % url
@@ -218,7 +226,6 @@ def upgrade_http_handler(cmd, args):
     http_upgrade_cmd.run()
 
 
-
 class UpgradeFormatter(object):
 
     def __init__(self, sites):
@@ -244,3 +251,47 @@ class UpgradeFormatter(object):
                     yield "      * %s -> %s    %s" % (
                         upgrade['ssource'], upgrade['sdest'], upgrade['title'])
                 yield ''
+
+
+class UpgradeCockpitCommand(object):
+    def __init__(self):
+        pass
+
+    def _parse_args(self):
+        parser = argparse.ArgumentParser(
+            description='Management interface for running several upgrades in '
+                        'parallel using ftw.upgrade')
+        parser.add_argument(
+            'cluster_dir',
+            metavar='cluster-dir',
+            help='Directory that contains the Plone buildouts to be upgraded')
+        parser.add_argument(
+            '--simple',
+            action='store_true',
+            help='Use a dead simple interface for displaying progress '
+                 '(Testing / Debug only)')
+        parser.add_argument(
+            '--mock',
+            action='store_true',
+            help='Use MockZooKeeper (Testing / Debugging only)')
+
+        args = parser.parse_args()
+        return args
+
+    def run(self):
+        args = self._parse_args()
+        cluster_dir = args.cluster_dir
+
+        if args.simple:
+            simple_upgrader = SimpleClusterUpgrader(cluster_dir)
+            simple_upgrader.run()
+        else:
+            cockpit = CockpitApplication(cluster_dir)
+            cockpit.run()
+
+
+def run_cockpit():
+    """console_script entry point for `bin/upgrade-cockpit`
+    """
+    cmd = UpgradeCockpitCommand()
+    cmd.run()

@@ -68,6 +68,8 @@ setup(name='ftw.upgrade',
         'plone.browserlayer',
         'Products.CMFCore',
         'Products.CMFPlone',
+
+        'urwid',
         ],
 
       tests_require=tests_require,
@@ -77,6 +79,9 @@ setup(name='ftw.upgrade',
       # -*- Entry points: -*-
       [z3c.autoinclude.plugin]
       target = plone
+
+      [console_scripts]
+      upgrade-cockpit = ftw.upgrade.commands:run_cockpit
 
       [zopectl.command]
       upgrade = ftw.upgrade.commands:upgrade_handler

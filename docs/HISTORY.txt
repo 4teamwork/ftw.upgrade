@@ -5,6 +5,10 @@ Changelog
 1.6 (unreleased)
 ----------------
 
+- Fix inplace modification bug when updating the catalog while
+  iterating over a catalog result.
+  [jone]
+
 - Implement new ``importProfile`` directive for creating upgrade steps
   that just import a specific upgrade step generic setup profile.
   [jone]

@@ -95,6 +95,28 @@ class TestUpgradeStep(TestCase):
                            'DONE Log message'],
                           self.read_log())
 
+    def test_objects_modifying_catalog_does_not_reduce_result_set(self):
+        old_date = DateTime(2010, 1, 1)
+        new_date = DateTime(2012, 3, 3)
+        create(Builder('folder').with_modification_date(old_date))
+        create(Builder('folder').with_modification_date(old_date))
+        create(Builder('folder').with_modification_date(old_date))
+        create(Builder('folder').with_modification_date(old_date))
+
+        data = {'processed_folders': 0}
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                for obj in self.objects({'modified': old_date}, ''):
+                    obj.setModificationDate(new_date)
+                    obj.reindexObject(idxs=['modified'])
+                    data['processed_folders'] += 1
+
+        Step(self.portal_setup)
+        self.assertEquals(
+            4, data['processed_folders'],
+            'Updating catalog reduced result set while iterating over it!!!')
+
     def test_catalog_rebuild_index(self):
         testcase = self
 

@@ -2,8 +2,8 @@ Changelog
 =========
 
 
-1.6 (unreleased)
-----------------
+1.6.0 (2013-08-30)
+------------------
 
 - Fix inplace modification bug when updating the catalog while
   iterating over a catalog result.

@@ -1,20 +1,20 @@
-from Products.CMFCore.utils import getToolByName
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.placefulworkflow import PlacefulWorkflowPolicyActivator
 from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
+from ftw.upgrade.tests.base import WorkflowTestCase
 from plone.app.testing import TEST_USER_ID
 from plone.app.testing import TEST_USER_NAME
 from plone.app.testing import login
 from plone.app.testing import setRoles
-from unittest2 import TestCase
 
 
-class TestPlacefulWorkflowPolicyActivator(TestCase):
+class TestPlacefulWorkflowPolicyActivator(WorkflowTestCase):
 
     layer = FTW_UPGRADE_FUNCTIONAL_TESTING
 
     def setUp(self):
+        super(TestPlacefulWorkflowPolicyActivator, self).setUp()
         self.portal = self.layer['portal']
         setRoles(self.portal, TEST_USER_ID, ['Manager'])
         login(self.portal, TEST_USER_NAME)
@@ -99,46 +99,3 @@ class TestPlacefulWorkflowPolicyActivator(TestCase):
         self.assertEquals(
             ['Anonymous'],
             self.get_allowed_roles_and_users(for_object=container))
-
-    def set_workflow_chain(self, for_type, to_workflow):
-        wftool = getToolByName(self.portal, 'portal_workflow')
-        wftool.setChainForPortalTypes((for_type,),
-                                      (to_workflow,))
-
-    def create_placeful_workflow_policy(self, named, with_workflows):
-        placeful_wf_tool = getToolByName(
-            self.portal, 'portal_placeful_workflow')
-
-        placeful_wf_tool.manage_addWorkflowPolicy(named)
-        policy = placeful_wf_tool.get(named)
-
-        for portal_type, workflow in with_workflows.items():
-            policy.setChain(portal_type, workflow)
-
-        return policy
-
-    def assertReviewStates(self, expected):
-        wftool = getToolByName(self.portal, 'portal_workflow')
-
-        got = {}
-        for obj in expected.keys():
-            review_state = wftool.getInfoFor(obj, 'review_state')
-            got[obj] = review_state
-
-        self.assertEquals(
-            expected, got, 'Unexpected workflow states')
-
-    def assertSecurityIsUpToDate(self):
-        wftool = getToolByName(self.portal, 'portal_workflow')
-        updated_objects = wftool.updateRoleMappings()
-        self.assertEquals(
-            0, updated_objects,
-            'Expected all objects to have an up to date security, but'
-            ' there were some which were not up to date.')
-
-    def get_allowed_roles_and_users(self, for_object):
-        catalog = getToolByName(self.portal, 'portal_catalog')
-        path = '/'.join(for_object.getPhysicalPath())
-        rid = catalog.getrid(path)
-        index_data = catalog.getIndexDataForRID(rid)
-        return index_data.get('allowedRolesAndUsers')

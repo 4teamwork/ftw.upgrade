@@ -295,6 +295,19 @@ The ``UpgradeStep`` class has various helper functions:
     (``allowedRolesAndUsers``). This speeds up the update but should only be disabled
     when there are no changes for the ``View`` permission.
 
+``self.update_workflow_security(workflow_names, reindex_security=True)``
+    Update all objects which have one of a list of workflows.
+    This is useful when updating a bunch of workflows and you want to make sure
+    that the object security is updated properly.
+
+    The update is done by doing as few as possibly by only searching for
+    types which might have this workflow. It does support placeful workflow policies.
+
+    For speeding up you can pass ``reindex_security=False``, but you need to make
+    sure you did not change any security relevant permissions (only ``View`` for default
+    Plone).
+
+
 
 Progress logger
 ---------------

@@ -59,21 +59,40 @@ class FakeUpgradeRunner(object):
             time.sleep(random.random())
 
 
+class TestingUpgradeRunner(object):
+    """Simulates some random progress info output for automated testing.
+
+    Like the real thing, it communicates its progress info by writing it to the
+    shared `status` queue and signalling progress updates by writing to the
+    end of a pipe identified by `conn`.
+    """
+
+    def __init__(self, unused_cluster_dir, steps=5):
+        self.steps = steps
+
+    def upgrade(self, status, n, buildout_name, conn):
+        count = self.steps
+        for i in range(count):
+            status.put([n, (i + 1.0) / count])
+            conn.send(True)
+
+
 class ZooKeeper(object):
     """Takes care of spawning multiple worker processes that run upgrades for
     a single Plone buildout and keeps track of their progress.
     """
 
-    def __init__(self, cluster_dir):
+    def __init__(self, cluster_dir, runner_class=None):
         self.cluster_dir = cluster_dir
         self.workers = []
+        if not runner_class:
+            self.runner_class = UpgradeRunner
+        else:
+            self.runner_class = runner_class
 
     @property
     def buildouts(self):
-        if self.cluster_dir:
-            return list_buildouts(self.cluster_dir)
-        else:
-            return ['Worker-%s' % n for n in range(20)]
+        return list_buildouts(self.cluster_dir)
 
     def spawn_runners(self):
         """Spawns subprocesses that run upgrades.
@@ -84,13 +103,19 @@ class ZooKeeper(object):
         # back to the main process
         self.parent_conn, self.child_conn = Pipe(duplex=False)
 
-        runner = UpgradeRunner(self.cluster_dir)
+        runner = self.runner_class(self.cluster_dir)
 
-        for n, buildout in enumerate(list_buildouts(self.cluster_dir)):
+        for n, buildout in enumerate(self.buildouts):
             child = Process(target=runner.upgrade,
                             args=(self.status, n + 1, buildout, self.child_conn))
             child.start()
             self.workers.append(child)
+
+    def clean_up_runners(self):
+        # Create a copy so we don't change list size during iteration
+        for runner in self.workers[:]:
+            runner.join()
+            self.workers.remove(runner)
 
     def poll_progress_info(self):
         """Method that checks, if any workers are still alive, whether there's
@@ -115,35 +140,18 @@ class ZooKeeper(object):
         raise NotImplementedError()
 
 
-class MockZooKeeper(object):
+class MockZooKeeper(ZooKeeper):
     """Mock of a ZooKeeper - doesn't run any upgrades, but still spawns
     processes and reports some faked progress info.
     """
-
-    def __init__(self, cluster_dir):
+    def __init__(self, cluster_dir, runner_class=None):
         self.cluster_dir = cluster_dir
         self.workers = []
+        self.runner_class = FakeUpgradeRunner
 
     @property
     def buildouts(self):
         return ['Worker-%s' % n for n in range(20)]
-
-    def spawn_runners(self):
-        """Spawns subprocesses that run upgrades.
-        """
-        self.status = Queue()
-
-        # Set up a pipe for worker processes to signal available updates
-        # back to the main process
-        self.parent_conn, self.child_conn = Pipe(duplex=False)
-
-        runner = FakeUpgradeRunner(self.cluster_dir)
-
-        for n, buildout in enumerate(self.buildouts):
-            child = Process(target=runner.upgrade,
-                            args=(self.status, n + 1, buildout, self.child_conn))
-            child.start()
-            self.workers.append(child)
 
     def poll_progress_info(self):
         """Method that checks, if any workers are still alive, whether there's
@@ -182,12 +190,12 @@ class SimpleClusterUpgrader(ZooKeeper):
 
     def run(self):
         self.spawn_runners()
-
         while True:
             try:
                 self.poll_progress_info()
             except AllWorkersFinished:
                 break
+        self.clean_up_runners()
 
     def update_progress(self, progress_info):
         worker_number, progress = progress_info

@@ -28,6 +28,13 @@ class IUpgradablePloneSite(Interface):
         Otherwise all the upgrades will be listed.
         """
 
+    def set_profile_version(profile_id, version):
+        """Set the installed version of a GS profile.
+
+        Useful for setting the initial installed profile version of a profile
+        that didn't have a version before, or for debugging.
+        """
+
 
 class IUpgradableZopeApp(Interface):
     """Interface describing a Zope Application with upgradable Plone sites.
@@ -35,7 +42,6 @@ class IUpgradableZopeApp(Interface):
     Adapts a Zope Application Root containing one or more Plone sites to be
     upgraded.
     """
-
 
     def __init__(app):
         """Adapts IApplication.

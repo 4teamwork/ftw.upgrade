@@ -511,6 +511,62 @@ class TestUpgradeStep(TestCase):
         self.assertEquals(['Reader'],
                           self.get_allowed_roles_and_users_for(folder))
 
+    def test_update_workflow_security_updates_security(self):
+        self.set_workflow_chain(for_type='Folder',
+                                to_workflow='plone_workflow')
+        folder = create(Builder('folder'))
+        self.assert_permission_not_acquired('Modify portal content', folder)
+        folder.manage_permission('Modify portal content', roles=[],
+                                 acquire=True)
+        self.assert_permission_acquired('Modify portal content', folder)
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                self.update_workflow_security(['plone_workflow'])
+        Step(self.portal_setup)
+
+        self.assert_permission_not_acquired('Modify portal content', folder)
+
+    def test_update_workflow_security_reindexes_security(self):
+        self.set_workflow_chain(for_type='Folder',
+                                to_workflow='plone_workflow')
+        folder = create(Builder('folder').in_state('published'))
+
+        folder.manage_permission('View', roles=['Reader'], acquire=False)
+        folder.reindexObjectSecurity()
+        self.assertEquals(['Reader'],
+                          self.get_allowed_roles_and_users_for(folder))
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                self.update_workflow_security(
+                    ['plone_workflow'], reindex_security=False)
+        Step(self.portal_setup)
+
+        self.assertEquals(['Reader'],
+                          self.get_allowed_roles_and_users_for(folder))
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                self.update_workflow_security(
+                    ['plone_workflow'], reindex_security=True)
+        Step(self.portal_setup)
+
+        self.assertEquals(['Anonymous'],
+                          self.get_allowed_roles_and_users_for(folder))
+
+
+    def test_update_workflow_security_expects_list_of_workflows(self):
+        class Step(UpgradeStep):
+            def __call__(self):
+                self.update_workflow_security('foo')
+
+        with self.assertRaises(ValueError) as cm:
+            Step(self.portal_setup)
+
+        self.assertEquals('"workflows" must be a list of workflow names.',
+                          str(cm.exception))
+
     def set_workflow_chain(self, for_type, to_workflow):
         wftool = getToolByName(self.portal, 'portal_workflow')
         wftool.setChainForPortalTypes((for_type,),

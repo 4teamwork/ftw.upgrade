@@ -88,10 +88,10 @@ class WorkflowChainUpdater(object):
                 wf_before, wf_after)
 
             new_review_state = mapping.get(review_state_before)
-            assert new_review_state, \
-                'Mapping not defined for old state %s when changing' +\
+            assert new_review_state, (
+                'Mapping not defined for old state %s when changing'
                 ' workflow from %s to %s.' % (
-                review_state_before, wf_before, wf_after)
+                    review_state_before, wf_before, wf_after))
 
             obj = portal.unrestrictedTraverse(path)
             wf_tool.setStatusOf(wf_after, obj, {

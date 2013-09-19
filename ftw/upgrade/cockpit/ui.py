@@ -67,6 +67,7 @@ class CockpitApplication(ZooKeeperClass):
         try:
             self.poll_progress_info()
         except AllWorkersFinished:
+            self.clean_up_runners()
             raise urwid.ExitMainLoop
 
     def setup_ui(self):
@@ -100,6 +101,7 @@ class CockpitApplication(ZooKeeperClass):
         # whenever there's activity on the pipe `parent_conn` (which
         # the spawned child processes will use to signal available updates)
         self.loop.watch_file(self.parent_conn, self.check_for_progress)
+        self.update_status_bar('Watching for progress updates...')
 
     def run(self):
         self.setup_ui()
@@ -107,4 +109,7 @@ class CockpitApplication(ZooKeeperClass):
         try:
             self.loop.run()
         except KeyboardInterrupt:
-            pass
+            print "Caught KeyboardInterrupt."
+        finally:
+            self.clean_up_runners()
+            print "All runners terminated cleanly."

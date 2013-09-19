@@ -1,8 +1,10 @@
 from ftw.builder import Builder
 from ftw.builder import create
+from ftw.upgrade.placefulworkflow import PlacefulWorkflowPolicyActivator
 from ftw.upgrade.testing import FTW_UPGRADE_INTEGRATION_TESTING
 from ftw.upgrade.tests.base import WorkflowTestCase
 from ftw.upgrade.workflow import WorkflowChainUpdater
+from ftw.upgrade.workflow import WorkflowSecurityUpdater
 
 
 class TestWorkflowChainUpdater(WorkflowTestCase):
@@ -73,3 +75,80 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
         self.assertEquals(
             ['Anonymous'],
             self.get_allowed_roles_and_users(for_object=container))
+
+
+
+class TestWorkflowSecurityUpdater(WorkflowTestCase):
+
+    layer = FTW_UPGRADE_INTEGRATION_TESTING
+
+    def setUp(self):
+        self.portal = self.layer['portal']
+
+    def test_updates_only_objects_with_specified_workflows(self):
+        self.set_workflow_chain(for_type='Folder',
+                                to_workflow='folder_workflow')
+        folder = create(Builder('folder'))
+        folder.manage_permission('View', roles=[],
+                                 acquire=True)
+
+        self.set_workflow_chain(for_type='Document',
+                                to_workflow='simple_publication_workflow')
+        document = create(Builder('document'))
+        document.manage_permission('View', roles=[],
+                                   acquire=True)
+
+        self.assert_permission_acquired('View', folder)
+        self.assert_permission_acquired('View', document)
+
+        updater = WorkflowSecurityUpdater()
+        updater.update(['folder_workflow'])
+
+        self.assert_permission_not_acquired(
+            'View', folder, 'The folder should have been updated but wasnt.')
+        self.assert_permission_acquired(
+            'View', document,
+            'The document should NOT have been updated but it was.')
+
+    def test_updates_disabling_update_security(self):
+        self.set_workflow_chain(for_type='Folder',
+                                to_workflow='folder_workflow')
+        folder = create(Builder('folder'))
+        folder.manage_permission('View', roles=['Reader'], acquire=False)
+        folder.reindexObjectSecurity()
+        self.assertEquals(['Reader'],
+                          self.get_allowed_roles_and_users(for_object=folder))
+
+        updater = WorkflowSecurityUpdater()
+        updater.update(['folder_workflow'], reindex_security=False)
+        self.assertEquals(['Reader'],
+                          self.get_allowed_roles_and_users(for_object=folder))
+
+        updater.update(['folder_workflow'], reindex_security=True)
+        self.assertEquals(['Anonymous'],
+                          self.get_allowed_roles_and_users(for_object=folder))
+
+    def test_respects_placeful_workflows_when_updating(self):
+        container = create(Builder('folder'))
+        document = create(Builder('document').within(container))
+
+        self.create_placeful_workflow_policy(
+            named='local_workflow',
+            with_workflows={'Document': 'simple_publication_workflow'})
+        activator = PlacefulWorkflowPolicyActivator(container)
+        activator.activate_policy(
+            'local_workflow',
+            review_state_mapping={
+                (None, 'simple_publication_workflow'): {
+                    None: 'private'}})
+
+        document.manage_permission('View', roles=[],
+                                   acquire=True)
+        self.assert_permission_acquired('View', document)
+
+        updater = WorkflowSecurityUpdater()
+        updater.update(['simple_publication_workflow'])
+
+        self.assert_permission_not_acquired(
+            'View', document,
+            'The document should have been updated but was not.')

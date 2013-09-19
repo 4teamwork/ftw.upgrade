@@ -49,3 +49,28 @@ class WorkflowTestCase(TestCase):
             policy.setChain(portal_type, workflow)
 
         return policy
+
+    def assert_permission_acquired(self, permission, obj, msg=None):
+        not_acquired_permissions = self.get_not_acquired_permissions_of(obj)
+
+        self.assertNotIn(
+            permission, not_acquired_permissions,
+            'Expected permission "%s" to be acquired on %s%s' % (
+                permission, str(obj),
+                msg and (' (%s)' % msg) or ''))
+
+    def assert_permission_not_acquired(self, permission, obj, msg=None):
+        not_acquired_permissions = self.get_not_acquired_permissions_of(obj)
+
+        self.assertIn(
+            permission, not_acquired_permissions,
+            'Expected permission "%s" to NOT be acquired on %s%s' % (
+                permission, str(obj),
+                msg and (' (%s)' % msg) or ''))
+
+    def get_not_acquired_permissions_of(self, obj):
+        acquired_permissions = filter(
+            lambda item: not item.get('acquire'),
+            obj.permission_settings())
+
+        return map(lambda item: item.get('name'), acquired_permissions)

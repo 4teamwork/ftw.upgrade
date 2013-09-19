@@ -1,6 +1,7 @@
 from Products.CMFCore.utils import getToolByName
 from ftw.upgrade import ProgressLogger
 from ftw.upgrade.helpers import update_security_for
+from ftw.upgrade.utils import SizedGenerator
 from zope.component.hooks import getSite
 import logging
 
@@ -112,3 +113,59 @@ class WorkflowChainUpdater(object):
 
         else:
             return workflows[0].id
+
+
+class WorkflowSecurityUpdater(object):
+
+    def update(self, changed_workflows, reindex_security=True):
+        types = self.get_suspected_types(changed_workflows)
+        for obj in self.lookup_objects(types):
+            if self.obj_has_workflow(obj, changed_workflows):
+                update_security_for(obj, reindex_security=reindex_security)
+
+    def lookup_objects(self, types):
+        portal = getSite()
+        catalog = getToolByName(portal, 'portal_catalog')
+
+        query = {'portal_type': types}
+        brains = tuple(catalog.unrestrictedSearchResults(query))
+
+        lookup = lambda brain: portal.unrestrictedTraverse(brain.getPath())
+        generator = SizedGenerator((lookup(brain) for brain in brains),
+                                   len(brains))
+        return ProgressLogger('Update object security', generator)
+
+    def get_suspected_types(self, changed_workflows):
+        types = []
+        ttool = getToolByName(getSite(), 'portal_types')
+
+        for fti in ttool.objectValues():
+            portal_type = fti.getId()
+            if self.type_workflow_is_one_of(portal_type, changed_workflows):
+                types.append(portal_type)
+
+        return types
+
+    def type_workflow_is_one_of(self, portal_type, workflows):
+        wftool = getToolByName(getSite(), 'portal_workflow')
+        default_chain = wftool.getChainForPortalType(portal_type)
+        if set(default_chain) & set(workflows):
+            return True
+
+        try:
+            pwftool = getToolByName(getSite(), 'portal_placeful_workflow')
+        except AttributeError:
+            return False
+
+        for policy in pwftool.objectValues():
+            chain = policy.getChainFor(portal_type) or []
+            if set(chain) & set(workflows):
+                return True
+
+        return False
+
+    def obj_has_workflow(self, obj, workflows):
+        wftool = getToolByName(getSite(), 'portal_workflow')
+        obj_workflow_names = map(lambda wf: wf.getId(),
+                                 wftool.getWorkflowsFor(obj))
+        return set(obj_workflow_names) & set(workflows)

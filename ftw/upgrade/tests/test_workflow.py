@@ -1,17 +1,13 @@
-from Products.CMFCore.utils import getToolByName
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.testing import FTW_UPGRADE_INTEGRATION_TESTING
+from ftw.upgrade.tests.base import WorkflowTestCase
 from ftw.upgrade.workflow import WorkflowChainUpdater
-from unittest2 import TestCase
 
 
-class TestWorkflowChainUpdater(TestCase):
+class TestWorkflowChainUpdater(WorkflowTestCase):
 
     layer = FTW_UPGRADE_INTEGRATION_TESTING
-
-    def setUp(self):
-        self.portal = self.layer['portal']
 
     def test_changing_workflow_with_mapping(self):
         self.set_workflow_chain(for_type='Folder',
@@ -77,34 +73,3 @@ class TestWorkflowChainUpdater(TestCase):
         self.assertEquals(
             ['Anonymous'],
             self.get_allowed_roles_and_users(for_object=container))
-
-    def assertReviewStates(self, expected):
-        wftool = getToolByName(self.portal, 'portal_workflow')
-
-        got = {}
-        for obj in expected.keys():
-            review_state = wftool.getInfoFor(obj, 'review_state')
-            got[obj] = review_state
-
-        self.assertEquals(
-            expected, got, 'Unexpected workflow states')
-
-    def set_workflow_chain(self, for_type, to_workflow):
-        wftool = getToolByName(self.portal, 'portal_workflow')
-        wftool.setChainForPortalTypes((for_type,),
-                                      (to_workflow,))
-
-    def assertSecurityIsUpToDate(self):
-        wftool = getToolByName(self.portal, 'portal_workflow')
-        updated_objects = wftool.updateRoleMappings()
-        self.assertEquals(
-            0, updated_objects,
-            'Expected all objects to have an up to date security, but'
-            ' there were some which were not up to date.')
-
-    def get_allowed_roles_and_users(self, for_object):
-        catalog = getToolByName(self.portal, 'portal_catalog')
-        path = '/'.join(for_object.getPhysicalPath())
-        rid = catalog.getrid(path)
-        index_data = catalog.getIndexDataForRID(rid)
-        return index_data.get('allowedRolesAndUsers')

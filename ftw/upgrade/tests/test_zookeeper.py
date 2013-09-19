@@ -1,5 +1,5 @@
-from ftw.upgrade.cockpit.cluster import ZooKeeper
-from ftw.upgrade.cockpit.cluster import TestingUpgradeRunner
+from ftw.upgrade.cockpit.zookeeper import ZooKeeper
+from ftw.upgrade.cockpit.zookeeper import TestingUpgradeRunner
 from unittest2 import TestCase
 import os
 import shutil

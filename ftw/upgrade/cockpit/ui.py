@@ -1,4 +1,4 @@
-from ftw.upgrade.cockpit.cluster import ZooKeeper
+from ftw.upgrade.cockpit.zookeeper import ZooKeeper
 from ftw.upgrade.cockpit.exceptions import AllWorkersFinished
 from ftw.upgrade.utils import distribute_across_columns
 import urwid
@@ -21,7 +21,7 @@ def make_pb():
 
 
 if '--mock' in sys.argv:
-    from ftw.upgrade.cockpit.cluster import MockZooKeeper
+    from ftw.upgrade.cockpit.zookeeper import MockZooKeeper
     ZooKeeperClass = MockZooKeeper
 else:
     ZooKeeperClass = ZooKeeper

@@ -1,5 +1,5 @@
 from argparse import HelpFormatter
-from ftw.upgrade.cockpit.cluster import SimpleClusterUpgrader
+from ftw.upgrade.cockpit.zookeeper import SimpleClusterUpgrader
 from ftw.upgrade.cockpit.ui import CockpitApplication
 from ftw.upgrade.utils import join_lines
 from requests.exceptions import ConnectionError

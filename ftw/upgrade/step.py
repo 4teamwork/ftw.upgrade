@@ -307,3 +307,19 @@ class UpgradeStep(object):
         the catalog.
         """
         return update_security_for(obj, reindex_security=reindex_security)
+
+    security.declarePrivate('update_workflow_security')
+    def update_workflow_security(self, workflow_names, reindex_security=True):
+        """Updates the object security of all objects with one of the
+        passed workflows.
+        `workflows` is expected to be a list of workflow names.
+        """
+
+        if getattr(workflow_names, '__iter__', None) is None or \
+                isinstance(workflow_names, (str, unicode)):
+            raise ValueError(
+                '"workflows" must be a list of workflow names.')
+
+        from ftw.upgrade.workflow import WorkflowSecurityUpdater
+        updater = WorkflowSecurityUpdater()
+        updater.update(workflow_names, reindex_security=reindex_security)

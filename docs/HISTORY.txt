@@ -5,7 +5,8 @@ Changelog
 1.6.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add a ``update_workflow_security`` helper function to the upgrade step.
+  [jone]
 
 
 1.6.0 (2013-08-30)

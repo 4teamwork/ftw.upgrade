@@ -12,13 +12,14 @@ class ZooKeeper(object):
     a single Plone buildout and keeps track of their progress.
     """
 
-    def __init__(self, cluster_dir, runner_class=None):
+    def __init__(self, cluster_dir, runner_class=None, update_func=None):
         self.cluster_dir = cluster_dir
         self.workers = []
-        if not runner_class:
+        self.runner_class = runner_class
+        self.update_func = update_func
+
+        if self.runner_class is None:
             self.runner_class = UpgradeRunner
-        else:
-            self.runner_class = runner_class
 
     @property
     def buildouts(self):
@@ -54,16 +55,20 @@ class ZooKeeper(object):
         If progress updates are available, they will be handed to the
         update_progress() method.
         """
+        update_func = self.update_func
+        if update_func is None:
+            update_func = self.update_progress
+
         if any(w.is_alive() for w in self.workers):
             while not self.status.empty():
                 worker_number, progress = self.status.get()
-                self.update_progress((worker_number, progress))
+                update_func((worker_number, progress))
         else:
             # All processes terminated. Process any remaining progress
             # updates from the queue
             while not self.status.empty():
                 worker_number, progress = self.status.get()
-                self.update_progress((worker_number, progress))
+                update_func((worker_number, progress))
             raise AllWorkersFinished()
 
     def update_progress(self, progress_info):

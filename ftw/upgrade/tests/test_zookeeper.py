@@ -1,5 +1,6 @@
-from ftw.upgrade.cockpit.zookeeper import ZooKeeper
+from ftw.upgrade.cockpit.exceptions import AllWorkersFinished
 from ftw.upgrade.cockpit.runners import TestingUpgradeRunner
+from ftw.upgrade.cockpit.zookeeper import ZooKeeper
 from unittest2 import TestCase
 import os
 import shutil
@@ -32,7 +33,6 @@ class TestZookeeper(TestCase):
 
     def tearDown(self):
         self.remove_testing_buildouts()
-
 
     def test_zookeeper_lists_buildouts(self):
         zookeeper = ZooKeeper(self.test_cluster_dir)
@@ -81,4 +81,35 @@ class TestZookeeper(TestCase):
         # TestingUpgradeRunner emits exactly 5 progress updates
         signals = [zookeeper.parent_conn.recv() for i in range(5)]
         self.assertEquals(signals, [True] * 5)
+        zookeeper.clean_up_runners()
+
+    def test_runners_call_update_progress_function_with_progress_info(self):
+        buildout_dir = os.path.join(os.getcwd(), 'single_worker')
+        self.create_test_buildouts(buildout_dir, ['b1'])
+
+        class MockUpdateReceiver(object):
+            def __init__(self):
+                self.progress_infos = []
+
+            def update_progress(self, progress_info):
+                self.progress_infos.append(progress_info)
+
+        receiver = MockUpdateReceiver()
+
+        zookeeper = ZooKeeper(buildout_dir,
+                              runner_class=TestingUpgradeRunner,
+                              update_func=receiver.update_progress)
+        zookeeper.spawn_runners()
+
+        while True:
+            try:
+                zookeeper.poll_progress_info()
+            except AllWorkersFinished:
+                break
+
+        self.assertEquals(receiver.progress_infos, [(1, 0.2),
+                                                    (1, 0.4),
+                                                    (1, 0.6),
+                                                    (1, 0.8),
+                                                    (1, 1.0)])
         zookeeper.clean_up_runners()

@@ -23,7 +23,7 @@ class UpgradablePloneSite(object):
     def is_upgradable(self):
         """True if the site has proposed upgrades, false otherwise.
         """
-        upgradable = list(self.get_proposed_upgrades()) != []
+        upgradable = list(self.get_upgrades()) != []
         return upgradable
 
     def get_upgrades(self, proposed=True):

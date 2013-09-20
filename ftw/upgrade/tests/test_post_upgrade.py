@@ -40,7 +40,7 @@ class TestPostUpgrade(MockTestCase):
         self.portal_setup = getToolByName(
             self.layer['portal'], 'portal_setup')
 
-        profileid = 'ftw.upgrade.tests:foo'
+        profileid = 'ftw.upgrade.tests.profiles:foo'
         foo_upgrades = self.portal_setup.listUpgrades(profileid)
         self.data = [(profileid, [foo_upgrades[0]['id']])]
 

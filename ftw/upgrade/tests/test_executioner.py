@@ -40,14 +40,14 @@ class TestExecutioner(TestCase):
         verifyClass(IExecutioner, Executioner)
 
     def test_installs_upgrades(self):
-        profileid = 'ftw.upgrade.tests:foo'
+        profileid = 'ftw.upgrade.tests.profiles:foo'
         setup_tool = getToolByName(self.layer['portal'], 'portal_setup')
 
         self.assertEqual(None, queryUtility(IFoo))
         self.assertEqual('unknown',
                          setup_tool.getLastVersionForProfile(profileid))
 
-        upgrades = setup_tool.listUpgrades('ftw.upgrade.tests:foo')
+        upgrades = setup_tool.listUpgrades('ftw.upgrade.tests.profiles:foo')
         self.assertEqual(1, len(upgrades))
         id_ = upgrades[0]['id']
 

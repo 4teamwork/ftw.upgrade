@@ -4,7 +4,7 @@
     i18n_domain="ftw.upgrade">
 
     <genericsetup:upgradeStep
-        profile="ftw.upgrade.tests:foo"
+        profile="ftw.upgrade.tests.profiles:foo"
         source="1"
         destination="2"
         title="Registers foo utility"

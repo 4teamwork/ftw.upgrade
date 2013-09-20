@@ -23,7 +23,7 @@ class ZooKeeper(object):
 
     @property
     def buildouts(self):
-        return list_buildouts(self.cluster_dir)
+        return sorted(list_buildouts(self.cluster_dir))
 
     def spawn_runners(self):
         """Spawns subprocesses that run upgrades.

@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.6.1 (unreleased)
+1.7.0 (2013-09-24)
 ------------------
 
 - Add a ``update_workflow_security`` helper function to the upgrade step.

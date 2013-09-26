@@ -49,6 +49,8 @@ setup(name='ftw.upgrade',
 
       install_requires=[
         'setuptools',
+        'argparse',
+        'argcomplete',
 
         # Zope
         'AccessControl',
@@ -66,6 +68,8 @@ setup(name='ftw.upgrade',
         'plone.browserlayer',
         'Products.CMFCore',
         'Products.CMFPlone',
+
+        'urwid',
         ],
 
       tests_require=tests_require,
@@ -75,5 +79,14 @@ setup(name='ftw.upgrade',
       # -*- Entry points: -*-
       [z3c.autoinclude.plugin]
       target = plone
+
+      [console_scripts]
+      upgrade-cockpit = ftw.upgrade.commands:run_cockpit
+
+      [zopectl.command]
+      upgrade = ftw.upgrade.commands:upgrade_handler
+
+      [plone.recipe.zope2instance.ctl]
+      upgrade_http = ftw.upgrade.commands:upgrade_http_handler
       ''',
       )

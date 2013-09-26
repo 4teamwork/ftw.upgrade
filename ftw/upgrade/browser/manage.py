@@ -14,6 +14,50 @@ import traceback
 LOG = logging.getLogger('ftw.upgrade')
 
 
+class DebugResponseLogger(object):
+
+    security = ClassSecurityInformation()
+
+    def __init__(self, response):
+        self.response = response
+        self.handler = None
+        self.formatter = None
+
+    def __enter__(self):
+        self.handler = logging.StreamHandler(self)
+        self.formatter = logging.root.handlers[-1].formatter
+        self.handler.setFormatter(self.formatter)
+
+        class ProgressFilter(logging.Filter):
+            def filter(self, record):
+                if record.getMessage().startswith('PROGRESS_INFO'):
+                    return 1
+                return 0
+
+        #self.handler.addFilter(ProgressFilter())
+        logging.root.addHandler(self.handler)
+
+    def __exit__(self, exc_type, exc_value, tb):
+        if exc_type is not None:
+            LOG.error('FAILED')
+            traceback.print_exception(exc_type, exc_value, tb, None, self)
+
+        logging.root.removeHandler(self.handler)
+
+    security.declarePrivate('write')
+    def write(self, line):
+        if isinstance(line, unicode):
+            line = line.encode('utf8')
+
+        self.response.write(line)
+        self.response.flush()
+
+    security.declarePrivate('writelines')
+    def writelines(self, lines):
+        for line in lines:
+            self.write(line)
+
+
 class ResponseLogger(object):
 
     security = ClassSecurityInformation()
@@ -125,8 +169,8 @@ class ManageUpgrades(BrowserView):
 
     security.declarePrivate('_get_upgrades_to_install')
     def _get_upgrades_to_install(self):
-        """Returns a dict where the key is a profileid and the value
-        is a list of upgrade ids.
+        """Returns a list of key/value tuples where the key is a profileid and
+        the value is a list of upgrade ids.
         """
 
         data = {}

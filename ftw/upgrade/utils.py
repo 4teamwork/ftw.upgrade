@@ -1,5 +1,8 @@
 from ftw.upgrade.exceptions import CyclicDependencies
+import itertools
+import json
 import math
+import os
 
 
 def topological_sort(items, partial_order):
@@ -150,3 +153,63 @@ def format_duration(seconds):
         return '0 seconds'
     else:
         return ', '.join(result)
+
+
+def pretty_json(fn):
+    """Decorator to encode a method's result in JSON and pretty print it.
+    """
+    def wrapper(self):
+        return json.dumps(fn(self),
+                          sort_keys=True,
+                          indent=4,
+                          separators=(',', ': '))
+
+    # set docstring for wrapped method, otherwise it won't get published
+    wrapper.__doc__ = fn.__doc__
+    return wrapper
+
+
+def join_lines(fn):
+    """Decorator that joins a sequence of lines with newlines.
+    """
+    def wrapped(self, *args, **kwargs):
+        return '\n'.join(fn(self, *args, **kwargs))
+    return wrapped
+
+
+def distribute_across_columns(items, num_cols):
+    """Distribute items evenly across columns.
+    """
+    cols = [[] for _n in range(num_cols)]
+    cycle = itertools.cycle(range(num_cols))
+
+    for item in items:
+        col_idx = cycle.next()
+        cols[col_idx].append(item)
+    return cols
+
+
+def list_buildouts(cluster_dir):
+    """Lists all directories in `cluster_dir` that look like a bootstrapped
+    buildout.
+    """
+    buildouts = []
+
+    for buildout in os.listdir(cluster_dir):
+        buildout_path = os.path.join(cluster_dir, buildout)
+        bin_buildout_path = os.path.join(buildout_path, 'bin/buildout')
+        if os.path.isdir(buildout_path) and os.path.exists(bin_buildout_path):
+            buildouts.append(buildout)
+    return buildouts
+
+
+def py_interpreter_from_shebang(path):
+    """Extracts the Python interpreter path from the shebang of a given script.
+    """
+    f = open(path, 'r')
+    shebang = f.readline()
+    if not shebang.startswith('#!'):
+        raise AssertionError("Given script %s doesn't contain a shebang on "
+                             "the first line.")
+    py_path = shebang.replace('#!', '').split(' ')[0]
+    return os.path.abspath(py_path)

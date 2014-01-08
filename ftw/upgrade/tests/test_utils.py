@@ -1,6 +1,7 @@
 from ftw.testing import MockTestCase
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.utils import SizedGenerator
+from ftw.upgrade.utils import find_cyclic_dependencies
 from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
 from ftw.upgrade.utils import topological_sort
@@ -48,6 +49,37 @@ class TestTopologicalSort(TestCase):
                          topological_sort(items, dependencies))
 
 
+class TestFindCyclicDependencies(TestCase):
+
+    def test_direct_cyclic_dependencies(self):
+        dependencies = (
+            ('bar', 'foo'),
+            ('baz', 'foo'),
+            ('baz', 'bar'),
+            ('foo', 'bar'),
+            ('default', 'file-replacement'),
+            ('default', 'image-replacement'),
+            )
+
+        self.assertEquals(
+            [set(('foo',
+                  'bar'))],
+            map(set, find_cyclic_dependencies(dependencies)))
+
+    def test_indirect_cyclic_dependencies(self):
+        dependencies = (
+            ('foo', 'bar'),
+            ('bar', 'baz'),
+            ('baz', 'foo'),
+            )
+
+        self.assertEquals(
+            [set(('foo',
+                  'bar',
+                  'baz'))],
+            map(set, find_cyclic_dependencies(dependencies)))
+
+
 class TestSizedGenerator(TestCase):
 
     def test_length(self):
@@ -87,12 +119,18 @@ class TestSortedProfileIds(MockTestCase):
                  'dependencies': ['profile-bar']},
 
                 {'id': 'bar',
-                 'dependencies': ['profile-foo']}]).count(1, 2)
+                 'dependencies': ['profile-foo']},
+
+                {'id': 'baz',
+                 'dependencies': []}]).count(1, 2)
 
         self.replay()
 
         with self.assertRaises(CyclicDependencies) as cm:
             get_sorted_profile_ids(portal_setup)
+
+        self.assertEqual([('foo', 'bar')],
+                         cm.exception.cyclic_dependencies)
 
         self.assertEqual([('foo', 'bar'), ('bar', 'foo')],
                          cm.exception.dependencies)

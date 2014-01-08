@@ -59,13 +59,13 @@
             tal:condition="not:plone_needs_upgrading"
             tal:attributes="action string:${context/absolute_url}/@@manage-upgrades?ajax=1"
             tal:define="profiles view/get_data;
-                        cyclic view/cyclic_dependencies"
+                        cyclic_dependencies view/cyclic_dependencies"
             method="post"
             target="upgrade-output"
             id="upgrade-form">
 
             <tal:CYCLIC
-                tal:condition="plone_needs_upgrading">
+                tal:condition="cyclic_dependencies">
                 <dl class="portalMessage warning">
                     <dt i18n:translate="">Cyclic dependencies</dt>
                     <dd i18n:translate="">
@@ -73,9 +73,23 @@
                         The profiles could not be sorted by dependencies!
                     </dd>
                 </dl>
+
+                <h2 i18n:translate="">Profiles with cyclic dependencies:</h2>
+                <ul class="cyclic-dependencies">
+                    <li tal:repeat="group cyclic_dependencies">
+                        <tal:PROFILE tal:repeat="profile group">
+                            <span tal:condition="not:repeat/profile/start"
+                                  tal:omit-tag="python:1">
+                                ;
+                            </span>
+                            <span tal:replace="profile" />
+                        </tal:PROFILE>
+                    </li>
+                </ul>
+
             </tal:CYCLIC>
 
-            <div class="selection-control">
+            <div class="selection-control" tal:condition="not:cyclic_dependencies">
                 <span>
                     <a href="#"
                        class="select-none"
@@ -89,7 +103,7 @@
             </div>
 
 
-            <div class="profiles">
+            <div class="profiles" tal:condition="not:cyclic_dependencies">
                 <div class="profile hide-done"
                      tal:repeat="profile profiles">
 
@@ -154,7 +168,8 @@
             </div>
 
             <input type="submit" name="submitted" value="Install"
-                   i18n:attributes="value" />
+                   i18n:attributes="value"
+                   tal:condition="not:cyclic_dependencies" />
 
         </form>
 

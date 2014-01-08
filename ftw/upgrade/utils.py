@@ -1,5 +1,8 @@
+from collections import defaultdict
+from copy import deepcopy
 from ftw.upgrade.exceptions import CyclicDependencies
 import math
+import tarjan.tc
 
 
 def topological_sort(items, partial_order):
@@ -72,6 +75,19 @@ def topological_sort(items, partial_order):
     return sorted_
 
 
+def find_cyclic_dependencies(dependencies):
+    deps = defaultdict(list)
+    for first, second in dependencies:
+        deps[first].append(second)
+
+    cyclic_dependencies = []
+    for name, closure in tarjan.tc.tc(deps).items():
+        if name in closure and closure not in cyclic_dependencies:
+            cyclic_dependencies.append(closure)
+
+    return cyclic_dependencies
+
+
 class SizedGenerator(object):
 
     def __init__(self, generator, length):
@@ -115,7 +131,9 @@ def get_sorted_profile_ids(portal_setup):
     order = topological_sort(profile_ids, dependencies)
 
     if order is None:
-        raise CyclicDependencies(dependencies)
+        raise CyclicDependencies(
+            dependencies,
+            find_cyclic_dependencies(deepcopy(dependencies)))
     else:
         return list(reversed(order))
 

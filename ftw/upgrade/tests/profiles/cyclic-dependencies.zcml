@@ -1,0 +1,41 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="ftw.upgrade">
+
+    <!-- profiles with cyclic dependencies first -> second -> first -->
+    <genericsetup:registerProfile
+        name="first"
+        title="ftw.upgrade.tests.profiles:first"
+        directory="first"
+        description=""
+        provides="Products.GenericSetup.interfaces.EXTENSION"
+        />
+
+    <genericsetup:upgradeStep
+        title="Second Dummy"
+        description=""
+        source="1"
+        destination="2"
+        handler=".upgrades.dummy_upgrade"
+        profile="ftw.upgrade.tests.profiles:first"
+        />
+
+    <genericsetup:registerProfile
+        name="second"
+        title="ftw.upgrade.tests.profiles:second"
+        directory="second"
+        description=""
+        provides="Products.GenericSetup.interfaces.EXTENSION"
+        />
+
+    <genericsetup:upgradeStep
+        title="First Dummy"
+        description=""
+        source="2"
+        destination="3"
+        handler=".upgrades.dummy_upgrade"
+        profile="ftw.upgrade.tests.profiles:second"
+        />
+
+</configure>

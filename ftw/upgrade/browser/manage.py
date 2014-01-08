@@ -115,8 +115,8 @@ class ManageUpgrades(BrowserView):
         try:
             return gatherer.get_upgrades()
         except CyclicDependencies, exc:
-            self.cyclic_dependencies = True
-            return exc.dependencies
+            self.cyclic_dependencies = exc.cyclic_dependencies
+            return []
 
     security.declarePrivate('plone_needs_upgrading')
     def plone_needs_upgrading(self):

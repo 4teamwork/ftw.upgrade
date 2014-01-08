@@ -1,6 +1,9 @@
 from Products.CMFCore.utils import getToolByName
 from StringIO import StringIO
+from ftw.testbrowser import browsing
+from ftw.testbrowser.pages import statusmessages
 from ftw.upgrade.browser.manage import ResponseLogger
+from ftw.upgrade.testing import CYCLIC_DEPENDENCIES_FUNCTIONAL
 from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
 from plone.app.testing import TEST_USER_NAME, TEST_USER_PASSWORD
 from plone.testing.z2 import Browser
@@ -99,3 +102,24 @@ class TestManageUpgrades(TestCase):
         self.assertEqual(
             'FieldIndex',
             type(catalog.Indexes.get('excludeFromNav')).__name__)
+
+
+class TestManageUpgradesCyclicDependencies(TestCase):
+    """The layer of this test case loads GS profiles "first" and "second",
+    which have cyclic dependencies.
+    """
+
+    layer = CYCLIC_DEPENDENCIES_FUNCTIONAL
+
+    @browsing
+    def test_upgrades_view_shows_cyclic_dependencies_error(self, browser):
+        browser.login().open(view='@@manage-upgrades')
+        statusmessages.assert_message('There are cyclic dependencies.'
+                                      ' The profiles could not be sorted'
+                                      ' by dependencies!')
+
+        possibibilites = (
+            ['ftw.upgrade.tests.profiles:first ; ftw.upgrade.tests.profiles:second'],
+            ['ftw.upgrade.tests.profiles:second ; ftw.upgrade.tests.profiles:first'])
+
+        self.assertIn(browser.css('.cyclic-dependencies li').text, possibibilites)

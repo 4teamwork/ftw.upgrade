@@ -7,6 +7,7 @@ tests_require = [
     'unittest2',
     'mocker',
     'ftw.testing',
+    'ftw.testbrowser',
     'ftw.builder',
     'plone.testing',
     'plone.app.testing',
@@ -49,6 +50,7 @@ setup(name='ftw.upgrade',
 
       install_requires=[
         'setuptools',
+        'tarjan',
 
         # Zope
         'AccessControl',

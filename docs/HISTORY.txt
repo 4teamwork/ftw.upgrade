@@ -5,7 +5,8 @@ Changelog
 1.7.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix LocationError on manage-ugprades view on cyclic dependencies.
+  [jone]
 
 
 1.7.0 (2013-09-24)

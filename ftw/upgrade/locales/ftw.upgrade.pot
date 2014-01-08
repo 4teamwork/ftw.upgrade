@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-06-26 06:55+0000\n"
+"POT-Creation-Date: 2014-01-08 08:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,47 +17,63 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: ftw.upgrade\n"
 
-#: ./ftw/upgrade/browser/templates/manage.pt:162
+#: ./ftw/upgrade/browser/templates/manage.pt:176
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:176
 msgid "Back"
 msgstr ""
 
 #: ./ftw/upgrade/browser/templates/manage.pt:70
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:70
 msgid "Cyclic dependencies"
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:156
+#: ./ftw/upgrade/browser/templates/manage.pt:169
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:169
 msgid "Install"
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:80
+#: ./ftw/upgrade/browser/templates/manage.pt:77
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:77
+msgid "Profiles with cyclic dependencies:"
+msgstr ""
+
+#: ./ftw/upgrade/browser/templates/manage.pt:93
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:93
 msgid "Select none"
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:85
+#: ./ftw/upgrade/browser/templates/manage.pt:98
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:98
 msgid "Select not installed"
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:133
+#: ./ftw/upgrade/browser/templates/manage.pt:146
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:146
 msgid "Something is wrong with this Upgrade step. This upgrade steps seems not to be installed but is not proposed. The target version may be newer than the filesystem profile version."
 msgstr ""
 
 #: ./ftw/upgrade/browser/templates/manage.pt:49
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:49
 msgid "The site configuration is outdated and needs to be upgraded! Upgrading add-ons is disabled while plone is outdated. <br /> ${continue_upgrade_link}"
 msgstr ""
 
 #: ./ftw/upgrade/browser/templates/manage.pt:71
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:71
 msgid "There are cyclic dependencies. The profiles could not be sorted by dependencies!"
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:128
+#: ./ftw/upgrade/browser/templates/manage.pt:141
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:141
 msgid "This upgrade is already installed."
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage.pt:123
+#: ./ftw/upgrade/browser/templates/manage.pt:136
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:136
 msgid "This upgrade is not installed yet."
 msgstr ""
 
 #: ./ftw/upgrade/browser/templates/manage.pt:43
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:43
 msgid "Upgrade Plone"
 msgstr ""
 
@@ -67,21 +83,25 @@ msgstr ""
 
 #. Default: "Please continue with the upgrade."
 #: ./ftw/upgrade/browser/templates/manage.pt:49
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:49
 msgid "continue_upgrade_link"
 msgstr ""
 
 #. Default: "This view lists all profiles with at least one upgrade. Profiles which are not yet installed are not listed. Upgrades which are already installed are hidden by default, click on the profile title to show them."
 #: ./ftw/upgrade/browser/templates/manage.pt:32
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:32
 msgid "description_manage_upgrades"
 msgstr ""
 
 #. Default: "Filesystem: ${fs_version}, Database: ${db_version}"
-#: ./ftw/upgrade/browser/templates/manage.pt:105
+#: ./ftw/upgrade/browser/templates/manage.pt:118
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:118
 msgid "label_installed_version"
 msgstr ""
 
 #. Default: "Upgrades"
 #: ./ftw/upgrade/browser/templates/manage.pt:21
+#: ./ftw/upgrade/browser/templates/manage_flymake.pt:21
 msgid "title_manage_upgrades"
 msgstr ""
 

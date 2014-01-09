@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.7.1 (unreleased)
+1.7.1 (2014-01-09)
 ------------------
 
 - Fix LocationError on manage-ugprades view on cyclic dependencies.

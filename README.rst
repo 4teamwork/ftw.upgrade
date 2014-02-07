@@ -371,7 +371,7 @@ state after changing the chain (the workflow for the type):
             review_state_mapping={
                 ('intranet_workflow', 'plone_workflow'): {
                     'external': 'published',
-                    'pending': 'pending'}})
+                    'pending': 'pending'}}
 
             with WorkflowChainUpdater(objects, review_state_mapping):
                 # assume that the profile 1002 does install a new workflow

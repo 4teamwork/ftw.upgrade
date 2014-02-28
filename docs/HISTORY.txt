@@ -5,7 +5,8 @@ Changelog
 1.7.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Update provided interfaces when migrating objects to new class.
+  [jone]
 
 
 1.7.1 (2014-01-09)

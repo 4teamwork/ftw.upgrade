@@ -424,6 +424,25 @@ class TestUpgradeStep(TestCase):
         Step(self.portal_setup)
         self.assertEqual('ATBTreeFolder', subfolder.__class__.__name__)
 
+    def test_migrate_class_also_updates_provided_interfaces_info(self):
+        from Products.ATContentTypes.content.link import ATLink
+        from Products.ATContentTypes.interfaces import IATLink
+        from Products.ATContentTypes.interfaces import IATDocument
+
+        obj = create(Builder('document'))
+        self.assertTrue(IATDocument.providedBy(obj))
+        self.assertFalse(IATLink.providedBy(obj))
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                self.migrate_class(obj, ATLink)
+
+        Step(self.portal_setup)
+        self.assertFalse(IATDocument.providedBy(obj),
+                         'IATDocument interface not removed in migration')
+        self.assertTrue(IATLink.providedBy(obj),
+                        'IATLink interface not added in migration')
+
     def test_remove_broken_browserlayer(self):
         # TODO: Currently, this test doesn't really test that the removal
         # works, it only checks that the Step method can be called without

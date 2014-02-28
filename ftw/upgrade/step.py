@@ -9,6 +9,8 @@ from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.progresslogger import ProgressLogger
 from ftw.upgrade.utils import SizedGenerator
 from plone.browserlayer.interfaces import ILocalBrowserLayerType
+from zope.interface import directlyProvidedBy
+from zope.interface import directlyProvides
 from zope.interface import implements
 import logging
 
@@ -278,6 +280,9 @@ class UpgradeStep(object):
 
         else:
             parent._p_changed = True
+
+        # Refresh provided interfaces cache
+        directlyProvides(base, directlyProvidedBy(base))
 
     security.declarePrivate('remove_broken_browserlayer')
     def remove_broken_browserlayer(self, name, dottedname):

@@ -5,7 +5,11 @@ Changelog
 1.7.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Make sure the transaction note does not get too long.
+  Zope limits the transaction note length. By actively managing the transaction note
+  we can provide fallbacks for when it gets too long because a lot of upgrade steps
+  are installed at the same time.
+  [jone]
 
 
 1.7.2 (2014-02-28)

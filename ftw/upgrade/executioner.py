@@ -4,6 +4,7 @@ from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import _upgrade_registry
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IPostUpgrade
+from ftw.upgrade.transactionnote import TransactionNote
 from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
 from zope.component import adapts
@@ -11,7 +12,6 @@ from zope.component import getAdapters
 from zope.interface import implements
 import logging
 import time
-import transaction
 
 
 logger = logging.getLogger('ftw.upgrade')
@@ -55,9 +55,7 @@ class Executioner(object):
                 profileid, step.title))
 
         step.doStep(self.portal_setup)
-        transaction_note = '%s -> %s (%s)' % (
-            step.profile, '.'.join(step.dest), step.title)
-        transaction.get().note(transaction_note)
+        TransactionNote().add_upgrade(profileid, step.dest, step.title)
 
         msg = "Ran upgrade step %s for profile %s" % (
             step.title, profileid)

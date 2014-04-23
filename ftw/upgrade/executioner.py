@@ -1,4 +1,5 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
+from Products.Archetypes.utils import transaction_note
 from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import _upgrade_registry
@@ -55,9 +56,9 @@ class Executioner(object):
                 profileid, step.title))
 
         step.doStep(self.portal_setup)
-        transaction_note = '%s -> %s (%s)' % (
+        trans_note = '%s -> %s (%s)' % (
             step.profile, '.'.join(step.dest), step.title)
-        transaction.get().note(transaction_note)
+        transaction_note(trans_note)
 
         msg = "Ran upgrade step %s for profile %s" % (
             step.title, profileid)

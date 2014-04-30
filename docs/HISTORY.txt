@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.7.3 (unreleased)
+1.7.3 (2014-04-30)
 ------------------
 
 - Add ``uninstall_product`` method to upgrade step class.

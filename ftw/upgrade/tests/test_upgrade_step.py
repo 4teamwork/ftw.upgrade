@@ -409,6 +409,22 @@ class TestUpgradeStep(TestCase):
 
         Step(self.portal_setup)
 
+    def test_uninstall_product(self):
+        quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
+        quickinstaller.installProduct('CMFPlacefulWorkflow')
+
+        def installed_products():
+            for product in quickinstaller.listInstalledProducts():
+                yield product['id']
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                self.uninstall_product('CMFPlacefulWorkflow')
+
+        self.assertIn('CMFPlacefulWorkflow', installed_products())
+        Step(self.portal_setup)
+        self.assertNotIn('CMFPlacefulWorkflow', installed_products())
+
     def test_migrate_class(self):
         from Products.ATContentTypes.content.folder import ATBTreeFolder
 

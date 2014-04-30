@@ -259,6 +259,13 @@ class UpgradeStep(object):
                                                run_dependencies=False,
                                                purge_old=False)
 
+    security.declarePrivate('uninstall_product')
+    def uninstall_product(self, product_name):
+        """Uninstalls a product using the quick installer.
+        """
+        quickinstaller = self.getToolByName('portal_quickinstaller')
+        quickinstaller.uninstallProducts([product_name])
+
     security.declarePrivate('migrate_class')
     def migrate_class(self, obj, new_class):
         """Changes the class of a object and notifies the container so that

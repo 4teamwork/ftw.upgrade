@@ -276,6 +276,9 @@ The ``UpgradeStep`` class has various helper functions:
     If a list step names is passed with ``steps`` (e.g. ['actions']),
     only those steps are installed. All steps are installed by default.
 
+``self.uninstall_product(product_name)``
+    Uninstalls a product using the quick installer.
+
 ``self.migrate_class(obj, new_class)``
     Changes the class of an object. It has a special handling for BTreeFolder2Base
     based containers.

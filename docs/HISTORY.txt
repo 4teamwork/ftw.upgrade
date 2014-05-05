@@ -5,6 +5,13 @@ Changelog
 1.7.4 (unreleased)
 ------------------
 
+- Fix workflow updater to always update objects.
+  The objects are updated even when it seems that the object was
+  not update or has no longer a workflow.
+  This fixes issues when updating a workflow, in which case the
+  old workflow and the new workflow has the same ID.
+  [jone]
+
 - Make sure the transaction note does not get too long.
   Zope limits the transaction note length. By actively managing the transaction note
   we can provide fallbacks for when it gets too long because a lot of upgrade steps

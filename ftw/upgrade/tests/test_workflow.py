@@ -29,7 +29,7 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
 
         with WorkflowChainUpdater(objects, mapping):
             self.set_workflow_chain(for_type='Folder',
-                                    to_workflow='simple_publication_workflow')
+                                    to_workflow='folder_workflow')
 
         self.assertReviewStates({
                 private_folder: 'private',

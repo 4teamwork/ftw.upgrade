@@ -64,6 +64,7 @@ class WorkflowChainUpdater(object):
 
         portal = getSite()
         wf_tool = getToolByName(portal, 'portal_workflow')
+        origin_workflows = zip(*self.review_state_mapping.keys())[0]
 
         title = 'Change workflow states'
         for path in ProgressLogger(title, status_before_activation):
@@ -71,28 +72,21 @@ class WorkflowChainUpdater(object):
             review_state_before = status_before_activation[path].get(
                 'review_state')
             wf_after = status_after_activation[path].get('workflow')
-            review_state_after = status_after_activation[path].get(
-                'review_state')
 
-            if not review_state_after:
-                # Object seems not to have a workflow
+            if wf_before not in origin_workflows:
+                # This object has not a workflow which is in the
+                # mapping, thus no migration is needed.
                 continue
 
-            if (wf_before, review_state_before) == \
-                    (wf_after, review_state_after):
-                # State was not changed
-                continue
-
-            mapping = self.review_state_mapping.get((wf_before, wf_after))
-            assert mapping, \
-                'No mapping for changing workflow "%s" to "%s"' % (
-                wf_before, wf_after)
-
+            mapping = self.review_state_mapping.get(
+                (wf_before, wf_after), {})
             new_review_state = mapping.get(review_state_before)
-            assert new_review_state, (
-                'Mapping not defined for old state %s when changing'
-                ' workflow from %s to %s.' % (
-                    review_state_before, wf_before, wf_after))
+            if not new_review_state:
+                LOG.warn(
+                    'Mapping not defined for old state %s when changing'
+                    ' workflow from %s to %s.' % (
+                        review_state_before, wf_before, wf_after))
+                continue
 
             obj = portal.unrestrictedTraverse(path)
             wf_tool.setStatusOf(wf_after, obj, {

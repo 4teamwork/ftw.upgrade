@@ -10,6 +10,7 @@ from zope.component import queryAdapter
 from zope.component import queryUtility
 from zope.configuration import xmlconfig
 from zope.interface.verify import verifyClass
+import transaction
 
 
 class UpgradesRegistered(PloneSandboxLayer):
@@ -19,6 +20,8 @@ class UpgradesRegistered(PloneSandboxLayer):
     def setUpZope(self, app, configurationContext):
         import ftw.upgrade.tests.upgrades
         xmlconfig.file('foo.zcml', ftw.upgrade.tests.upgrades,
+                       context=configurationContext)
+        xmlconfig.file('bar.zcml', ftw.upgrade.tests.upgrades,
                        context=configurationContext)
 
 
@@ -47,13 +50,22 @@ class TestExecutioner(TestCase):
         self.assertEqual('unknown',
                          setup_tool.getLastVersionForProfile(profileid))
 
-        upgrades = setup_tool.listUpgrades('ftw.upgrade.tests.profiles:foo')
-        self.assertEqual(1, len(upgrades))
-        id_ = upgrades[0]['id']
-
-        executioner = queryAdapter(setup_tool, IExecutioner)
-        executioner.install([(profileid, [id_])])
-
+        self.install_profile_upgrades(profileid)
         self.assertNotEqual(None, queryUtility(IFoo))
         self.assertEqual(('2',),
                          setup_tool.getLastVersionForProfile(profileid))
+
+    def test_transaction_note(self):
+        self.install_profile_upgrades('ftw.upgrade.tests.profiles:foo')
+        self.install_profile_upgrades('ftw.upgrade.tests.profiles:bar')
+        self.assertEquals(
+            u'ftw.upgrade.tests.profiles:foo -> 2 (Registers foo utility)\n'
+            u'ftw.upgrade.tests.profiles:bar -> 2 (Update email address)',
+            transaction.get().description)
+
+    def install_profile_upgrades(self, profileid):
+        setup_tool = getToolByName(self.layer['portal'], 'portal_setup')
+        executioner = queryAdapter(setup_tool, IExecutioner)
+        upgrade_ids = [upgrade['id'] for upgrade
+                       in setup_tool.listUpgrades(profileid)]
+        executioner.install([(profileid, upgrade_ids)])

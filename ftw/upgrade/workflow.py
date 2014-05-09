@@ -10,10 +10,13 @@ LOG = logging.getLogger('ftw.upgrade.WorkflowChainUpdater')
 
 class WorkflowChainUpdater(object):
 
-    def __init__(self, objects, review_state_mapping, update_security=True):
+    def __init__(self, objects, review_state_mapping, update_security=True,
+                 migrate_workflow_history=True, transition_mapping=None):
         self.objects = tuple(objects)
         self.review_state_mapping = review_state_mapping
         self.update_security = update_security
+        self.migrate_workflow_history = migrate_workflow_history
+        self.transition_mapping = transition_mapping or {}
         self.started = False
         self.wfs_and_states_before = None
 
@@ -89,6 +92,10 @@ class WorkflowChainUpdater(object):
                 continue
 
             obj = portal.unrestrictedTraverse(path)
+
+            if self.migrate_workflow_history:
+                self._migrate_workflow_history(obj, wf_before, wf_after)
+
             wf_tool.setStatusOf(wf_after, obj, {
                     'review_state': new_review_state,
                     'action': ''})
@@ -107,6 +114,27 @@ class WorkflowChainUpdater(object):
 
         else:
             return workflows[0].id
+
+    def _migrate_workflow_history(self, context, old_wf, new_wf):
+        wfhistory = getattr(context, 'workflow_history', None)
+        if wfhistory is None or old_wf not in wfhistory:
+            return
+
+        def _migrate_action(entry):
+            action = entry.get('action', None)
+            if not action:
+                return
+
+            mapping = self.transition_mapping.get((old_wf, new_wf), {})
+            if action in mapping:
+                entry['action'] = mapping[action]
+
+        def _migrate_entry(entry):
+            entry = entry.copy()
+            _migrate_action(entry)
+            return entry
+
+        wfhistory[new_wf] = map(_migrate_entry, wfhistory[old_wf])
 
 
 class WorkflowSecurityUpdater(object):

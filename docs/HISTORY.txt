@@ -5,6 +5,9 @@ Changelog
 1.7.4 (unreleased)
 ------------------
 
+- Extend workflow updater to migrate workflow history.
+  [jone]
+
 - Fix workflow updater to always update objects.
   The objects are updated even when it seems that the object was
   not update or has no longer a workflow.

@@ -382,6 +382,31 @@ state after changing the chain (the workflow for the type):
                 self.setup_install_profile('profile-my.package.upgrades:1002')
 
 
+The workflow chain updater migrates the workflow history by default.
+The workflow history migration can be disabled by setting
+``migrate_workflow_history`` to ``False``:
+
+.. code:: python
+
+    with WorkflowChainUpdater(objects, review_state_mapping,
+                              migrate_workflow_history=False):
+        # code
+
+
+If a transition mapping is provided, the actions in the workflow history
+entries are migrated according to the mapping so that the translations
+work for the new workflow:
+
+.. code:: python
+
+    transition_mapping = {
+        ('intranet_workflow', 'new_workflow'): {
+            'submit': 'submit-for-approval'}}
+
+    with WorkflowChainUpdater(objects, review_state_mapping,
+                              transition_mapping=transition_mapping):
+        # code
+
 
 
 Placeful Workflow Policy Activator

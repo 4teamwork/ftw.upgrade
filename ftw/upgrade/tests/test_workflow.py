@@ -1,3 +1,4 @@
+from Products.CMFCore.utils import getToolByName
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.placefulworkflow import PlacefulWorkflowPolicyActivator
@@ -76,6 +77,101 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
             ['Anonymous'],
             self.get_allowed_roles_and_users(for_object=container))
 
+    def test_workflow_history_is_migrated(self):
+        self.set_workflow_chain(for_type='Folder',
+                                to_workflow='simple_publication_workflow')
+
+        folder = create(Builder('folder'))
+        self.execute_transition(folder, 'publish')
+
+        self.assert_workflow_history_length(folder, 2)
+        self.assert_workflow_history_entry(folder, {
+                'action': 'publish',
+                'actor': 'test_user_1_',
+                'comments': '',
+                'review_state': 'published'})
+
+        mapping = {
+            ('simple_publication_workflow', 'folder_workflow'): {
+                'published': 'published'}}
+        with WorkflowChainUpdater([folder], mapping):
+            self.set_workflow_chain(for_type='Folder',
+                                    to_workflow='folder_workflow')
+
+        self.assert_workflow_history_length(folder, 3)
+        self.assert_workflow_history_entry(folder, {
+                'action': 'publish',
+                'actor': 'test_user_1_',
+                'comments': '',
+                'review_state': 'published'}, -2)
+
+    def test_workflow_history_is_not_migrated_when_migration_disabled(self):
+        self.set_workflow_chain(for_type='Folder',
+                                to_workflow='simple_publication_workflow')
+
+        folder = create(Builder('folder'))
+        self.assert_workflow_history_length(folder, 1)
+
+        mapping = {
+            ('simple_publication_workflow', 'folder_workflow'): {
+                'published': 'published'}}
+        with WorkflowChainUpdater([folder], mapping,
+                                  migrate_workflow_history=False):
+            self.set_workflow_chain(for_type='Folder',
+                                    to_workflow='folder_workflow')
+
+        self.assert_workflow_history_length(folder, 0)
+
+    def test_workflow_history_transition_is_updated_when_mapped(self):
+        self.set_workflow_chain(for_type='Folder',
+                                to_workflow='simple_publication_workflow')
+
+        folder = create(Builder('folder'))
+        self.execute_transition(folder, 'publish')
+
+        self.assert_workflow_history_length(folder, 2)
+        self.assert_workflow_history_entry(folder, {
+                'action': 'publish',
+                'actor': 'test_user_1_',
+                'comments': '',
+                'review_state': 'published'})
+
+        mapping = {
+            ('simple_publication_workflow', 'folder_workflow'): {
+                'published': 'published'}}
+        transition_mapping = {
+            ('simple_publication_workflow', 'folder_workflow'): {
+                'publish': 'publish'}}
+
+        with WorkflowChainUpdater([folder], mapping,
+                                  transition_mapping=transition_mapping):
+            self.set_workflow_chain(for_type='Folder',
+                                    to_workflow='folder_workflow')
+
+        self.assert_workflow_history_length(folder, 3)
+        self.assert_workflow_history_entry(folder, {
+                'action': 'publish',
+                'actor': 'test_user_1_',
+                'comments': '',
+                'review_state': 'published'}, -2)
+
+    def execute_transition(self, context, transition):
+        wftool = getToolByName(self.layer['portal'], 'portal_workflow')
+        wftool.doActionFor(context, transition)
+
+    def assert_workflow_history_entry(self, context, expected, index=-1):
+        wftool = getToolByName(self.layer['portal'], 'portal_workflow')
+        history = wftool.getInfoFor(context, 'review_history')
+        self.assertDictContainsSubset(
+            expected, history[index],
+            'Workflow history entry is wrong.\n{0}'.format(history))
+
+    def assert_workflow_history_length(self, context, length):
+        wftool = getToolByName(self.layer['portal'], 'portal_workflow')
+        history = wftool.getInfoFor(context, 'review_history')
+        self.assertEquals(
+            length, len(history),
+            'Workflow history length is wrong.\n{0}'.format(history))
 
 
 class TestWorkflowSecurityUpdater(WorkflowTestCase):

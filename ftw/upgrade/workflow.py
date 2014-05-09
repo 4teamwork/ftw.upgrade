@@ -1,3 +1,4 @@
+from DateTime import DateTime
 from Products.CMFCore.utils import getToolByName
 from ftw.upgrade import ProgressLogger
 from ftw.upgrade.helpers import update_security_for
@@ -98,7 +99,10 @@ class WorkflowChainUpdater(object):
 
             wf_tool.setStatusOf(wf_after, obj, {
                     'review_state': new_review_state,
-                    'action': ''})
+                    'action': '',
+                    'actor': 'system',
+                    'comments': '',
+                    'time': DateTime()})
 
             if self.update_security:
                 update_security_for(obj, reindex_security=True)

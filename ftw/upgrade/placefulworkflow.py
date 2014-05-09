@@ -13,10 +13,10 @@ class PlacefulWorkflowPolicyActivator(object):
 
     def activate_policy(self, policy_id, review_state_mapping,
                         activate_in=True, activate_below=True,
-                        update_security=True):
+                        **chain_updater_kwargs):
 
         with WorkflowChainUpdater(self.get_objects(), review_state_mapping,
-                                  update_security=update_security):
+                                  **chain_updater_kwargs):
             self._activate_placeful_policy(policy_id,
                                            activate_in=activate_in,
                                            activate_below=activate_below)

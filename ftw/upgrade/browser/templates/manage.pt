@@ -111,12 +111,19 @@
                            name="upgrade.profileid:records"
                            tal:attributes="value profile/id" />
 
-                    <div class="profile-title">
+                    <div tal:define="classes string:profile-title;
+                                     classes python: profile.get('outdated_fs_version') and '%s outdated-fs-version' % classes or classes"
+                         tal:attributes="class classes">
                         <strong tal:content="profile/id" />
 
+                        <img tal:condition="profile/outdated_fs_version|nothing"
+                             tal:attributes="src string:$portal_url/++resource++ftw.upgrade/upgrade-outdated-fs-version.png"
+                             title="This profile's filesystem version is lower than one of the upgrades' target version. Please update the corresponding metadata.xml!"
+                             i18n:attributes="title" />
+
                         <span i18n:translate="label_installed_version" class="profile-version discreet">
-                            Filesystem: <span i18n:name="fs_version" tal:content="profile/version" />,
-                            Database: <span i18n:name="db_version" tal:content="profile/db_version" />
+                            Filesystem: <span class="fs-version" i18n:name="fs_version" tal:content="profile/version" />,
+                            Database: <span class="db-version" i18n:name="db_version" tal:content="profile/db_version" />
                         </span>
 
                     </div>
@@ -125,7 +132,8 @@
                         <div tal:define="boxid string:${profile/id}-${upgrade/id};
                                          classes string:upgrade;
                                          classes python: upgrade.get('done') and '%s done' % classes or classes;
-                                         classes python: upgrade.get('proposed') and '%s proposed' % classes or classes"
+                                         classes python: upgrade.get('proposed') and '%s proposed' % classes or classes;
+                                         classes python: upgrade.get('outdated_fs_version') and '%s outdated-fs-version' % classes or classes"
                              tal:attributes="class classes">
 
                             <span class="upgrade-checkbox">
@@ -148,12 +156,17 @@
                                      tal:attributes="src string:$portal_url/++resource++ftw.upgrade/upgrade-error.png"
                                      title="Something is wrong with this Upgrade step. This upgrade steps seems not to be installed but is not proposed. The target version may be newer than the filesystem profile version."
                                      i18n:attributes="title" />
+
+                                <img tal:condition="upgrade/outdated_fs_version|nothing"
+                                     tal:attributes="src string:$portal_url/++resource++ftw.upgrade/upgrade-outdated-fs-version.png"
+                                     title="This upgrade's target version is higher than the profile's filesystem version. Please update the corresponding metadata.xml!"
+                                     i18n:attributes="title" />
                             </span>
 
                             <span class="upgrade-version">
-                                <tal:FROM tal:content="upgrade/ssource" />
+                                <span class="source-version" tal:content="upgrade/ssource" />
                                 &rarr;
-                                <tal:TO tal:content="upgrade/sdest" />
+                                <span class="dest-version" tal:content="upgrade/sdest" />
                             </span>
 
                             <span class="upgrade-title"

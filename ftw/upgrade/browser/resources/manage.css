@@ -21,6 +21,10 @@
   padding: 0px;
 }
 
+.profile-title.outdated-fs-version  {
+  background-color: #ffb8b8;
+}
+
 .profile-title strong {
   cursor: pointer;
 }
@@ -28,6 +32,11 @@
 .profile-version {
   float: right;
   margin-right: 1em;
+}
+
+.outdated-fs-version .profile-version .fs-version {
+  color: red;
+  font-weight: bold;
 }
 
 .upgrade {
@@ -49,8 +58,17 @@
   width: 20em;
 }
 
+.upgrade.outdated-fs-version .dest-version {
+  color: red;
+  font-weight: bold;
+}
+
 .upgrade.done {
   display: none;
+}
+
+.upgrade.outdated-fs-version {
+  background-color: #fedcdc;
 }
 
 #upgrade-output {

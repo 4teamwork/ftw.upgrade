@@ -26,6 +26,15 @@ def generate_id():
             return id_
 
 
+def find_where(iterable, properties):
+    """Looks through `iterable` and returns the first the value that matches
+    all of the key-value pairs listed in `properties`.
+    """
+    for item in iterable:
+        if all(item[key] == value for key, value in properties.items()):
+            return item
+
+
 def simplify_data(data, keep_order=False, profile_only=False):
     """Simplifies the get_upgrades return value for easy comparison.
     """
@@ -203,6 +212,71 @@ class TestUpgradeInformationGatherer(MockTestCase):
                     'proposed': [],
                     'done': ['bar1']}},
             simple)
+
+    def test_profile_with_outdated_fs_version_is_flagged(self):
+        # Upgrade that leads to a higher dest version than current fs_version
+        self.mock_profile('foo:default', '1.2', db_version='1.2')
+        self.mock_upgrade('foo:default', '1.2', '1.3', 'foo1')
+
+        # Destination version that wouldn't be considered 'higher' than
+        # fs_version by a simple string comparision
+        self.mock_profile('bar:default', '3', db_version='3')
+        self.mock_upgrade('bar:default', '3', '2000', 'bar1')
+        self.replay()
+
+        gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
+        upgrades = gatherer.get_upgrades()
+
+        foo_upgrades = find_where(upgrades, {'id': 'foo:default'})
+        bar_upgrades = find_where(upgrades, {'id': 'bar:default'})
+
+        self.assertTrue(
+            foo_upgrades['outdated_fs_version'],
+            'Profile should be flagged as having outdated FS version')
+
+        self.assertTrue(
+            bar_upgrades['outdated_fs_version'],
+            'Profile should be flagged as having outdated FS version')
+
+        self.assertTrue(
+            foo_upgrades['upgrades'][0]['outdated_fs_version'],
+            'Upgrade should be flagged as outdating profile version')
+
+        self.assertTrue(
+            bar_upgrades['upgrades'][0]['outdated_fs_version'],
+            'Upgrade should be flagged as outdating profile version')
+
+    def test_profiles_with_up_to_date_fs_version_are_not_flagged(self):
+        # Upgrade that leads to a destination version equal to fs_version
+        self.mock_profile('foo:default', '1.2', db_version='1.1')
+        self.mock_upgrade('foo:default', '1.1', '1.2', 'foo1')
+
+        # Upgrade that leads to a destination version lower than fs_version
+        self.mock_profile('bar:default', '1.2', db_version='1.0')
+        self.mock_upgrade('bar:default', '1.0', '1.1', 'bar1')
+        self.replay()
+
+        gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
+        upgrades = gatherer.get_upgrades()
+
+        foo_upgrades = find_where(upgrades, {'id': 'foo:default'})
+        bar_upgrades = find_where(upgrades, {'id': 'bar:default'})
+
+        self.assertFalse(
+            foo_upgrades['outdated_fs_version'],
+            'Profile should NOT be flagged as having outdated FS version')
+
+        self.assertFalse(
+            bar_upgrades['outdated_fs_version'],
+            'Profile should NOT be flagged as having outdated FS version')
+
+        self.assertFalse(
+            foo_upgrades['upgrades'][0]['outdated_fs_version'],
+            'Upgrade should NOT be flagged as outdating profile version')
+
+        self.assertFalse(
+            bar_upgrades['upgrades'][0]['outdated_fs_version'],
+            'Upgrade should NOT be flagged as outdating profile version')
 
     def test_profile_with_no_upgrades_is_not_listed(self):
         self.mock_profile('no-upgrades:default', '1.0',

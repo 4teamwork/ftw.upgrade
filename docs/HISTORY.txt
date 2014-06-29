@@ -5,7 +5,12 @@ Changelog
 1.7.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Flag profiles whose filesystem version is outdated.
+  Highlights profiles with upgrades that lead to a destination version that is
+  higher than the corresponding profile's current filesystem version.
+  This usually means someone forgot to update the version in metadata.xml of the
+  corresponding profile.
+  [lgraf]
 
 
 1.7.4 (2014-05-12)

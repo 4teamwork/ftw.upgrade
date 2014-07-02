@@ -307,8 +307,8 @@ The ``UpgradeStep`` class has various helper functions:
     types which might have this workflow. It does support placeful workflow policies.
 
     For speeding up you can pass ``reindex_security=False``, but you need to make
-    sure you did not change any security relevant permissions (only ``View`` for default
-    Plone).
+    sure you did not change any security relevant permissions (only ``View`` needs
+    ``reindex_security=True`` for default Plone).
 
 
 

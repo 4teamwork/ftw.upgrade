@@ -1,7 +1,8 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
-from Products.GenericSetup.interfaces import ISetupTool
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.utils import get_sorted_profile_ids
+from Products.GenericSetup.interfaces import ISetupTool
+from Products.GenericSetup.upgrade import normalize_version
 from zope.component import adapts
 from zope.interface import implements
 
@@ -20,6 +21,28 @@ def flatten_upgrades(upgrades):
             yield item
 
 
+def flag_profiles_with_outdated_fs_version(upgrades):
+    """Flags profiles that contain an upgrade that leads to a destination
+    version that is higher than that profile's current filesystem version.
+
+    This usually means someone wrote an upgrade step, but forgot to update the
+    version in metadata.xml of the corresponding profile. The upgrade step in
+    question will also be flagged.
+    """
+
+    for profile in upgrades:
+        profile['outdated_fs_version'] = False
+        fs_version = normalize_version(profile['version'])
+
+        for upgrade in profile['upgrades']:
+            dest_version = normalize_version(upgrade['sdest'])
+            upgrade['outdated_fs_version'] = dest_version > fs_version
+            if upgrade['outdated_fs_version']:
+                profile['outdated_fs_version'] = True
+
+    return upgrades
+
+
 class UpgradeInformationGatherer(object):
     implements(IUpgradeInformationGatherer)
     adapts(ISetupTool)
@@ -32,7 +55,9 @@ class UpgradeInformationGatherer(object):
 
     security.declarePrivate('get_upgrades')
     def get_upgrades(self):
-        return self._sort_profiles_by_dependencies(self._get_profiles())
+        profiles = self._sort_profiles_by_dependencies(self._get_profiles())
+        profiles = flag_profiles_with_outdated_fs_version(profiles)
+        return profiles
 
     security.declarePrivate('_get_profiles')
     def _get_profiles(self):

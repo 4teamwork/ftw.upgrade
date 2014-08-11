@@ -39,12 +39,13 @@ class IImportProfileUpgradeStep(Interface):
 
 def importProfileUpgradeStep(_context, title, profile, source, destination,
                              directory, description=None):
-    registerProfile(_context, name=destination, title=title,
+    profile_id = "upgrade_to_%s" % destination
+    registerProfile(_context, name=profile_id, title=title,
                     description=description, directory=directory,
                     provides=EXTENSION, for_=IMigratingPloneSiteRoot)
 
     def handler(portal_setup):
-        profileid = 'profile-%s:%s' % (_context.package.__name__, destination)
+        profileid = 'profile-%s:%s' % (_context.package.__name__, profile_id)
         portal_setup.runAllImportStepsFromProfile(profileid, purge_old=False)
 
     upgradeStep(_context, title=title, profile=profile, handler=handler,

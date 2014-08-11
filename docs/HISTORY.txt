@@ -5,6 +5,10 @@ Changelog
 1.7.5 (unreleased)
 ------------------
 
+- Prevent portal_quickinstaller from picking upgrade-steps instead of the
+  default-profile by prefixing the profile-id with 'upgrade_to_' (fix #45)
+  [pbauer]
+
 - Flag profiles whose filesystem version is outdated.
   Highlights profiles with upgrades that lead to a destination version that is
   higher than the corresponding profile's current filesystem version.

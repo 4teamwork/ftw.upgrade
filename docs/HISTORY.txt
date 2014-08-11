@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.7.5 (unreleased)
+1.8.0 (2014-08-11)
 ------------------
 
 - Prevent portal_quickinstaller from picking upgrade-steps instead of the

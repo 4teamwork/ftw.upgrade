@@ -156,3 +156,9 @@ class ManageUpgrades(BrowserView):
                     profile_upgrades.append(upgrade.get('id'))
 
         return upgrades
+
+
+class ManageUpgradesPlain(ManageUpgrades):
+
+    def __getitem__(self, key):
+        return self.index.macros[key]

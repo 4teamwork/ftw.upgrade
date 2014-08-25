@@ -17,4 +17,12 @@
         permission="cmf.ManagePortal"
         />
 
+    <browser:page
+        name="manage-upgrades-plain"
+        for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+        template="templates/manage_plain.pt"
+        class=".manage.ManageUpgradesPlain"
+        permission="cmf.ManagePortal"
+        />
+
 </configure>

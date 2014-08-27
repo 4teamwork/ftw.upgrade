@@ -78,6 +78,14 @@ class TestManageUpgrades(TestCase):
 
         self.assertIn('plone.app.discussion:default', self.browser.contents)
 
+    def test_manage_plain_view_renders(self):
+        self.browser.open(self.portal_url + '/@@manage-upgrades-plain')
+
+        link = self.browser.getLink('Up to Site Setup')
+        self.assertEqual(self.portal_url + '/@@overview-controlpanel', link.url)
+
+        self.assertIn('plone.app.discussion:default', self.browser.contents)
+
     def test_install(self):
         profileid = 'ftw.upgrade.tests.profiles:navigation-index'
         portal_setup = getToolByName(self.layer['portal'], 'portal_setup')

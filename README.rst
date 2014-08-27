@@ -81,6 +81,13 @@ The ``@@manage-upgrades`` view allows to upgrade multiple packages at once:
 .. image:: https://github.com/4teamwork/ftw.upgrade/raw/master/docs/manage-upgrades.png
 
 
+Fallback view
+-------------
+
+The ``@@manage-upgrades-plain`` view acts as a fallback view for ``@@manage-upgrades``.
+It does not include plone`s main template and thus might be able to render when the default
+view fails for some reason.
+
 
 Import-Profile Upgrade Steps
 ============================

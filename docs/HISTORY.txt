@@ -5,7 +5,10 @@ Changelog
 1.8.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add @@manage-upgrades-plain fallback view for @@manage-upgrades.
+  It does not include plone`s main template and thus might be able to render when
+  the default view fails for some reason.
+  [deiferni]
 
 
 1.8.0 (2014-08-11)

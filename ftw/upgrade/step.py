@@ -1,14 +1,15 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from Acquisition import aq_base, aq_parent
+from ftw.upgrade.helpers import update_security_for
+from ftw.upgrade.interfaces import IUpgradeStep
+from ftw.upgrade.progresslogger import ProgressLogger
+from ftw.upgrade.utils import SavepointIterator
+from ftw.upgrade.utils import SizedGenerator
+from plone.browserlayer.interfaces import ILocalBrowserLayerType
 from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.ActionInformation import ActionInformation
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ProgressHandler import ZLogHandler
-from ftw.upgrade.helpers import update_security_for
-from ftw.upgrade.interfaces import IUpgradeStep
-from ftw.upgrade.progresslogger import ProgressLogger
-from ftw.upgrade.utils import SizedGenerator
-from plone.browserlayer.interfaces import ILocalBrowserLayerType
 from zope.interface import directlyProvidedBy
 from zope.interface import directlyProvides
 from zope.interface import implements
@@ -50,7 +51,8 @@ class UpgradeStep(object):
         return getToolByName(self.portal_setup, tool_name)
 
     security.declarePrivate('objects')
-    def objects(self, catalog_query, message, logger=None):
+    def objects(self, catalog_query, message, logger=None,
+                savepoints=None):
         """Queries the catalog (unrestricted) and an iterator with full
         objects.
         The iterator configures and calls a ``ProgressLogger`` with the
@@ -60,6 +62,7 @@ class UpgradeStep(object):
         objects = self.catalog_unrestricted_search(
             catalog_query, full_objects=True)
 
+        objects = SavepointIterator.build(objects, savepoints, logger)
         return ProgressLogger(message, objects, logger=logger)
 
     security.declarePrivate('catalog_rebuild_index')
@@ -78,7 +81,7 @@ class UpgradeStep(object):
         LOG.info("Reindexing index %s DONE" % name)
 
     security.declarePrivate('catalog_reindex_objects')
-    def catalog_reindex_objects(self, query, idxs=None):
+    def catalog_reindex_objects(self, query, idxs=None, savepoints=None):
         """Reindex all objects found in the catalog with `query`.
         A list of indexes can be passed as `idxs` for limiting the
         indexed indexes.
@@ -86,7 +89,7 @@ class UpgradeStep(object):
 
         title = '.'.join((self.__module__, self.__class__.__name__))
 
-        for obj in self.objects(query, title):
+        for obj in self.objects(query, title, savepoints=savepoints):
             if idxs is None:
                 # Store modification date
                 modification_date = obj.modified()

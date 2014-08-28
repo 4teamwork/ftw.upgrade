@@ -1,8 +1,10 @@
 from collections import defaultdict
 from copy import deepcopy
 from ftw.upgrade.exceptions import CyclicDependencies
+import logging
 import math
 import tarjan.tc
+import transaction
 
 
 def topological_sort(items, partial_order):
@@ -99,6 +101,39 @@ class SizedGenerator(object):
 
     def __len__(self):
         return self._length
+
+
+class SavepointIterator(object):
+    """An iterator that creates a savepoint every n items.
+    """
+
+    def __init__(self, iterable, threshold, logger=None):
+        self.iterable = iterable
+        self.threshold = threshold
+        self.logger = logger
+
+        if self.logger is None:
+            self.logger = logging.getLogger('ftw.upgrade')
+
+        if not threshold:
+            raise ValueError("Threshold must be a non-zero value")
+
+    def __iter__(self):
+        for i, item in enumerate(self.iterable):
+            if i % self.threshold == 0:
+                transaction.savepoint()
+                self.logger.info("Created savepoint at %s items" % i)
+            yield item
+
+    def __len__(self):
+        return self.iterable.__len__()
+
+    @classmethod
+    def build(cls, iterable, threshold=None, logger=None):
+        if threshold:
+            return SavepointIterator(iterable, threshold, logger)
+        else:
+            return iterable
 
 
 def get_sorted_profile_ids(portal_setup):

@@ -226,18 +226,23 @@ The ``UpgradeStep`` class has various helper functions:
 ``self.getToolByName(tool_name)``
     Returns the tool with the name ``tool_name`` of the upgraded site.
 
-``self.objects(catalog_query, message, logger=None)``
+``self.objects(catalog_query, message, logger=None, savepoints=None)``
     Queries the catalog (unrestricted) and an iterator with full objects.
     The iterator configures and calls a ``ProgressLogger`` with the
     passed ``message``.
 
+    If set to a non-zero value, the ``savepoints`` argument causes a transaction
+    savepoint to be created every n items. This can be used to keep memory usage
+    in check when creating large transactions.
+
 ``self.catalog_rebuild_index(name)``
     Reindex the ``portal_catalog`` index identified by ``name``.
 
-``self.catalog_reindex_objects(query, idxs=None)``
+``self.catalog_reindex_objects(query, idxs=None, savepoints=None)``
     Reindex all objects found in the catalog with `query`.
     A list of indexes can be passed as `idxs` for limiting the
     indexed indexes.
+    The ``savepoints`` argument will be passed to ``self.objects()``.
 
 ``self.catalog_has_index(name)``
     Returns whether there is a catalog index ``name``.

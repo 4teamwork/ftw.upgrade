@@ -2,8 +2,8 @@ Changelog
 =========
 
 
-1.9.1 (unreleased)
-------------------
+1.10.0 (2014-08-28)
+-------------------
 
 - Wrap step.objects in a SavepointIterator that creates a savepoint every n items.
   [lgraf]

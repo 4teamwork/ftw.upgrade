@@ -5,7 +5,13 @@ Changelog
 1.10.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Update upgrade view ordering for root nodes.
+  The dependency graph does not define any order for root
+  profiles (e.g. included in buildout directly), which causes
+  random sorting in the upgrade view for those profiles.
+  This change sorts those root profiles by name without changing
+  the order of profiles which is depended on.
+  [jone]
 
 
 1.10.0 (2014-08-28)

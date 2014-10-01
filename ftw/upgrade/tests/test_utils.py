@@ -48,6 +48,18 @@ class TestTopologicalSort(TestCase):
         self.assertEqual(None,
                          topological_sort(items, dependencies))
 
+    def test_root_nodes_are_reversed_ordered(self):
+        items = ['policy', 'xy', 'foo']
+
+        self.assertEqual(
+            ['xy', 'policy', 'foo'],
+            topological_sort(items, (('policy', 'foo'),)))
+
+        self.assertEqual(
+            ['xy', 'policy', 'foo'],
+            topological_sort(reversed(items), (('policy', 'foo'),)),
+            'items input order should not change result order')
+
 
 class TestFindCyclicDependencies(TestCase):
 
@@ -110,6 +122,27 @@ class TestSortedProfileIds(MockTestCase):
 
         self.assertEqual(
             ['foo', 'bar', 'baz'],
+            get_sorted_profile_ids(portal_setup))
+
+    def test_root_profiles_are_ordered_by_profile_name(self):
+        """In the this example the profiles "baz" and "xy"
+        have no dependencies to another and thus might be
+        ordered in any order from the graph point of view.
+        However, we want a cosistent ordern and therefore
+        order those root nodes by name.
+        """
+        portal_setup = self.mocker.mock()
+        self.expect(portal_setup.listProfileInfo()).result([
+                {'id': 'baz',
+                 'dependencies': [
+                        'profile-foo']},
+                {'id': 'foo'},
+                {'id': 'xy'}]).count(1, 2)
+
+        self.replay()
+
+        self.assertEqual(
+            ['foo', 'baz', 'xy'],
             get_sorted_profile_ids(portal_setup))
 
     def test_cyclic_dependencies(self):

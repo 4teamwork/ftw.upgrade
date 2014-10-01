@@ -49,6 +49,7 @@ def topological_sort(items, partial_order):
 
     # Step 2 - find all roots (nodes with zero incoming arcs).
     roots = [node for (node, nodeinfo) in graph.items() if nodeinfo[0] == 0]
+    roots.sort()
 
     # step 3 - repeatedly emit a root and remove it from the graph. Removing
     # a node may convert some of the node's direct children into roots.

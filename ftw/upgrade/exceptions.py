@@ -9,3 +9,8 @@ class CyclicDependencies(Exception):
             'Cyclic dependencies detected.')
         self.dependencies = dependencies
         self.cyclic_dependencies = cyclic_dependencies
+
+
+class UpgradeStepDefinitionError(Exception):
+    """An upgrade step definition is wrong.
+    """

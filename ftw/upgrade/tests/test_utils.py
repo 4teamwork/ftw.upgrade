@@ -1,9 +1,10 @@
 from ftw.testing import MockTestCase
 from ftw.upgrade.exceptions import CyclicDependencies
-from ftw.upgrade.utils import SizedGenerator
 from ftw.upgrade.utils import find_cyclic_dependencies
 from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
+from ftw.upgrade.utils import SizedGenerator
+from ftw.upgrade.utils import subject_from_docstring
 from ftw.upgrade.utils import topological_sort
 from unittest2 import TestCase
 
@@ -228,3 +229,29 @@ class TestFormatDuration(TestCase):
                           format_duration(0.9),
                           format_duration(1.1),
                           format_duration(1.9)])
+
+
+class TestSubjectFromDocstring(TestCase):
+
+    def test_one_line_only(self):
+        self.assertEquals(
+            'This is the subject.',
+            subject_from_docstring('This is the subject.'))
+
+    def test_whitespace_is_stripped(self):
+        self.assertEquals(
+            'This is the subject.',
+            subject_from_docstring('\nThis is the subject.\n'))
+
+    def test_only_subject_is_returned(self):
+        self.assertEquals(
+            'This is the subject.',
+            subject_from_docstring('This is the subject.\n\nThis is the body.'))
+
+    def test_multiline_subject_is_joined(self):
+        self.assertEquals(
+            'This is a subject, with multiple lines.',
+            subject_from_docstring('This is a subject,\n'
+                                   'with multiple lines.\n'
+                                   '\n'
+                                   'And the body.'))

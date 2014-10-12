@@ -19,7 +19,7 @@ class ZCMLLayer(ComponentRegistryLayer):
     instance.
     """
 
-    defaultBases = (zca.ZCML_DIRECTIVES,)
+    defaultBases = (zca.ZCML_DIRECTIVES, BUILDER_LAYER)
 
     def setUp(self):
         super(ZCMLLayer, self).setUp()

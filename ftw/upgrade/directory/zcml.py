@@ -1,8 +1,11 @@
 from ftw.upgrade.directory.scanner import Scanner
+from ftw.upgrade.exceptions import UpgradeStepConfigurationError
 from operator import attrgetter
 from Products.CMFPlone.interfaces import IMigratingPloneSiteRoot
 from Products.GenericSetup.interfaces import EXTENSION
+from Products.GenericSetup.interfaces import IProfile
 from Products.GenericSetup.registry import _profile_registry
+from Products.GenericSetup.registry import GlobalRegistryStorage
 from Products.GenericSetup.upgrade import _registerUpgradeStep
 from Products.GenericSetup.upgrade import _upgrade_registry
 from Products.GenericSetup.upgrade import UpgradeStep
@@ -34,8 +37,20 @@ def upgrade_step_directory_action(profile, dottedname, path):
     start_version = find_start_version(profile)
     scanner = Scanner(dottedname, path)
 
-    _package, profilename = profile.split(':', 1)
+    if profile not in _profile_registry.listProfiles():
+        raise UpgradeStepConfigurationError(
+            'The profile "{0}" needs to be registered before registering its'
+            ' upgrade step directory.'.format(profile))
 
+    profileinfo = _profile_registry.getProfileInfo(profile)
+    if profileinfo.get('version', None) is not None:
+        raise UpgradeStepConfigurationError(
+            'Registering an upgrades directory for "{0}" requires this profile'
+            ' to not define a version in its metadata.xml.'
+            ' The version is automatically set to the latest upgrade.'.format(profile))
+
+    _package, profilename = profile.split(':', 1)
+    last_version = str(10**13)
     for upgrade_info in scanner.scan():
         step = UpgradeStep(upgrade_info['title'],
                            profile,
@@ -56,6 +71,11 @@ def upgrade_step_directory_action(profile, dottedname, path):
             product=dottedname,
             profile_type=EXTENSION,
             for_=IMigratingPloneSiteRoot)
+
+        last_version = upgrade_info['target-version']
+
+    GlobalRegistryStorage(IProfile).get(profile)['version'] = last_version
+
 
 
 def find_start_version(profile):

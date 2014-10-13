@@ -14,3 +14,8 @@ class CyclicDependencies(Exception):
 class UpgradeStepDefinitionError(Exception):
     """An upgrade step definition is wrong.
     """
+
+
+class UpgradeStepConfigurationError(Exception):
+    """The upgrade steps directory configuration is wrong.
+    """

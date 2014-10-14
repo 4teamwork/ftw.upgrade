@@ -1,5 +1,6 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from Acquisition import aq_base, aq_parent
+from ftw.upgrade.exceptions import NoAssociatedProfileError
 from ftw.upgrade.helpers import update_security_for
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.progresslogger import ProgressLogger
@@ -32,9 +33,10 @@ class UpgradeStep(object):
         obj.__init__(*args, **kwargs)
         return obj()
 
-    def __init__(self, portal_setup):
+    def __init__(self, portal_setup, associated_profile=None):
         self.portal_setup = portal_setup
         self.portal = self.getToolByName('portal_url').getPortalObject()
+        self.associated_profile = associated_profile
 
     security.declarePrivate('__call__')
     def __call__(self):
@@ -261,6 +263,15 @@ class UpgradeStep(object):
                                                step,
                                                run_dependencies=False,
                                                purge_old=False)
+
+    security.declarePrivate('install_upgrade_profile')
+    def install_upgrade_profile(self, steps=None):
+        """Installs the generic setup profile for this upgrade step.
+        """
+        if self.associated_profile is None:
+            raise NoAssociatedProfileError()
+
+        self.setup_install_profile(self.associated_profile, steps=steps)
 
     security.declarePrivate('uninstall_product')
     def uninstall_product(self, product_name):

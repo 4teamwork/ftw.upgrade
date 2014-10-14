@@ -19,3 +19,12 @@ class UpgradeStepDefinitionError(Exception):
 class UpgradeStepConfigurationError(Exception):
     """The upgrade steps directory configuration is wrong.
     """
+
+
+class NoAssociatedProfileError(ValueError):
+    """The upgrade step has no associated profile.
+    """
+
+    def __init__(self):
+        super(NoAssociatedProfileError, self).__init__(
+            self, NoAssociatedProfileError.__doc__.strip())

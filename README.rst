@@ -288,6 +288,11 @@ The ``UpgradeStep`` class has various helper functions:
     If a list step names is passed with ``steps`` (e.g. ['actions']),
     only those steps are installed. All steps are installed by default.
 
+``self.install_upgrade_profile(steps=None)``
+    Installs the generic setup profile associated with this upgrade step.
+    Profile may be associated to upgrade steps by using either the
+    ``upgrade-step:importProfile`` or the ``upgrade-step:directory`` directive.
+
 ``self.uninstall_product(product_name)``
     Uninstalls a product using the quick installer.
 

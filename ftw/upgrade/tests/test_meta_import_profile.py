@@ -44,12 +44,21 @@ class TestImportProfileUpgradeStepDirective(TestCase):
         self.gatherer = queryAdapter(setup_tool, IUpgradeInformationGatherer)
         self.executioner = queryAdapter(setup_tool, IExecutioner)
 
-    def test_profile_upgrade_step_changes_site_email(self):
+    def test_first_upgrade_step_changes_site_email(self):
         # The example upgrade step changes the sites email address.
         portal = self.layer['portal']
         self.assertEqual('', portal.getProperty('email_from_address'))
-        self.executioner.install([(BAR_PROFILE, self.get_bar_upgrade_ids())])
+        self.executioner.install([(BAR_PROFILE, self.get_bar_upgrade_ids()[0:1])])
         self.assertEqual('foo@bar.com', portal.getProperty('email_from_address'))
+
+    def test_second_upgrade_step_changes_email_from_name_and_site_title(self):
+        # The example upgrade step changes the site title (python code)
+        # and imports the profile which sets the email-from-name.
+        portal = self.layer['portal']
+        self.assertEqual('', portal.getProperty('email_from_name'))
+        self.executioner.install([(BAR_PROFILE, self.get_bar_upgrade_ids()[1:2])])
+        self.assertEqual('Foobar', portal.getProperty('email_from_name'))
+        self.assertEqual('bar updated', portal.getProperty('title'))
 
     def get_bar_upgrade_ids(self):
         bar_profile = filter(lambda prof: prof.get('id') == BAR_PROFILE,

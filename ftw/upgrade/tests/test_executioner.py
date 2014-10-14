@@ -61,7 +61,8 @@ class TestExecutioner(TestCase):
                                       'ftw.upgrade.tests.profiles:bar')
         self.assertEquals(
             u'ftw.upgrade.tests.profiles:foo -> 2 (Registers foo utility)\n'
-            u'ftw.upgrade.tests.profiles:bar -> 2 (Update email address)',
+            u'ftw.upgrade.tests.profiles:bar -> 2 (Update email address)\n'
+            u'ftw.upgrade.tests.profiles:bar -> 3 (Update email from name)',
             transaction.get().description)
 
     def install_profile_upgrades(self, *profileids):

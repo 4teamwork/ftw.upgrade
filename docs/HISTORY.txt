@@ -5,7 +5,10 @@ Changelog
 1.10.3 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Extend the importProfile directive so that a handler can be
+  defined. The handler may import the associated upgrade step
+  profile with the new method ``self.install_upgrade_profile()``.
+  [jone]
 
 
 1.10.2 (2014-11-19)

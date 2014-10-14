@@ -132,6 +132,10 @@ generated upgrade step handler.
 Simply put a ``properties.xml`` in the folder ``profiles/1008`` relative to the
 above ``configure.zcml`` and the upgrade step is ready for deployment.
 
+Optionally, a ``handler`` may be defined.
+The handler, a subclass of ``UpgradeStep``, can import the associated generic
+setup profile with ``self.install_upgrade_profile()``.
+
 
 
 Upgrade step helpers

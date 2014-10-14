@@ -13,4 +13,13 @@
         directory="profiles/bar-2"
         />
 
+    <upgrade-step:importProfile
+        title="Update email from name"
+        profile="ftw.upgrade.tests.profiles:bar"
+        source="2"
+        destination="3"
+        directory="profiles/bar-3"
+        handler=".barto3.BarTo3"
+        />
+
 </configure>

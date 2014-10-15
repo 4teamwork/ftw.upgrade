@@ -1,4 +1,5 @@
 from ftw.upgrade.directory.scanner import Scanner
+from ftw.upgrade.directory.wrapper import wrap_upgrade_step_with_profile
 from ftw.upgrade.exceptions import UpgradeStepConfigurationError
 from operator import attrgetter
 from Products.CMFPlone.interfaces import IMigratingPloneSiteRoot
@@ -52,16 +53,23 @@ def upgrade_step_directory_action(profile, dottedname, path):
     _package, profilename = profile.split(':', 1)
     last_version = str(10**13)
     for upgrade_info in scanner.scan():
+        upgrade_profile_name = '{0}-upgrade-{1}'.format(
+            profilename, upgrade_info['target-version'])
+
+        upgrade_handler = wrap_upgrade_step_with_profile(
+            upgrade_info['callable'],
+            'profile-{0}:{1}'.format(dottedname, upgrade_profile_name))
+
         step = UpgradeStep(upgrade_info['title'],
                            profile,
                            upgrade_info['source-version'] or start_version,
                            upgrade_info['target-version'],
                            '',
-                           upgrade_info['callable'])
+                           upgrade_handler)
         _registerUpgradeStep(step)
 
         _profile_registry.registerProfile(
-            name='{0}-upgrade-{1}'.format(profilename, upgrade_info['target-version']),
+            name=upgrade_profile_name,
             title='Upgrade {0} to {1}: {2}'.format(
                 profile,
                 upgrade_info['target-version'],
@@ -75,7 +83,6 @@ def upgrade_step_directory_action(profile, dottedname, path):
         last_version = upgrade_info['target-version']
 
     GlobalRegistryStorage(IProfile).get(profile)['version'] = last_version
-
 
 
 def find_start_version(profile):

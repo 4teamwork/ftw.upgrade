@@ -19,5 +19,11 @@
 
     <adapter factory=".gatherer.UpgradeInformationGatherer" />
     <adapter factory=".executioner.Executioner" />
+    <adapter factory=".directory.recorder.UpgradeStepRecorder" />
+
+    <subscriber
+        for="Products.GenericSetup.interfaces.IProfileImportedEvent"
+        handler=".directory.subscribers.profile_installed"
+        />
 
 </configure>

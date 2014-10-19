@@ -1,6 +1,14 @@
+from ftw.upgrade.interfaces import IUpgradeStepRecorder
+from Products.CMFCore.utils import getToolByName
+from zope.component import getMultiAdapter
 
 
-def wrap_upgrade_step_with_profile(handler, profile):
+def wrap_upgrade_step(handler, upgrade_profile, base_profile, target_version):
     def upgrade_step_wrapper(portal_setup):
-        return handler(portal_setup, profile)
+        result = handler(portal_setup, upgrade_profile)
+
+        portal = getToolByName(portal_setup, 'portal_url').getPortalObject()
+        recorder = getMultiAdapter((portal, base_profile), IUpgradeStepRecorder)
+        recorder.mark_as_installed(target_version)
+        return result
     return upgrade_step_wrapper

@@ -1,5 +1,5 @@
 from ftw.upgrade.directory.scanner import Scanner
-from ftw.upgrade.directory.wrapper import wrap_upgrade_step_with_profile
+from ftw.upgrade.directory.wrapper import wrap_upgrade_step
 from ftw.upgrade.exceptions import UpgradeStepConfigurationError
 from operator import attrgetter
 from Products.CMFPlone.interfaces import IMigratingPloneSiteRoot
@@ -56,9 +56,12 @@ def upgrade_step_directory_action(profile, dottedname, path):
         upgrade_profile_name = '{0}-upgrade-{1}'.format(
             profilename, upgrade_info['target-version'])
 
-        upgrade_handler = wrap_upgrade_step_with_profile(
-            upgrade_info['callable'],
-            'profile-{0}:{1}'.format(dottedname, upgrade_profile_name))
+        upgrade_handler = wrap_upgrade_step(
+            handler=upgrade_info['callable'],
+            upgrade_profile='profile-{0}:{1}'.format(dottedname,
+                                                     upgrade_profile_name),
+            base_profile=profile,
+            target_version=upgrade_info['target-version'])
 
         step = UpgradeStep(upgrade_info['title'],
                            profile,

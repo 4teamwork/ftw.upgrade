@@ -1,6 +1,8 @@
+from ftw.upgrade.interfaces import IRecordableHandler
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from Products.CMFCore.utils import getToolByName
 from zope.component import getMultiAdapter
+from zope.interface import alsoProvides
 
 
 def wrap_upgrade_step(handler, upgrade_profile, base_profile, target_version):
@@ -11,4 +13,5 @@ def wrap_upgrade_step(handler, upgrade_profile, base_profile, target_version):
         recorder = getMultiAdapter((portal, base_profile), IUpgradeStepRecorder)
         recorder.mark_as_installed(target_version)
         return result
+    alsoProvides(upgrade_step_wrapper, IRecordableHandler)
     return upgrade_step_wrapper

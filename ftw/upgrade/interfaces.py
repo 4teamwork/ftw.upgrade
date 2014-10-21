@@ -189,3 +189,12 @@ class IUpgradeStepRecorder(Interface):
         """Returns whether an upgrade step was already installed on this
         Plone site (boolean).
         """
+
+
+class IRecordableHandler(Interface):
+    """Marker interface for upgrade step handlers which support recording
+    upgrade step installation (see IUpgradeStepRecorder).
+    Marking the upgrade step as installed is done by handlers (upgrade step
+    methods or classes) which provide this interface.
+    this
+    """

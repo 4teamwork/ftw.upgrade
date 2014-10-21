@@ -1,11 +1,18 @@
-from Products.GenericSetup.interfaces import ISetupTool
 from ftw.testing import MockTestCase
+from ftw.upgrade import UpgradeStep
+from ftw.upgrade.directory.wrapper import wrap_upgrade_step
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.gatherer import UpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.testing import ZCML_LAYER
 from mocker import ANY
+from Products.CMFPlone.interfaces import IPloneSiteRoot
+from Products.GenericSetup.interfaces import ISetupTool
+from Products.GenericSetup.upgrade import UpgradeStep as GenericSetupUpgradeStep
 from random import random
+from zope.annotation import IAttributeAnnotatable
+from zope.component import getMultiAdapter
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
 
@@ -35,7 +42,8 @@ def find_where(iterable, properties):
             return item
 
 
-def simplify_data(data, keep_order=False, profile_only=False):
+def simplify_data(data, keep_order=False, profile_only=False,
+                  with_orphans=False):
     """Simplifies the get_upgrades return value for easy comparison.
     """
 
@@ -47,23 +55,30 @@ def simplify_data(data, keep_order=False, profile_only=False):
     for profile in data:
         proposed = []
         done = []
+        orphans = []
 
         if profile_only:
             assert keep_order
             simple_data.append(profile['id'])
             continue
 
+        profile_result = {'proposed': proposed, 'done': done}
+        if with_orphans:
+            profile_result['orphans'] = orphans
+
         if keep_order:
             simple_data.append(
-                [profile['id'], {'proposed': proposed, 'done': done}])
+                [profile['id'], profile_result])
         else:
-            simple_data[profile['id']] = {'proposed': proposed, 'done': done}
+            simple_data[profile['id']] = profile_result
 
         for upgrade in profile['upgrades']:
             if upgrade['proposed']:
                 proposed.append(upgrade['title'])
             else:
                 done.append(upgrade['title'])
+            if upgrade['orphan']:
+                orphans.append(upgrade['title'])
 
     return simple_data
 
@@ -74,6 +89,7 @@ class TestUpgradeInformationGatherer(MockTestCase):
 
     def setUp(self):
         super(TestUpgradeInformationGatherer, self).setUp()
+        self.portal = self.providing_stub([IPloneSiteRoot, IAttributeAnnotatable])
         self.setup_tool = self.providing_stub(ISetupTool)
         self.quickinstaller_tool = self.stub()
         self._profiles = {}
@@ -84,6 +100,8 @@ class TestUpgradeInformationGatherer(MockTestCase):
 
         self.expect(self.setup_tool.portal_quickinstaller).result(
             self.quickinstaller_tool)
+
+        self.expect(self.setup_tool.portal_url.getPortalObject()).result(self.portal)
 
         self.expect(self.setup_tool.listProfilesWithUpgrades()).call(
             lambda: [key for key, value in self._profiles.items()
@@ -150,9 +168,19 @@ class TestUpgradeInformationGatherer(MockTestCase):
         if product_installable:
             self._installable_products.append(product)
 
-    def mock_upgrade(self, profileid, source, dest, title=''):
+    def mock_upgrade(self, profileid, source, dest, title='',
+                     auto_discovered=False):
         db_version = self._profiles[profileid]['db_version']
         not_done = dest.split('.') > db_version.split('.')
+
+        handler = None
+        if auto_discovered:
+            # Act as discovered with directory scan
+            handler = wrap_upgrade_step(
+                handler=UpgradeStep,
+                upgrade_profile='profile-{0}-upgrade-{1}'.format(profileid, dest),
+                base_profile='profile-{0}'.format(profileid),
+                target_version=dest)
 
         data = {'description': None,
                 'proposed': not_done,
@@ -161,7 +189,12 @@ class TestUpgradeInformationGatherer(MockTestCase):
                 'ssource': source,
                 'dest': dest.split('.'),
                 'sdest': dest,
-                'step': None,
+                'step': GenericSetupUpgradeStep(title=title,
+                                                profile=profileid,
+                                                source=source,
+                                                dest=dest,
+                                                desc=None,
+                                                handler=handler),
                 'title': title,
                 'haspath': dest.split('.'),
                 'sortkey': 0,
@@ -233,6 +266,29 @@ class TestUpgradeInformationGatherer(MockTestCase):
              'bar:default': {
                     'proposed': [],
                     'done': ['bar1']}},
+            simple)
+
+    def test_orphane_upgrades_are_marked(self):
+        self.mock_profile('foo:default', '20140303080000', db_version='20140202080000')
+        self.mock_upgrade('foo:default', '1000', '1001', 'foo1')
+        self.mock_upgrade('foo:default', '1001', '20140101080000', 'foo2',
+                          auto_discovered=True)
+        self.mock_upgrade('foo:default', '20140101080000', '20140202080000', 'foo3',
+                          auto_discovered=True)
+        self.mock_upgrade('foo:default', '20140202080000', '20140303080000', 'foo4',
+                          auto_discovered=True)
+        self.replay()
+
+        recorder = getMultiAdapter((self.portal, 'foo:default'), IUpgradeStepRecorder)
+        recorder.mark_as_installed('20140202080000')
+
+        gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
+        data = gatherer.get_upgrades()
+        simple = simplify_data(data, with_orphans=True)
+        self.assertEqual(
+            {'foo:default': {'orphans': ['foo2'],
+                             'done': ['foo1', 'foo3'],
+                             'proposed': ['foo2', 'foo4']}},
             simple)
 
     def test_profile_with_outdated_fs_version_is_flagged(self):

@@ -1,10 +1,14 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
+from ftw.upgrade.interfaces import IRecordableHandler
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.utils import get_sorted_profile_ids
 from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import normalize_version
+from Products.GenericSetup.upgrade import UpgradeStep
 from zope.component import adapts
+from zope.component import getMultiAdapter
 from zope.interface import implements
 
 
@@ -52,6 +56,7 @@ class UpgradeInformationGatherer(object):
 
     def __init__(self, portal_setup):
         self.portal_setup = portal_setup
+        self.portal = getToolByName(portal_setup, 'portal_url').getPortalObject()
         self.cyclic_dependencies = False
 
     security.declarePrivate('get_upgrades')
@@ -117,13 +122,17 @@ class UpgradeInformationGatherer(object):
 
         for upgrade in all_upgrades:
             upgrade = upgrade.copy()
-            if 'step' in upgrade:
-                del upgrade['step']
-
             if upgrade['id'] not in proposed_ids:
                 upgrade['proposed'] = False
                 upgrade['done'] = True
 
+            upgrade['orphan'] = self._is_orphan(profileid, upgrade)
+            if upgrade['orphan']:
+                upgrade['proposed'] = True
+                upgrade['done'] = False
+
+            if 'step' in upgrade:
+                del upgrade['step']
             upgrades.append(upgrade)
 
         return upgrades
@@ -154,3 +163,19 @@ class UpgradeInformationGatherer(object):
         sorted_profile_ids = get_sorted_profile_ids(self.portal_setup)
         return sorted(profiles,
                       key=lambda p: sorted_profile_ids.index(p.get('id')))
+
+    security.declarePrivate('_is_orphan')
+    def _is_orphan(self, profile, upgrade_step_info):
+        if upgrade_step_info['proposed']:
+            return False
+        if not self._is_recordeable(upgrade_step_info):
+            return False
+        recorder = getMultiAdapter((self.portal, profile), IUpgradeStepRecorder)
+        return not recorder.is_installed(upgrade_step_info['sdest'])
+
+    security.declarePrivate('_is_recordeable')
+    def _is_recordeable(self, upgrade_step_info):
+        if not isinstance(upgrade_step_info['step'], UpgradeStep):
+            return False
+        handler = upgrade_step_info['step'].handler
+        return IRecordableHandler.providedBy(handler)

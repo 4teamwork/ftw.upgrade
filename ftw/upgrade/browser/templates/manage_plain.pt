@@ -139,6 +139,7 @@
                                              classes string:upgrade;
                                              classes python: upgrade.get('done') and '%s done' % classes or classes;
                                              classes python: upgrade.get('proposed') and '%s proposed' % classes or classes;
+                                             classes python: upgrade.get('orphan') and '%s orphan' % classes or classes;
                                              classes python: upgrade.get('outdated_fs_version') and '%s outdated-fs-version' % classes or classes"
                                  tal:attributes="class classes">
 
@@ -166,6 +167,11 @@
                                     <img tal:condition="upgrade/outdated_fs_version|nothing"
                                          tal:attributes="src string:$portal_url/++resource++ftw.upgrade/upgrade-outdated-fs-version.png"
                                          title="This upgrade's target version is higher than the profile's filesystem version. Please update the corresponding metadata.xml!"
+                                         i18n:attributes="title" />
+
+                                    <img tal:condition="upgrade/orphan|nothing"
+                                         tal:attributes="src string:$portal_url/++resource++ftw.upgrade/orphan.png"
+                                         title="This upgrade step was added after later upgrade steps were installed on this site. This is usually a merge error; the timestamp of this upgrade should be increased so that the upgrade step is ordered after already installed upgrades."
                                          i18n:attributes="title" />
                                 </span>
 

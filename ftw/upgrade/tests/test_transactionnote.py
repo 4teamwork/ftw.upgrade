@@ -18,6 +18,7 @@ class TestTransactionNote(TestCase):
         note = TransactionNote()
         note.add_upgrade('my.package:default', ('1','1'), 'Migrate objects')
         note.add_upgrade('my.package:default', ('1702',), 'Remove utility')
+        note.set_transaction_note()
 
         self.assertEquals(
             u'my.package:default -> 1.1 (Migrate objects)\n'
@@ -31,6 +32,7 @@ class TestTransactionNote(TestCase):
         note = TransactionNote()
         note.add_upgrade('my.package:default', ('1000',), description)
         note.add_upgrade('my.package:default', ('1001',), description)
+        note.set_transaction_note()
 
         # Prevent from printing the very long description in the assertion
         # message by not using assertIn..
@@ -46,20 +48,22 @@ class TestTransactionNote(TestCase):
     def test_cropped_when_too_long_even_without_description(self):
         profileid = 'my.package:default'
 
+        transaction.get().note('Some notes..')
+
         note = TransactionNote()
         for destination in range(1, (65533 / len(profileid)) + 2):
             note.add_upgrade(profileid, (str(destination),), '')
+        note.set_transaction_note()
 
-        note = transaction.get().description
-
-        expected_start = 'my.package:default -> 1\n'
+        result = transaction.get().description
+        expected_start = 'Some notes..\nmy.package:default -> 1\n'
         self.assertTrue(
-            note.startswith(expected_start),
+            result.startswith(expected_start),
             ('Expected transaction note to start with "%s",'
              ' but it started with "%s"') % (
-                expected_start, note[:50]))
+                expected_start, result[:50]))
 
         self.assertTrue(
-            note.endswith('...'),
+            result.endswith('...'),
             'Expected transaction note to be cropped, ending with "..." '
-            'but it ends with "%s"' % note[-30:])
+            'but it ends with "%s"' % result[-30:])

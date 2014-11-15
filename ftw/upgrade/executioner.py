@@ -1,12 +1,12 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
-from Products.CMFCore.utils import getToolByName
-from Products.GenericSetup.interfaces import ISetupTool
-from Products.GenericSetup.upgrade import _upgrade_registry
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IPostUpgrade
 from ftw.upgrade.transactionnote import TransactionNote
 from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
+from Products.CMFCore.utils import getToolByName
+from Products.GenericSetup.interfaces import ISetupTool
+from Products.GenericSetup.upgrade import _upgrade_registry
 from zope.component import adapts
 from zope.component import getAdapters
 from zope.interface import implements
@@ -33,6 +33,8 @@ class Executioner(object):
 
         for adapter in self._get_sorted_post_upgrade_adapters():
             adapter()
+
+        TransactionNote().set_transaction_note()
 
     security.declarePrivate('_upgrade_profile')
     def _upgrade_profile(self, profileid, upgradeids):

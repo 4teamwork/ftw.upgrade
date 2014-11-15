@@ -56,16 +56,20 @@ class TestExecutioner(TestCase):
                          setup_tool.getLastVersionForProfile(profileid))
 
     def test_transaction_note(self):
-        self.install_profile_upgrades('ftw.upgrade.tests.profiles:foo')
-        self.install_profile_upgrades('ftw.upgrade.tests.profiles:bar')
+        transaction.begin()
+        self.install_profile_upgrades('ftw.upgrade.tests.profiles:foo',
+                                      'ftw.upgrade.tests.profiles:bar')
         self.assertEquals(
             u'ftw.upgrade.tests.profiles:foo -> 2 (Registers foo utility)\n'
             u'ftw.upgrade.tests.profiles:bar -> 2 (Update email address)',
             transaction.get().description)
 
-    def install_profile_upgrades(self, profileid):
+    def install_profile_upgrades(self, *profileids):
         setup_tool = getToolByName(self.layer['portal'], 'portal_setup')
         executioner = queryAdapter(setup_tool, IExecutioner)
-        upgrade_ids = [upgrade['id'] for upgrade
-                       in setup_tool.listUpgrades(profileid)]
-        executioner.install([(profileid, upgrade_ids)])
+        upgrade_info = []
+        for profileid in profileids:
+            upgrade_ids = [upgrade['id'] for upgrade
+                           in setup_tool.listUpgrades(profileid)]
+            upgrade_info.append((profileid, upgrade_ids))
+        executioner.install(upgrade_info)

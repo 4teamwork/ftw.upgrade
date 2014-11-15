@@ -19,17 +19,20 @@ class TransactionNote(object):
         self._upgrades.append({'profileid': profileid,
                                'destination': '.'.join(destination),
                                'description': description})
-        self._update_transaction_note()
 
-    def _update_transaction_note(self):
+    def set_transaction_note(self):
+        maximum_possible_length = TRANSACTION_NOTE_MAX_LENGTH \
+            - len(transaction.get().description) \
+            - len('\n')
+
         message = '\n'.join(self._transaction_messages(True))
-        if len(message) >= TRANSACTION_NOTE_MAX_LENGTH:
+        if len(message) >= maximum_possible_length:
             message = '\n'.join(self._transaction_messages(False))
 
-        if len(message) >= TRANSACTION_NOTE_MAX_LENGTH:
-            message = message[:TRANSACTION_NOTE_MAX_LENGTH-4] + '...'
+        if len(message) >= maximum_possible_length:
+            message = message[:maximum_possible_length - 4] + '...'
 
-        transaction.get().description = message
+        transaction.get().note(message)
 
     def _transaction_messages(self, include_description=True):
         if include_description:
@@ -39,9 +42,13 @@ class TransactionNote(object):
 
         return [template % upgrade for upgrade in self._upgrades]
 
-    @property
-    def _upgrades(self):
+    def _reset_upgrade_info(self):
         current_transaction = transaction.get()
         if not hasattr(current_transaction, 'ftw.upgrade:upgrades'):
             setattr(current_transaction, 'ftw.upgrade:upgrades', [])
+
+    @property
+    def _upgrades(self):
+        self._reset_upgrade_info()
+        current_transaction = transaction.get()
         return getattr(current_transaction, 'ftw.upgrade:upgrades')

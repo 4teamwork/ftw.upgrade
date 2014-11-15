@@ -5,7 +5,9 @@ Changelog
 1.10.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Make upgrades appear in undo form again.
+  The transaction note fix in 1.7.4 caused upgrade transaction to not appear in the undo form.
+  [jone]
 
 
 1.10.1 (2014-10-27)

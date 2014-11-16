@@ -5,6 +5,9 @@ Changelog
 1.10.2 (unreleased)
 -------------------
 
+- Exclude uninstalled products from upgrades view.
+  [jone]
+
 - Make upgrades appear in undo form again.
   The transaction note fix in 1.7.4 caused upgrade transaction to not appear in the undo form.
   [jone]

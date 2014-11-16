@@ -1,6 +1,7 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.utils import get_sorted_profile_ids
+from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import normalize_version
 from zope.component import adapts
@@ -129,6 +130,17 @@ class UpgradeInformationGatherer(object):
 
     security.declarePrivate('_is_profile_installed')
     def _is_profile_installed(self, profileid):
+        quickinstaller = getToolByName(self.portal_setup, 'portal_quickinstaller')
+        try:
+            profileinfo = self.portal_setup.getProfileInfo(profileid)
+        except KeyError:
+            return False
+
+        product = profileinfo['product']
+        if quickinstaller.isProductInstallable(product) and \
+                not quickinstaller.isProductInstalled(product):
+            return False
+
         version = self.portal_setup.getLastVersionForProfile(profileid)
         return version != 'unknown'
 

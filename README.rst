@@ -29,12 +29,12 @@ Features
   By resolving the dependency graph it is able to optimize the upgrade
   step order so that the upgrade is hassle free.
 
+* **Writing upgrades**: The package provides a base upgrade class with
+  various helpers for tasks often done in upgrades.
+
 * **Import profile upgrade steps**: Some times an upgrade step does simply
   import an upgrade step generic setup profile, especially made for this
   upgrade step. A new ZCML directive makes this much simpler.
-
-* **Writing upgrades**: The package provides a base upgrade class with
-  various helpers for tasks often done in upgrades.
 
 
 Installation
@@ -87,55 +87,6 @@ Fallback view
 The ``@@manage-upgrades-plain`` view acts as a fallback view for ``@@manage-upgrades``.
 It does not include plone`s main template and thus might be able to render when the default
 view fails for some reason.
-
-
-Import-Profile Upgrade Steps
-============================
-
-Sometimes an upgrade simply imports a little generic setup profile, which is only
-made for this upgrade step. Doing such upgrade steps are often much simpler than doing
-the change in python, because one can simply copy the necessary parts of the new
-default generic setup profile into the upgrade step profile.
-
-Normally, for doing this, one has to register an upgrade step and a generic setup
-profile and write an upgrade step handler importing the profile.
-
-ftw.upgrade makes this much simpler by providing an ``importProfile`` ZCML direvtive
-especially for this specific use case.
-
-Example ``configure.zcml`` meant to be placed in your ``upgrades`` sub-package:
-
-.. code:: xml
-
-    <configure
-        xmlns="http://namespaces.zope.org/zope"
-        xmlns:upgrade-step="http://namespaces.zope.org/ftw.upgrade"
-        i18n_domain="my.package">
-
-        <include package="ftw.upgrade" file="meta.zcml" />
-
-        <upgrade-step:importProfile
-            title="Update email_from_address"
-            profile="my.package:default"
-            source="1007"
-            destination="1008"
-            directory="profiles/1008"
-            />
-
-    </configure>
-
-This example upgrade steps updates the ``email_from_address`` property.
-
-A generic setup profile is automatically registered and hooked up with the
-generated upgrade step handler.
-
-Simply put a ``properties.xml`` in the folder ``profiles/1008`` relative to the
-above ``configure.zcml`` and the upgrade step is ready for deployment.
-
-Optionally, a ``handler`` may be defined.
-The handler, a subclass of ``UpgradeStep``, can import the associated generic
-setup profile with ``self.install_upgrade_profile()``.
-
 
 
 Upgrade step helpers
@@ -476,6 +427,54 @@ the new states (value, plone_workflow).
   of the passed in object, recursively (`True` by default).
 - `update_security`: Update object security and reindex
   allowedRolesAndUsers (`True` by default).
+
+
+Import-Profile Upgrade Steps
+============================
+
+Sometimes an upgrade simply imports a little generic setup profile, which is only
+made for this upgrade step. Doing such upgrade steps are often much simpler than doing
+the change in python, because one can simply copy the necessary parts of the new
+default generic setup profile into the upgrade step profile.
+
+Normally, for doing this, one has to register an upgrade step and a generic setup
+profile and write an upgrade step handler importing the profile.
+
+ftw.upgrade makes this much simpler by providing an ``importProfile`` ZCML direvtive
+especially for this specific use case.
+
+Example ``configure.zcml`` meant to be placed in your ``upgrades`` sub-package:
+
+.. code:: xml
+
+    <configure
+        xmlns="http://namespaces.zope.org/zope"
+        xmlns:upgrade-step="http://namespaces.zope.org/ftw.upgrade"
+        i18n_domain="my.package">
+
+        <include package="ftw.upgrade" file="meta.zcml" />
+
+        <upgrade-step:importProfile
+            title="Update email_from_address"
+            profile="my.package:default"
+            source="1007"
+            destination="1008"
+            directory="profiles/1008"
+            />
+
+    </configure>
+
+This example upgrade steps updates the ``email_from_address`` property.
+
+A generic setup profile is automatically registered and hooked up with the
+generated upgrade step handler.
+
+Simply put a ``properties.xml`` in the folder ``profiles/1008`` relative to the
+above ``configure.zcml`` and the upgrade step is ready for deployment.
+
+Optionally, a ``handler`` may be defined.
+The handler, a subclass of ``UpgradeStep``, can import the associated generic
+setup profile with ``self.install_upgrade_profile()``.
 
 
 

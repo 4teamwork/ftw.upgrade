@@ -32,6 +32,11 @@ Features
 * **Writing upgrades**: The package provides a base upgrade class with
   various helpers for tasks often done in upgrades.
 
+* **Upgrade directories with less ZCML**: By registering a directory
+  as upgrade-directory, no more ZCML is needed for each upgrade step.
+  By using a timestamp as version number we have less (merge-) conflicts
+  and less error potential.
+
 * **Import profile upgrade steps**: Some times an upgrade step does simply
   import an upgrade step generic setup profile, especially made for this
   upgrade step. A new ZCML directive makes this much simpler.
@@ -429,15 +434,142 @@ the new states (value, plone_workflow).
   allowedRolesAndUsers (`True` by default).
 
 
+
+Upgrade directories
+===================
+
+The ``upgrade-step:directory`` ZCML directive allows us to use a new upgrade step
+definition syntax with these **advantages**:
+
+- The directory is once registered (ZCML) and automatically scanned at Zope boot time.
+  This *reduces the ZCML* used for each upgrade step
+  and avoids the redundancy created by having to specify the profile version in multiple places.
+- Timestamps are used instead of version numbers.
+  Because of that we have *less merge-conflicts*.
+- The version in the profile's ``metadata.xml`` is removed and dynamically set
+  at Zope boot time to the version of the latest upgrade step.
+  We no longer have to maintain this version in upgrades.
+- Each upgrade is automatically a Generic Setup profile.
+  An instance of the ``UpgradeStep`` class knows which profile it belongs to,
+  and that profile can easily be imported with ``self.install_upgrade_profile()``.
+  ``self.install_upgrade_profile()``.
+- The ``manage-upgrades`` view shows us when we have accidentally merged upgrade steps
+  with older timestamps than already executed upgrade steps.
+  This helps us detect a long-term-branch merge problem.
+
+Setting up an upgrade directory
+-------------------------------
+
+- Register an upgrade directory for your profile (e.g. ``my/package/configure.zcml``):
+
+.. code:: xml
+
+    <configure
+        xmlns="http://namespaces.zope.org/zope"
+        xmlns:upgrade-step="http://namespaces.zope.org/ftw.upgrade"
+        i18n_domain="my.package">
+
+        <include package="ftw.upgrade" file="meta.zcml" />
+
+        <upgrade-step:directory
+            profile="my.package:default"
+            directory="./upgrades"
+            />
+
+    </configure>
+
+- Create the configured upgrade step directory (e.g. ``my/package/upgrades``) and put an
+  empty ``__init__.py`` in this directory (prevents some python import warnings).
+
+- Remove the version from the ``metadata.xml`` of the profile for which the upgrade step
+  directory is configured (e.g. ``my/package/profiles/default/metadata.xml``):
+
+.. code:: xml
+
+    <?xml version="1.0"?>
+    <metadata>
+        <dependencies>
+            <dependency>profile-other.package:default</dependency>
+        </dependencies>
+    </metadata>
+
+
+Creating an upgrade step
+------------------------
+
+- Create a directory for the upgrade step in the upgrades directory.
+  The directory name must contain a timestamp and a description, concatenated by an underscore,
+  e.g. ``YYYYMMDDHHMMII_description_of_what_is_done``:
+
+.. code::
+
+    $ mkdir my/package/upgrades/20141218093045_add_controlpanel_action
+
+- Next, create the upgrade step code in an ``upgrade.py`` in the just created directory.
+  This file needs to be created, otherwise the upgrade step is not registered.
+
+.. code:: python
+
+    # my/package/upgrades/20141218093045_add_controlpanel_action/upgrade.py
+
+    from ftw.upgrade import UpgradeStep
+
+    class AddControlPanelAction(UpgradeStep):
+        """Adds a new control panel action for the package.
+        """
+        def __call__(self):
+            # maybe do something
+            self.install_upgrade_profile()
+            # maybe do something
+
+..
+
+  - You must inherit from ``UpgradeStep``.
+  - Give your class a proper name, although it does not show up anywhere.
+  - Add a descriptive docstring to the class, the first consecutive lines are
+    used as upgrade step description.
+  - Do not forget to execute ``self.install_upgrade_profile()`` if you have Generic Setup based
+    changes in your upgrade.
+
+- Put Generic Setup files in the same upgrade step directory, it automatically acts as a
+  Generic Setup profile just for this upgrade step.
+  The ``install_upgrade_profile`` knows what to import.
+
+  For our example this means we put a file at
+  ``my/package/upgrades/20141218093045_add_controlpanel_action/controlpanel.xml``
+  which adds the new control panel action.
+
+The resulting directory structure should be something like this:
+
+.. code::
+
+    my/
+      package/
+        configure.zcml                              # registers the profile and the upgrade directory
+        upgrades/                                   # contains the upgrade steps
+          __init__.py                               # prevents python import warnings
+          20141218093045_add_controlpanel_action/   # our first upgrade step
+            upgrade.py                              # should contain an ``UpgradeStep`` subclass
+            controlpanel.xml                        # Generic Setup data to import
+          20141220181500_update_registry/           # another upgrade step
+            upgrade.py
+            *.xml
+        profiles/
+          default/                                  # the default Generic Setup profile
+            metadata.xml
+
+
+
+
 Import-Profile Upgrade Steps
 ============================
 
-Sometimes an upgrade simply imports a little generic setup profile, which is only
+Sometimes an upgrade simply imports a little Generic Setup profile, which is only
 made for this upgrade step. Doing such upgrade steps are often much simpler than doing
-the change in python, because one can simply copy the necessary parts of the new
+the change in python, because we can simply copy the necessary parts of the new
 default generic setup profile into the upgrade step profile.
 
-Normally, for doing this, one has to register an upgrade step and a generic setup
+Normally, for doing this, we have to register an upgrade step and a Generic Setup
 profile and write an upgrade step handler importing the profile.
 
 ftw.upgrade makes this much simpler by providing an ``importProfile`` ZCML direvtive
@@ -464,7 +596,7 @@ Example ``configure.zcml`` meant to be placed in your ``upgrades`` sub-package:
 
     </configure>
 
-This example upgrade steps updates the ``email_from_address`` property.
+This example upgrade step updates the ``email_from_address`` property.
 
 A generic setup profile is automatically registered and hooked up with the
 generated upgrade step handler.

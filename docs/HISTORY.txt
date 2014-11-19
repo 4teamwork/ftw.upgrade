@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.10.2 (unreleased)
+1.10.2 (2014-11-19)
 -------------------
 
 - Exclude uninstalled products from upgrades view.

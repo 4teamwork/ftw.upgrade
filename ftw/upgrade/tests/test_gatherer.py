@@ -75,9 +75,15 @@ class TestUpgradeInformationGatherer(MockTestCase):
     def setUp(self):
         super(TestUpgradeInformationGatherer, self).setUp()
         self.setup_tool = self.providing_stub(ISetupTool)
+        self.quickinstaller_tool = self.stub()
         self._profiles = {}
         self._installed = set()
         self._upgrades = {}
+        self._installed_products = []
+        self._installable_products = []
+
+        self.expect(self.setup_tool.portal_quickinstaller).result(
+            self.quickinstaller_tool)
 
         self.expect(self.setup_tool.listProfilesWithUpgrades()).call(
             lambda: [key for key, value in self._profiles.items()
@@ -102,6 +108,12 @@ class TestUpgradeInformationGatherer(MockTestCase):
                          id_ in self._installed and
                          self._profiles[id_]['db_version']) or 'unknown')
 
+        self.expect(self.quickinstaller_tool.isProductInstalled(ANY)).call(
+            lambda product: product in self._installed_products)
+
+        self.expect(self.quickinstaller_tool.isProductInstallable(ANY)).call(
+            lambda product: product in self._installable_products)
+
     def tearDown(self):
         super(TestUpgradeInformationGatherer, self).tearDown()
         self.setup_tool = None
@@ -111,6 +123,8 @@ class TestUpgradeInformationGatherer(MockTestCase):
 
     def mock_profile(self, profileid, version, title=None,
                      db_version=None, installed=True,
+                     product_uninstalled=False,
+                     product_installable=True,
                      dependencies=None):
         product = profileid.split(':')[0]
 
@@ -130,6 +144,11 @@ class TestUpgradeInformationGatherer(MockTestCase):
 
         if installed:
             self._installed.add(profileid)
+            if not product_uninstalled:
+                self._installed_products.append(product)
+
+        if product_installable:
+            self._installable_products.append(product)
 
     def mock_upgrade(self, profileid, source, dest, title=''):
         db_version = self._profiles[profileid]['db_version']
@@ -152,6 +171,9 @@ class TestUpgradeInformationGatherer(MockTestCase):
         if profileid not in self._upgrades:
             self._upgrades[profileid] = []
         self._upgrades[profileid].append(data)
+
+    def mock_quickinstaller_product(self, product, installed=True):
+        pass
 
     def test_component_is_registered(self):
         self.replay()
@@ -382,5 +404,39 @@ class TestUpgradeInformationGatherer(MockTestCase):
         self.assertEqual(
             {'foo:default': {
                     'proposed': ['foo1', 'foo2'],
+                    'done': []}},
+            simple)
+
+    def test_products_uninstalled_by_quickinstaller_are_not_listed(self):
+        self.mock_profile('foo:default', '1.1', db_version='1.0', product_uninstalled=True)
+        self.mock_upgrade('foo:default', '1.0', '1.1', 'foo1')
+        self.replay()
+
+        gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
+        data = gatherer.get_upgrades()
+        self.assertEqual([], data)
+
+    def test_not_installable_products_are_not_checked_if_uninstalled(self):
+        # Some profiles are not associated with a product.
+        # Since we want those profiles to appear in manage-upgrades, we dont verify in the
+        # quickinstaller that the product is installed, since it is always not installed because
+        # there is no known product.
+        # - Products.CMFEditions:CMFEditions
+        # - Products.TinyMCE:TinyMCE
+        # - plone.app.discussion:default
+        # - plone.formwidget.autocomplete:default
+
+        self.mock_profile('foo:default', '1.1', db_version='1.0', product_installable=False)
+        self.mock_upgrade('foo:default', '1.0', '1.1', 'foo1')
+        self.replay()
+
+        gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
+        data = gatherer.get_upgrades()
+        self.assertNotEqual([], data)
+
+        simple = simplify_data(data)
+        self.assertEqual(
+            {'foo:default': {
+                    'proposed': ['foo1'],
                     'done': []}},
             simple)

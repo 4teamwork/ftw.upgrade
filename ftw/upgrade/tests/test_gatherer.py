@@ -1,7 +1,9 @@
 from ftw.testing import MockTestCase
+from unittest2 import TestCase
 from ftw.upgrade import UpgradeStep
 from ftw.upgrade.directory.wrapper import wrap_upgrade_step
 from ftw.upgrade.exceptions import CyclicDependencies
+from ftw.upgrade.gatherer import extend_auto_upgrades_with_human_formatted_date_version
 from ftw.upgrade.gatherer import UpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
@@ -291,6 +293,35 @@ class TestUpgradeInformationGatherer(MockTestCase):
                              'proposed': ['foo2', 'foo4']}},
             simple)
 
+    def test_human_readable_timestamp_versions_are_added_to_profiles(self):
+        self.mock_profile('foo:default', '20141230104550', db_version='20141117093040')
+        self.mock_upgrade('foo:default', '20141117093040', '20141230104550', 'foo3',
+                          auto_discovered=True)
+        self.replay()
+
+        gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
+        profile = gatherer.get_upgrades()[0]
+
+        self.maxDiff = None
+        self.assertDictContainsSubset({'db_version': '20141117093040',
+                                       'formatted_db_version': '2014/11/17 09:30',
+                                       'version': '20141230104550',
+                                       'formatted_version': '2014/12/30 10:45'}, profile)
+
+    def test_human_readable_timestamp_versions_are_added_to_upgrades(self):
+        self.mock_profile('foo:default', '20141230104550', db_version='20141117093040')
+        self.mock_upgrade('foo:default', '20141117093040', '20141230104550', 'foo3',
+                          auto_discovered=True)
+        self.replay()
+
+        gatherer = queryAdapter(self.setup_tool, IUpgradeInformationGatherer)
+        upgrade = gatherer.get_upgrades()[0]['upgrades'][0]
+
+        self.assertDictContainsSubset({'ssource': '20141117093040',
+                                       'fsource': '2014/11/17 09:30',
+                                       'sdest': '20141230104550',
+                                       'fdest': '2014/12/30 10:45'}, upgrade)
+
     def test_profile_with_outdated_fs_version_is_flagged(self):
         # Upgrade that leads to a higher dest version than current fs_version
         self.mock_profile('foo:default', '1.2', db_version='1.2')
@@ -496,3 +527,47 @@ class TestUpgradeInformationGatherer(MockTestCase):
                     'proposed': ['foo1'],
                     'done': []}},
             simple)
+
+
+class TestExtendAutoUpgradesWithHumanFormattedDateVersion(TestCase):
+
+    def test_formats_timestamp_source_versions(self):
+        input = {'ssource': '20141214183059',
+                 'sdest': '1'}
+        expected = {'ssource': '20141214183059',
+                    'fsource': '2014/12/14 18:30',
+                    'sdest': '1'}
+        self.assertDictEqual(expected, self.format_upgrade_step(input))
+
+    def test_formats_timestamp_dest_versions(self):
+        input = {'ssource': '1',
+                 'sdest': '20141214183059'}
+        expected = {'ssource': '1',
+                    'sdest': '20141214183059',
+                    'fdest': '2014/12/14 18:30'}
+        self.assertDictEqual(expected, self.format_upgrade_step(input))
+
+    def test_does_not_format_non_timestamp_versions(self):
+        input = {'ssource': '1',
+                 'sdest': '2'}
+        expected = {'ssource': '1',
+                    'sdest': '2'}
+        self.assertDictEqual(expected, self.format_upgrade_step(input))
+
+    def test_does_not_fail_on_non_timestamp_versions_looking_like_timestamps(self):
+        input = {'ssource': '10000000000000',
+                 'sdest': '1'}
+        expected = {'ssource': '10000000000000',
+                    'sdest': '1'}
+        self.assertDictEqual(expected, self.format_upgrade_step(input))
+
+        input = {'ssource': '1',
+                 'sdest': '10000000000000'}
+        expected = {'ssource': '1',
+                    'sdest': '10000000000000'}
+        self.assertDictEqual(expected, self.format_upgrade_step(input))
+
+    def format_upgrade_step(self, upgrade_step):
+        profiles = [{'upgrades': [upgrade_step]}]
+        output = extend_auto_upgrades_with_human_formatted_date_version(profiles)
+        return output[0]['upgrades'][0]

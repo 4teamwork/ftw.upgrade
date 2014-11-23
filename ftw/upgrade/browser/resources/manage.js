@@ -51,4 +51,15 @@
         location.reload();
     });
 
+    $(document).ready(function() {
+        $('[data-human-readable-version]').each(function() {
+            $(this).data('original-version', $(this).text());
+            $(this).text($(this).data('human-readable-version'));
+        }).on('mouseenter', function(event) {
+            $(this).text($(this).data('original-version'));
+        }).on('mouseleave', function(event) {
+            $(this).text($(this).data('human-readable-version'));
+        });
+    });
+
 })(jQuery);

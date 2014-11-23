@@ -1,4 +1,5 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
+from datetime import datetime
 from ftw.upgrade.interfaces import IRecordableHandler
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
@@ -48,6 +49,43 @@ def flag_profiles_with_outdated_fs_version(upgrades):
     return upgrades
 
 
+def extend_auto_upgrades_with_human_formatted_date_version(profiles):
+    """Adds a 'fsource' and / or 'fdest' key to each upgrade dist where the
+    corresponding version is a 14 digit timestamp with the timestamp in a
+    human readable format.
+    """
+    to_human_readable = lambda datestr: datetime.strptime(datestr, '%Y%m%d%H%M%S') \
+        .strftime('%Y/%m/%d %H:%M')
+
+    for profile in profiles:
+        if len(profile.get('db_version', '')) == 14:
+            try:
+                profile['formatted_db_version'] = to_human_readable(profile['db_version'])
+            except ValueError:
+                pass
+
+        if len(profile.get('version', '')) == 14:
+            try:
+                profile['formatted_version'] = to_human_readable(profile['version'])
+            except ValueError:
+                pass
+
+        for upgrade in profile['upgrades']:
+            if len(upgrade['ssource']) == 14:
+                try:
+                    upgrade['fsource'] = to_human_readable(upgrade['ssource'])
+                except ValueError:
+                    pass
+
+            if len(upgrade['sdest']) == 14:
+                try:
+                    upgrade['fdest'] = to_human_readable(upgrade['sdest'])
+                except ValueError:
+                    pass
+
+    return profiles
+
+
 class UpgradeInformationGatherer(object):
     implements(IUpgradeInformationGatherer)
     adapts(ISetupTool)
@@ -63,6 +101,7 @@ class UpgradeInformationGatherer(object):
     def get_upgrades(self):
         profiles = self._sort_profiles_by_dependencies(self._get_profiles())
         profiles = flag_profiles_with_outdated_fs_version(profiles)
+        profiles = extend_auto_upgrades_with_human_formatted_date_version(profiles)
         return profiles
 
     security.declarePrivate('_get_profiles')

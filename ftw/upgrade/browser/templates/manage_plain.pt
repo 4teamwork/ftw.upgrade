@@ -128,8 +128,12 @@
                                  i18n:attributes="title" />
 
                             <span i18n:translate="label_installed_version" class="profile-version discreet">
-                                Filesystem: <span class="fs-version" i18n:name="fs_version" tal:content="profile/version" />,
-                                Database: <span class="db-version" i18n:name="db_version" tal:content="profile/db_version" />
+                                Filesystem:
+                                <span class="fs-version" i18n:name="fs_version" tal:content="profile/version"
+                                      tal:attributes="data-human-readable-version profile/formatted_version|nothing" />,
+                                Database:
+                                <span class="db-version" i18n:name="db_version" tal:content="profile/db_version"
+                                      tal:attributes="data-human-readable-version profile/formatted_db_version|nothing" />
                             </span>
 
                         </div>
@@ -176,9 +180,11 @@
                                 </span>
 
                                 <span class="upgrade-version">
-                                    <span class="source-version" tal:content="upgrade/ssource" />
+                                    <span class="source-version" tal:content="upgrade/ssource"
+                                          tal:attributes="data-human-readable-version upgrade/fsource|nothing" />
                                     &rarr;
-                                    <span class="dest-version" tal:content="upgrade/sdest" />
+                                    <span class="dest-version" tal:content="upgrade/sdest"
+                                          tal:attributes="data-human-readable-version upgrade/fdest|nothing" />
                                 </span>
 
                                 <span class="upgrade-title"

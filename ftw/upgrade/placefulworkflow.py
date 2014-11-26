@@ -43,7 +43,6 @@ class PlacefulWorkflowPolicyActivator(object):
                 'CMFPlacefulWorkflow'].manage_addWorkflowPolicyConfig()
             policy_config = pwf_tool.getWorkflowPolicyConfig(self.context)
 
-
         if activate_in:
             policy_config.setPolicyIn(policy_id, update_security=False)
 

@@ -49,4 +49,5 @@ def importProfileUpgradeStep(_context, title, profile, source, destination,
         portal_setup.runAllImportStepsFromProfile(profileid, purge_old=False)
 
     upgradeStep(_context, title=title, profile=profile, handler=handler,
-                description=description, source=source, destination=destination)
+                description=description, source=source,
+                destination=destination)

@@ -130,7 +130,8 @@ class UpgradeInformationGatherer(object):
 
     security.declarePrivate('_is_profile_installed')
     def _is_profile_installed(self, profileid):
-        quickinstaller = getToolByName(self.portal_setup, 'portal_quickinstaller')
+        quickinstaller = getToolByName(self.portal_setup,
+                                       'portal_quickinstaller')
         try:
             profileinfo = self.portal_setup.getProfileInfo(profileid)
         except KeyError:

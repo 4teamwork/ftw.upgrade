@@ -172,7 +172,8 @@ class IUpgradeStepRecorder(Interface):
 
     This makes it possible to track "orphan" upgrade steps, which were merged
     in after installing upgrade steps with a higher version.
-    This can happen with long-term branches when timestamps are used as versions.
+    This can happen with long-term branches when timestamps are used
+    as versions.
     """
 
     def __init__(portal, profilename):

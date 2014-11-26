@@ -10,7 +10,8 @@ def wrap_upgrade_step(handler, upgrade_profile, base_profile, target_version):
         result = handler(portal_setup, upgrade_profile)
 
         portal = getToolByName(portal_setup, 'portal_url').getPortalObject()
-        recorder = getMultiAdapter((portal, base_profile), IUpgradeStepRecorder)
+        recorder = getMultiAdapter((portal, base_profile),
+                                   IUpgradeStepRecorder)
         recorder.mark_as_installed(target_version)
         return result
     alsoProvides(upgrade_step_wrapper, IRecordableHandler)

@@ -62,5 +62,6 @@ def importProfileUpgradeStep(_context, title, profile, source, destination,
     def handler_wrapper(portal_setup):
         return handler(portal_setup, profileid)
 
-    upgradeStep(_context, title=title, profile=profile, handler=handler_wrapper,
-                description=description, source=source, destination=destination)
+    upgradeStep(_context, title=title, profile=profile,
+                handler=handler_wrapper, description=description,
+                source=source, destination=destination)

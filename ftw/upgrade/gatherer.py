@@ -60,13 +60,15 @@ def extend_auto_upgrades_with_human_formatted_date_version(profiles):
     for profile in profiles:
         if len(profile.get('db_version', '')) == 14:
             try:
-                profile['formatted_db_version'] = to_human_readable(profile['db_version'])
+                profile['formatted_db_version'] = to_human_readable(
+                    profile['db_version'])
             except ValueError:
                 pass
 
         if len(profile.get('version', '')) == 14:
             try:
-                profile['formatted_version'] = to_human_readable(profile['version'])
+                profile['formatted_version'] = to_human_readable(
+                    profile['version'])
             except ValueError:
                 pass
 
@@ -94,14 +96,16 @@ class UpgradeInformationGatherer(object):
 
     def __init__(self, portal_setup):
         self.portal_setup = portal_setup
-        self.portal = getToolByName(portal_setup, 'portal_url').getPortalObject()
+        self.portal = getToolByName(
+            portal_setup, 'portal_url').getPortalObject()
         self.cyclic_dependencies = False
 
     security.declarePrivate('get_upgrades')
     def get_upgrades(self):
         profiles = self._sort_profiles_by_dependencies(self._get_profiles())
         profiles = flag_profiles_with_outdated_fs_version(profiles)
-        profiles = extend_auto_upgrades_with_human_formatted_date_version(profiles)
+        profiles = extend_auto_upgrades_with_human_formatted_date_version(
+            profiles)
         return profiles
 
     security.declarePrivate('_get_profiles')
@@ -209,7 +213,8 @@ class UpgradeInformationGatherer(object):
             return False
         if not self._is_recordeable(upgrade_step_info):
             return False
-        recorder = getMultiAdapter((self.portal, profile), IUpgradeStepRecorder)
+        recorder = getMultiAdapter((self.portal, profile),
+                                   IUpgradeStepRecorder)
         return not recorder.is_installed(upgrade_step_info['sdest'])
 
     security.declarePrivate('_is_recordeable')

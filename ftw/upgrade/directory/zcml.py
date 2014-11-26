@@ -48,10 +48,11 @@ def upgrade_step_directory_action(profile, dottedname, path):
         raise UpgradeStepConfigurationError(
             'Registering an upgrades directory for "{0}" requires this profile'
             ' to not define a version in its metadata.xml.'
-            ' The version is automatically set to the latest upgrade.'.format(profile))
+            ' The version is automatically set to the latest upgrade.'.format(
+                profile))
 
     _package, profilename = profile.split(':', 1)
-    last_version = str(10**13)
+    last_version = str(10 ** 13)
     for upgrade_info in scanner.scan():
         upgrade_profile_name = '{0}-upgrade-{1}'.format(
             profilename, upgrade_info['target-version'])
@@ -94,4 +95,4 @@ def find_start_version(profile):
     if len(upgrades) > 0:
         return upgrades[-1].dest
     else:
-        return str(10**13)
+        return str(10 ** 13)

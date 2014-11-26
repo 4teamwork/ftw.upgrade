@@ -34,7 +34,8 @@ class Scanner(object):
     def _build_upgrade_step_info(self, path):
         title, callable = self._load_upgrade_step_code(path)
         return {'source-version': None,
-                'target-version': UPGRADESTEP_DATETIME_REGEX.match(path).group(1),
+                'target-version':
+                    UPGRADESTEP_DATETIME_REGEX.match(path).group(1),
                 'path': os.path.dirname(path),
                 'title': title,
                 'callable': callable}
@@ -51,7 +52,8 @@ class Scanner(object):
                          os.path.basename(path)))
 
         module = imp.load_module(name, fp, pathname, description)
-        upgrade_steps = tuple(self._find_upgrade_step_classes_in_module(module))
+        upgrade_steps = tuple(self._find_upgrade_step_classes_in_module(
+                module))
 
         if len(upgrade_steps) == 0:
             raise UpgradeStepDefinitionError(
@@ -81,7 +83,8 @@ class Scanner(object):
     def _load_upgrades_directory(self):
         """This method tries to load the upgrade step directory, if there is
         an __init__.py. This helps to avoid RuntimeWarnings.
-        However, it is not relevant for anything to work, it just makes Python happy.
+        However, it is not relevant for anything to work,
+        it just makes Python happy.
         """
         name = '.'.join((self.dottedname,
                          os.path.basename(self.directory)))

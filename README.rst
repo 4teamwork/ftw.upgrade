@@ -513,6 +513,24 @@ named differently the automatic discovery does not work and you can provide the
 path to the upgrades directory using the ``--path`` argument.
 
 
+Reordering upgrade steps
+------------------------
+
+The ``bin/upgrade`` console script provides a ``touch`` for reordering generated upgrade steps.
+With the optional arguments ``--before`` and ``--after`` upgrade steps can be moved to a specific
+position.
+When the optional arguments are omitted, the upgrade step timestamp is set to the current time.
+
+Examples:
+
+.. code::
+
+    $ bin/upgrade touch upgrades/20141218093045_add_controlpanel_action
+    $ bin/upgrade touch 20141218093045_add_controlpanel_action --before 20141220181500_update_registry
+    $ bin/upgrade touch 20141218093045_add_controlpanel_action --after 20141220181500_update_registry
+
+
+
 Creating an upgrade step manually
 ---------------------------------
 

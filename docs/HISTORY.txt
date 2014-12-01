@@ -8,6 +8,7 @@ Changelog
 - Create a ``bin/upgrade`` script:
 
   - the ``create`` command creates a upgrade step in the "upgrades" directory.
+  - the ``touch`` command can be used for reordering upgrade steps.
 
   [jone]
 

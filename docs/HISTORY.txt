@@ -5,6 +5,12 @@ Changelog
 1.11.0 (unreleased)
 -------------------
 
+- Create a ``bin/upgrade`` script:
+
+  - the ``create`` command creates a upgrade step in the "upgrades" directory.
+
+  [jone]
+
 - New ``upgrade-step:directory`` directive for registering a directory
   with upgrade steps which are automatically detected and registered.
   [jone]

@@ -13,6 +13,7 @@ tests_require = [
     'plone.app.testing',
 
     'zope.configuration',
+    'zc.recipe.egg',
     'transaction',
     'Products.ATContentTypes',
     'Products.CMFPlacefulWorkflow',
@@ -49,8 +50,12 @@ setup(name='ftw.upgrade',
       zip_safe=False,
 
       install_requires=[
+        'argcomplete',
+        'argparse',
+        'inflection',
         'setuptools',
         'tarjan',
+        'path.py',
 
         # Zope
         'AccessControl',
@@ -73,9 +78,10 @@ setup(name='ftw.upgrade',
       tests_require=tests_require,
       extras_require=dict(tests=tests_require),
 
-      entry_points='''
-      # -*- Entry points: -*-
-      [z3c.autoinclude.plugin]
-      target = plone
-      ''',
-      )
+      entry_points={
+        'z3c.autoinclude.plugin': [
+            'target = plone'],
+
+        'console_scripts': [
+            'upgrade = ftw.upgrade.command:main']
+        })

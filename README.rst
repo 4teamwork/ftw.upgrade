@@ -497,6 +497,25 @@ Setting up an upgrade directory
 Creating an upgrade step
 ------------------------
 
+Upgrade steps can be generated with ``ftw.upgrade``'s ``bin/upgrade`` console script.
+The idea is to install this script with buildout using
+`zc.recipe.egg <https://pypi.python.org/pypi/zc.recipe.egg>`_.
+
+Once installed, upgrade steps can simply be scaffolded with the script:
+
+.. code::
+
+    $ bin/upgrade create AddControlpanelAction
+
+The ``create`` command searches for your ``upgrades`` directory by resolving the
+``*.egg-info/top_level.txt`` file. If you have no egg-infos or your upgrades directory is
+named differently the automatic discovery does not work and you can provide the
+path to the upgrades directory using the ``--path`` argument.
+
+
+Creating an upgrade step manually
+---------------------------------
+
 - Create a directory for the upgrade step in the upgrades directory.
   The directory name must contain a timestamp and a description, concatenated by an underscore,
   e.g. ``YYYYMMDDHHMMII_description_of_what_is_done``:

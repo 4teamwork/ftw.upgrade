@@ -5,6 +5,9 @@ Changelog
 1.11.0 (unreleased)
 -------------------
 
+- Add a ``create-upgrade`` script which can be installed globally.
+  [jone]
+
 - Create a ``bin/upgrade`` script:
 
   - the ``create`` command creates a upgrade step in the "upgrades" directory.

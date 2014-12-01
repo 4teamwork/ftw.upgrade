@@ -512,6 +512,14 @@ The ``create`` command searches for your ``upgrades`` directory by resolving the
 named differently the automatic discovery does not work and you can provide the
 path to the upgrades directory using the ``--path`` argument.
 
+.. sidebar:: Global create-upgrade script
+
+    The
+    `create-upgrade <https://github.com/4teamwork/ftw.upgrade/blob/master/scripts/create-upgrade>`_
+    script helps you create upgrade steps in any directory (also when not named ``upgrades``).
+    Download it and place it somewhere in your ``PATH``, cd in the directory and create an upgrade
+    step: ``create-upgrade add_control_panel_action``.
+
 
 Reordering upgrade steps
 ------------------------

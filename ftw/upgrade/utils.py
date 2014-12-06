@@ -204,3 +204,19 @@ def format_duration(seconds):
         return '0 seconds'
     else:
         return ', '.join(result)
+
+
+def subject_from_docstring(docstring):
+    """Extracts and returns the subject of a docstring.
+    The subject consists of all lines from the beginning to the
+    first empty line. Newlines are stripped.
+    """
+    lines = map(str.strip, docstring.strip().splitlines())
+    try:
+        lines.index('')
+    except ValueError:
+        pass  # '' is not in list
+    else:
+        lines = lines[:lines.index('')]
+
+    return ' '.join(lines).strip()

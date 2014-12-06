@@ -1,10 +1,15 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
+from datetime import datetime
+from ftw.upgrade.interfaces import IRecordableHandler
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.utils import get_sorted_profile_ids
 from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import normalize_version
+from Products.GenericSetup.upgrade import UpgradeStep
 from zope.component import adapts
+from zope.component import getMultiAdapter
 from zope.interface import implements
 
 
@@ -44,6 +49,45 @@ def flag_profiles_with_outdated_fs_version(upgrades):
     return upgrades
 
 
+def extend_auto_upgrades_with_human_formatted_date_version(profiles):
+    """Adds a 'fsource' and / or 'fdest' key to each upgrade dist where the
+    corresponding version is a 14 digit timestamp with the timestamp in a
+    human readable format.
+    """
+    to_human_readable = lambda datestr: datetime.strptime(datestr, '%Y%m%d%H%M%S') \
+        .strftime('%Y/%m/%d %H:%M')
+
+    for profile in profiles:
+        if len(profile.get('db_version', '')) == 14:
+            try:
+                profile['formatted_db_version'] = to_human_readable(
+                    profile['db_version'])
+            except ValueError:
+                pass
+
+        if len(profile.get('version', '')) == 14:
+            try:
+                profile['formatted_version'] = to_human_readable(
+                    profile['version'])
+            except ValueError:
+                pass
+
+        for upgrade in profile['upgrades']:
+            if len(upgrade['ssource']) == 14:
+                try:
+                    upgrade['fsource'] = to_human_readable(upgrade['ssource'])
+                except ValueError:
+                    pass
+
+            if len(upgrade['sdest']) == 14:
+                try:
+                    upgrade['fdest'] = to_human_readable(upgrade['sdest'])
+                except ValueError:
+                    pass
+
+    return profiles
+
+
 class UpgradeInformationGatherer(object):
     implements(IUpgradeInformationGatherer)
     adapts(ISetupTool)
@@ -52,12 +96,16 @@ class UpgradeInformationGatherer(object):
 
     def __init__(self, portal_setup):
         self.portal_setup = portal_setup
+        self.portal = getToolByName(
+            portal_setup, 'portal_url').getPortalObject()
         self.cyclic_dependencies = False
 
     security.declarePrivate('get_upgrades')
     def get_upgrades(self):
         profiles = self._sort_profiles_by_dependencies(self._get_profiles())
         profiles = flag_profiles_with_outdated_fs_version(profiles)
+        profiles = extend_auto_upgrades_with_human_formatted_date_version(
+            profiles)
         return profiles
 
     security.declarePrivate('_get_profiles')
@@ -117,13 +165,17 @@ class UpgradeInformationGatherer(object):
 
         for upgrade in all_upgrades:
             upgrade = upgrade.copy()
-            if 'step' in upgrade:
-                del upgrade['step']
-
             if upgrade['id'] not in proposed_ids:
                 upgrade['proposed'] = False
                 upgrade['done'] = True
 
+            upgrade['orphan'] = self._is_orphan(profileid, upgrade)
+            if upgrade['orphan']:
+                upgrade['proposed'] = True
+                upgrade['done'] = False
+
+            if 'step' in upgrade:
+                del upgrade['step']
             upgrades.append(upgrade)
 
         return upgrades
@@ -154,3 +206,20 @@ class UpgradeInformationGatherer(object):
         sorted_profile_ids = get_sorted_profile_ids(self.portal_setup)
         return sorted(profiles,
                       key=lambda p: sorted_profile_ids.index(p.get('id')))
+
+    security.declarePrivate('_is_orphan')
+    def _is_orphan(self, profile, upgrade_step_info):
+        if upgrade_step_info['proposed']:
+            return False
+        if not self._is_recordeable(upgrade_step_info):
+            return False
+        recorder = getMultiAdapter((self.portal, profile),
+                                   IUpgradeStepRecorder)
+        return not recorder.is_installed(upgrade_step_info['sdest'])
+
+    security.declarePrivate('_is_recordeable')
+    def _is_recordeable(self, upgrade_step_info):
+        if not isinstance(upgrade_step_info['step'], UpgradeStep):
+            return False
+        handler = upgrade_step_info['step'].handler
+        return IRecordableHandler.providedBy(handler)

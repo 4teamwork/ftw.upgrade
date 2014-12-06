@@ -6,6 +6,8 @@
 
     <include package="Products.CMFCore" file="permissions.zcml" />
 
+    <include package="zope.annotation" />
+
     <include package="ftw.upgrade" />
 
 </configure>

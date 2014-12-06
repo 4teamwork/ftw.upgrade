@@ -1,12 +1,13 @@
 from DateTime import DateTime
-from Products.CMFCore.utils import getToolByName
-from StringIO import StringIO
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade import UpgradeStep
+from ftw.upgrade.exceptions import NoAssociatedProfileError
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
 from plone.browserlayer.utils import register_layer
+from Products.CMFCore.utils import getToolByName
+from StringIO import StringIO
 from unittest2 import TestCase
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
@@ -408,6 +409,25 @@ class TestUpgradeStep(TestCase):
                 testcase.assertTrue(self.catalog_has_index('excludeFromNav'))
 
         Step(self.portal_setup)
+
+    def test_install_upgrade_profile(self):
+        testcase = self
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                testcase.assertFalse(self.catalog_has_index('excludeFromNav'))
+                self.install_upgrade_profile()
+                testcase.assertTrue(self.catalog_has_index('excludeFromNav'))
+
+        Step(self.portal_setup, 'profile-ftw.upgrade.tests.profiles:navigation-index')
+
+    def test_install_upgrade_profile_raises_exception_when_no_profile_defined(self):
+        class Step(UpgradeStep):
+            def __call__(self):
+                self.install_upgrade_profile()
+
+        with self.assertRaises(NoAssociatedProfileError):
+            Step(self.portal_setup)
 
     def test_uninstall_product(self):
         quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')

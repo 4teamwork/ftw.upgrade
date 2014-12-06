@@ -2,10 +2,17 @@ Changelog
 =========
 
 
-1.10.3 (unreleased)
+1.11.0 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- New ``upgrade-step:directory`` directive for registering a directory
+  with upgrade steps which are automatically detected and registered.
+  [jone]
+
+- Extend the importProfile directive so that a handler can be
+  defined. The handler may import the associated upgrade step
+  profile with the new method ``self.install_upgrade_profile()``.
+  [jone]
 
 
 1.10.2 (2014-11-19)

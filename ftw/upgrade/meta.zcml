@@ -10,6 +10,12 @@
             handler=".zcml.importProfileUpgradeStep"
             />
 
+        <meta:directive
+            name="directory"
+            schema=".directory.zcml.IUpgradeStepDirectoryDirective"
+            handler=".directory.zcml.upgrade_step_directory_handler"
+            />
+
     </meta:directives>
 
 </configure>

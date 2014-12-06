@@ -1,7 +1,9 @@
+from ftw.upgrade import UpgradeStep
 from Products.CMFPlone.interfaces import IMigratingPloneSiteRoot
 from Products.GenericSetup.interfaces import EXTENSION
 from Products.GenericSetup.zcml import registerProfile
 from Products.GenericSetup.zcml import upgradeStep
+from zope.configuration.fields import GlobalObject
 from zope.configuration.fields import Path
 from zope.interface import Interface
 import zope.schema
@@ -36,18 +38,30 @@ class IImportProfileUpgradeStep(Interface):
         title=u'Path',
         required=True)
 
+    handler = GlobalObject(
+        title=u'Handler',
+        required=False)
+
+
+class DefaultUpgradeStep(UpgradeStep):
+    def __call__(self):
+        self.install_upgrade_profile()
+
 
 def importProfileUpgradeStep(_context, title, profile, source, destination,
-                             directory, description=None):
+                             directory, description=None, handler=None):
     profile_id = "upgrade_to_%s" % destination
     registerProfile(_context, name=profile_id, title=title,
                     description=description, directory=directory,
                     provides=EXTENSION, for_=IMigratingPloneSiteRoot)
 
-    def handler(portal_setup):
-        profileid = 'profile-%s:%s' % (_context.package.__name__, profile_id)
-        portal_setup.runAllImportStepsFromProfile(profileid, purge_old=False)
+    if handler is None:
+        handler = DefaultUpgradeStep
 
-    upgradeStep(_context, title=title, profile=profile, handler=handler,
-                description=description, source=source,
-                destination=destination)
+    profileid = 'profile-%s:%s' % (_context.package.__name__, profile_id)
+    def handler_wrapper(portal_setup):
+        return handler(portal_setup, profileid)
+
+    upgradeStep(_context, title=title, profile=profile,
+                handler=handler_wrapper, description=description,
+                source=source, destination=destination)

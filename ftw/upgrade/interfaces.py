@@ -164,3 +164,38 @@ class IPostUpgrade(Interface):
     def __call__():
         """Runs the post upgrade adapter.
         """
+
+
+class IUpgradeStepRecorder(Interface):
+    """The upgrade step recorder stores which upgrade steps are installed
+    per Plone site.
+
+    This makes it possible to track "orphan" upgrade steps, which were merged
+    in after installing upgrade steps with a higher version.
+    This can happen with long-term branches when timestamps are used
+    as versions.
+    """
+
+    def __init__(portal, profilename):
+        """The IUpgradeStepRecorder is a multiadapter, adapting the Plone site
+        and the profile name (string).
+        """
+
+    def mark_as_installed(target_version):
+        """Marks an upgrade step as installed.
+        The upgrade step is identified with the target version.
+        """
+
+    def is_installed(target_version):
+        """Returns whether an upgrade step was already installed on this
+        Plone site (boolean).
+        """
+
+
+class IRecordableHandler(Interface):
+    """Marker interface for upgrade step handlers which support recording
+    upgrade step installation (see IUpgradeStepRecorder).
+    Marking the upgrade step as installed is done by handlers (upgrade step
+    methods or classes) which provide this interface.
+    this
+    """

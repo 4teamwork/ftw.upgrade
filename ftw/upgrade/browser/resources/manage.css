@@ -71,6 +71,10 @@
   background-color: #fedcdc;
 }
 
+.upgrade.orphan {
+  background-color: #F8CE92;
+}
+
 #upgrade-output {
   width: 100%;
   min-height: 500px;

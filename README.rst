@@ -58,6 +58,22 @@ Installation
 - Go to Site Setup of your Plone site and activate the ``ftw.upgrade`` add-on.
 
 
+Installing ftw.upgrade's console script
+---------------------------------------
+
+Installing the console script ``bin/upgrade`` can be done with an additional
+buildout part:
+
+.. code:: ini
+
+    [buildout]
+    parts += upgrade
+
+    [upgrade]
+    recipe = zc.recipe.egg:scripts
+    eggs = ftw.upgrade
+
+
 Compatibility
 -------------
 

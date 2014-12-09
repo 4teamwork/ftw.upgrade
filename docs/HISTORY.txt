@@ -5,6 +5,16 @@ Changelog
 1.11.0 (unreleased)
 -------------------
 
+- Add a ``create-upgrade`` script which can be installed globally.
+  [jone]
+
+- Create a ``bin/upgrade`` script:
+
+  - the ``create`` command creates a upgrade step in the "upgrades" directory.
+  - the ``touch`` command can be used for reordering upgrade steps.
+
+  [jone]
+
 - New ``upgrade-step:directory`` directive for registering a directory
   with upgrade steps which are automatically detected and registered.
   [jone]

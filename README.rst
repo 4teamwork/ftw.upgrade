@@ -58,6 +58,22 @@ Installation
 - Go to Site Setup of your Plone site and activate the ``ftw.upgrade`` add-on.
 
 
+Installing ftw.upgrade's console script
+---------------------------------------
+
+Installing the console script ``bin/upgrade`` can be done with an additional
+buildout part:
+
+.. code:: ini
+
+    [buildout]
+    parts += upgrade
+
+    [upgrade]
+    recipe = zc.recipe.egg:scripts
+    eggs = ftw.upgrade
+
+
 Compatibility
 -------------
 
@@ -496,6 +512,51 @@ Setting up an upgrade directory
 
 Creating an upgrade step
 ------------------------
+
+Upgrade steps can be generated with ``ftw.upgrade``'s ``bin/upgrade`` console script.
+The idea is to install this script with buildout using
+`zc.recipe.egg <https://pypi.python.org/pypi/zc.recipe.egg>`_.
+
+Once installed, upgrade steps can simply be scaffolded with the script:
+
+.. code::
+
+    $ bin/upgrade create AddControlpanelAction
+
+The ``create`` command searches for your ``upgrades`` directory by resolving the
+``*.egg-info/top_level.txt`` file. If you have no egg-infos or your upgrades directory is
+named differently the automatic discovery does not work and you can provide the
+path to the upgrades directory using the ``--path`` argument.
+
+.. sidebar:: Global create-upgrade script
+
+    The
+    `create-upgrade <https://github.com/4teamwork/ftw.upgrade/blob/master/scripts/create-upgrade>`_
+    script helps you create upgrade steps in any directory (also when not named ``upgrades``).
+    Download it and place it somewhere in your ``PATH``, cd in the directory and create an upgrade
+    step: ``create-upgrade add_control_panel_action``.
+
+
+Reordering upgrade steps
+------------------------
+
+The ``bin/upgrade`` console script provides a ``touch`` for reordering generated upgrade steps.
+With the optional arguments ``--before`` and ``--after`` upgrade steps can be moved to a specific
+position.
+When the optional arguments are omitted, the upgrade step timestamp is set to the current time.
+
+Examples:
+
+.. code::
+
+    $ bin/upgrade touch upgrades/20141218093045_add_controlpanel_action
+    $ bin/upgrade touch 20141218093045_add_controlpanel_action --before 20141220181500_update_registry
+    $ bin/upgrade touch 20141218093045_add_controlpanel_action --after 20141220181500_update_registry
+
+
+
+Creating an upgrade step manually
+---------------------------------
 
 - Create a directory for the upgrade step in the upgrades directory.
   The directory name must contain a timestamp and a description, concatenated by an underscore,

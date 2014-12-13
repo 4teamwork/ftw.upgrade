@@ -19,6 +19,7 @@ from zope.configuration import xmlconfig
 import ftw.upgrade.tests.builders
 import logging
 import os
+import tempfile
 import zc.buildout.easy_install
 import zc.buildout.testing
 
@@ -117,22 +118,6 @@ class CommandLayer(Layer):
 COMMAND_LAYER = CommandLayer()
 
 
-class ZCMLLayer(ComponentRegistryLayer):
-    """A layer which only sets up the zcml, but does not start a zope
-    instance.
-    """
-
-    defaultBases = (zca.ZCML_DIRECTIVES, BUILDER_LAYER)
-
-    def setUp(self):
-        super(ZCMLLayer, self).setUp()
-        import ftw.upgrade.tests
-        self.load_zcml_file('test.zcml', ftw.upgrade.tests)
-
-
-ZCML_LAYER = ZCMLLayer()
-
-
 def functional_session_factory():
     sess = BuilderSession()
     sess.auto_commit = True
@@ -195,3 +180,39 @@ CYCLIC_DEPENDENCIES_FIXTURE = CyclicDependenciesLayer()
 CYCLIC_DEPENDENCIES_FUNCTIONAL = FunctionalTesting(
     bases=(CYCLIC_DEPENDENCIES_FIXTURE, ),
     name='ftw.upgrade:cyclic-dependencies:functional')
+
+
+
+class NewUpgradeLayer(PloneSandboxLayer):
+    defaultBases = (PLONE_FIXTURE, BUILDER_LAYER)
+
+    def setUpZope(self, app, configurationContext):
+        import Products.CMFPlacefulWorkflow
+        xmlconfig.file('configure.zcml', Products.CMFPlacefulWorkflow,
+                       context=configurationContext)
+
+        import ftw.upgrade
+        xmlconfig.file('configure.zcml', ftw.upgrade,
+                       context=configurationContext)
+
+        z2.installProduct(app, 'Products.CMFPlacefulWorkflow')
+
+    def setUpPloneSite(self, portal):
+        applyProfile(
+            portal, 'Products.CMFPlacefulWorkflow:CMFPlacefulWorkflow')
+        applyProfile(portal, 'ftw.upgrade:default')
+
+    def testSetUp(self):
+        self['temp_directory'] = Path(tempfile.mkdtemp('ftw.builder'))
+        zca.pushGlobalRegistry()
+        self['configurationContext'] = zca.stackConfigurationContext(
+            self.get('configurationContext'), name='ftw.upgrade')
+
+    def testTearDown(self):
+        self['temp_directory'].rmtree_p()
+        zca.popGlobalRegistry()
+
+
+NEW_UPGRADE_LAYER = NewUpgradeLayer()
+NEW_UPGRADE_INTEGRATION_TESTING = IntegrationTesting(
+    bases=(NEW_UPGRADE_LAYER,), name="ftw.upgrade:integration")

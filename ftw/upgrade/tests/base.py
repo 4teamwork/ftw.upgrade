@@ -1,8 +1,12 @@
 from contextlib import contextmanager
 from ftw.builder import Builder
 from ftw.builder import create
+from ftw.upgrade.interfaces import IExecutioner
+from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
+from zope.component import queryAdapter
 
 
 class UpgradeTestCase(TestCase):
@@ -27,6 +31,14 @@ class UpgradeTestCase(TestCase):
         self.portal_setup.runAllImportStepsFromProfile('profile-{0}'.format(profileid))
         if version is not None:
             self.portal_setup.setLastVersionForProfile(profileid, (unicode(version),))
+
+    def install_profile_upgrades(self, *profileids):
+        gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
+        upgrade_info = [(profile['id'], map(itemgetter('id'), profile['upgrades']))
+                        for profile in gatherer.get_upgrades()
+                        if profile['id'] in profileids]
+        executioner = queryAdapter(self.portal_setup, IExecutioner)
+        executioner.install(upgrade_info)
 
 
 

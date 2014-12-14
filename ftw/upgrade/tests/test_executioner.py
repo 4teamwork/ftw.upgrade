@@ -1,10 +1,8 @@
 from ftw.builder import Builder
 from ftw.upgrade.executioner import Executioner
 from ftw.upgrade.interfaces import IExecutioner
-from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.testing import NEW_UPGRADE_INTEGRATION_TESTING
 from ftw.upgrade.tests.base import UpgradeTestCase
-from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
@@ -60,11 +58,3 @@ class TestExecutioner(UpgradeTestCase):
                 u'the.package:default -> 1002 (Update email address)\n'
                 u'the.package:default -> 1003 (Update email from name)',
                 transaction.get().description)
-
-    def install_profile_upgrades(self, *profileids):
-        gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        upgrade_info = [(profile['id'], map(itemgetter('id'), profile['upgrades']))
-                        for profile in gatherer.get_upgrades()
-                        if profile['id'] in profileids]
-        executioner = queryAdapter(self.portal_setup, IExecutioner)
-        executioner.install(upgrade_info)

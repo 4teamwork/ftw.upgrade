@@ -1,14 +1,12 @@
-from contextlib import contextmanager
 from datetime import datetime
 from ftw.builder import Builder
-from ftw.builder import create
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.gatherer import extend_auto_upgrades_with_human_formatted_date_version
 from ftw.upgrade.gatherer import UpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.testing import NEW_UPGRADE_INTEGRATION_TESTING
-from Products.CMFCore.utils import getToolByName
+from ftw.upgrade.tests.base import UpgradeTestCase
 from unittest2 import TestCase
 from zope.component import getMultiAdapter
 from zope.component import queryAdapter
@@ -17,16 +15,8 @@ import re
 
 
 
-class TestUpgradeInformationGatherer(TestCase):
+class TestUpgradeInformationGatherer(UpgradeTestCase):
     layer = NEW_UPGRADE_INTEGRATION_TESTING
-
-    def setUp(self):
-        self.package = (Builder('python package')
-                        .at_path(self.layer['temp_directory'])
-                        .named('the.package'))
-        self.portal = self.layer['portal']
-        self.portal_setup = getToolByName(self.portal, 'portal_setup')
-        self.portal_quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
 
     def test_implements_interface(self):
         verifyClass(IUpgradeInformationGatherer, UpgradeInformationGatherer)
@@ -302,19 +292,6 @@ class TestUpgradeInformationGatherer(TestCase):
                  'sdest': '20141230104550',
                  'fdest': '2014/12/30 10:45'},
                 upgrade_info)
-
-    @contextmanager
-    def package_created(self):
-        with create(self.package).zcml_loaded(self.layer['configurationContext']) as package:
-            yield package
-
-    def default_upgrade(self):
-        return Builder('plone upgrade step').upgrading('1000', to='1001')
-
-    def install_profile(self, profileid, version=None):
-        self.portal_setup.runAllImportStepsFromProfile('profile-{0}'.format(profileid))
-        if version is not None:
-            self.portal_setup.setLastVersionForProfile(profileid, (unicode(version),))
 
     def record_installed_upgrades(self, profile, *destinations):
         profile = re.sub('^profile-', '', profile)

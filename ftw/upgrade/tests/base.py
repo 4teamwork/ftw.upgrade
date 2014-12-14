@@ -1,5 +1,33 @@
+from contextlib import contextmanager
+from ftw.builder import Builder
+from ftw.builder import create
 from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
+
+
+class UpgradeTestCase(TestCase):
+
+    def setUp(self):
+        self.package = (Builder('python package')
+                        .at_path(self.layer['temp_directory'])
+                        .named('the.package'))
+        self.portal = self.layer['portal']
+        self.portal_setup = getToolByName(self.portal, 'portal_setup')
+        self.portal_quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
+
+    @contextmanager
+    def package_created(self):
+        with create(self.package).zcml_loaded(self.layer['configurationContext']) as package:
+            yield package
+
+    def default_upgrade(self):
+        return Builder('plone upgrade step').upgrading('1000', to='1001')
+
+    def install_profile(self, profileid, version=None):
+        self.portal_setup.runAllImportStepsFromProfile('profile-{0}'.format(profileid))
+        if version is not None:
+            self.portal_setup.setLastVersionForProfile(profileid, (unicode(version),))
+
 
 
 class WorkflowTestCase(TestCase):

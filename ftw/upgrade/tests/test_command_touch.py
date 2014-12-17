@@ -2,121 +2,130 @@ from datetime import datetime
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.testing import COMMAND_LAYER
-from ftw.upgrade.tests.builders import UPGRADE_CODE
 from unittest2 import TestCase
-import os
 
 
 class TestTouchCommand(TestCase):
     layer = COMMAND_LAYER
 
+    def setUp(self):
+        self.package_builder = (Builder('python package')
+                                .named('the.package')
+                                .at_path(self.layer.sample_buildout))
+        self.package = None
+
     def test_touching_an_upgrade_step_renews_the_timestamp(self):
-        paths = create(Builder('package').within(self.layer.sample_buildout))
-        upgrade_path = create(Builder('upgrade step')
-                              .named('20110101080000_add_action')
-                              .within(paths['upgrades']))
+        self.package = create(
+            self.package_builder
+            .with_profile(Builder('genericsetup profile')
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2011, 1, 1))
+                                        .named('AddAction'))))
 
-        self.assertTrue(os.path.exists(upgrade_path),
-                        'Expected path to exist: {0}'.format(upgrade_path))
-        self.layer.upgrade_script('touch {0}'.format(upgrade_path))
-        self.assertFalse(os.path.exists(upgrade_path),
-                         'Expected path to no longer exist: {0}'.format(upgrade_path))
+        path = self.package.package_path.joinpath('upgrades', '20110101000000_add_action')
+        self.assertTrue(
+            path.exists(),
+            'Expected path to exist: {0}'.format(path))
+        self.layer.upgrade_script('touch {0}'.format(path))
+        self.assertFalse(path.exists(),
+                         'Expected path to no longer exist: {0}'.format(path))
 
-        step_name, = os.listdir(paths['upgrades'])
-        self.assertRegexpMatches(step_name,
+        new_step_path, = path.dirname().dirs()
+        self.assertRegexpMatches(new_step_path.name,
                                  r'^{0}\d{{10}}_add_action'.format(datetime.now().year))
 
     def test_moving_after_another(self):
-        paths = create(Builder('package').within(self.layer.sample_buildout))
+        self.package = create(
+            self.package_builder
+            .with_profile(Builder('genericsetup profile')
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2011, 11, 5))
+                                        .named('add_action'))
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2011, 11, 25))
+                                        .named('remove_action'))
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2022, 12, 12))
+                                        .named('update_action'))))
 
-        add_path = create(Builder('upgrade step')
-                          .named('20111105000000_add_action')
-                          .within(paths['upgrades']))
-
-        create(Builder('upgrade step')
-               .named('20111125000000_remove_action')
-               .within(paths['upgrades']))
-
-        update_path = create(Builder('upgrade step')
-                             .named('20221212111111_update_action')
-                             .within(paths['upgrades']))
-
-        self.layer.upgrade_script('touch {0} --after {1}'.format(update_path, add_path))
-
-        self.assertEqual(['20111105000000_add_action',
-                          '20111115000000_update_action',
-                          '20111125000000_remove_action'],
-                         sorted(os.listdir(paths['upgrades'])))
+        self.layer.upgrade_script('touch {update_action} --after {add_action}'.format(
+                **self.upgrades()))
+        self.assert_upgrades('20111105000000_add_action',
+                             '20111115000000_update_action',
+                             '20111125000000_remove_action')
 
     def test_moving_explicitly_to_the_end(self):
-        paths = create(Builder('package').within(self.layer.sample_buildout))
-        remove_path = create(Builder('upgrade step')
-                             .named('20221212111111_remove_action')
-                             .within(paths['upgrades']))
+        self.package = create(
+            self.package_builder
+            .with_profile(Builder('genericsetup profile')
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2022, 12, 12, 0, 0, 0))
+                                        .named('remove_action'))
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2011, 11, 5, 0, 0, 55))
+                                        .named('add_action'))))
 
-        add_path = create(Builder('upgrade step')
-                          .named('20111105000055_add_action')
-                          .within(paths['upgrades']))
+        self.layer.upgrade_script('touch {remove_action} --after {add_action}'.format(
+                **self.upgrades()))
 
-        self.layer.upgrade_script('touch {0} --after {1}'.format(remove_path, add_path))
-
-        self.assertEqual(['20111105000055_add_action',
-                          '20111106000055_remove_action'],
-                         sorted(os.listdir(paths['upgrades'])))
+        self.assert_upgrades('20111105000055_add_action',
+                             '20111106000055_remove_action')
 
     def test_moving_before_another(self):
-        paths = create(Builder('package').within(self.layer.sample_buildout))
-        create(Builder('upgrade step')
-               .named('20111105000000_add_action')
-               .within(paths['upgrades']))
+        self.package = create(
+            self.package_builder
+            .with_profile(Builder('genericsetup profile')
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2011, 11, 5))
+                                        .named('add_action'))
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2011, 11, 25))
+                                        .named('remove_action'))
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2022, 12, 12))
+                                        .named('update_action'))))
 
-        remove_path = create(Builder('upgrade step')
-                             .named('20111125000000_remove_action')
-                             .within(paths['upgrades']))
+        self.layer.upgrade_script('touch {update_action} --before {remove_action}'.format(
+                **self.upgrades()))
 
-        update_path = create(Builder('upgrade step')
-                             .named('20221212111111_update_action')
-                             .within(paths['upgrades']))
-
-        self.layer.upgrade_script('touch {0} --before {1}'.format(update_path, remove_path))
-
-        self.assertEqual(['20111105000000_add_action',
-                          '20111115000000_update_action',
-                          '20111125000000_remove_action'],
-                         sorted(os.listdir(paths['upgrades'])))
+        self.assert_upgrades('20111105000000_add_action',
+                             '20111115000000_update_action',
+                             '20111125000000_remove_action')
 
     def test_moving_explicitly_to_the_beginning(self):
-        paths = create(Builder('package').within(self.layer.sample_buildout))
-        remove_path = create(Builder('upgrade step')
-                             .named('20111106000055_remove_action')
-                             .within(paths['upgrades']))
+        self.package = create(
+            self.package_builder
+            .with_profile(Builder('genericsetup profile')
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2011, 11, 6, 0, 0, 55))
+                                        .named('remove_action'))
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2022, 12, 12, 12, 12, 12))
+                                        .named('add_action'))))
 
-        add_path = create(Builder('upgrade step')
-                          .named('20221212111111_add_action')
-                          .within(paths['upgrades']))
+        self.layer.upgrade_script('touch {add_action} --before {remove_action}'.format(
+                **self.upgrades()))
 
-        self.layer.upgrade_script('touch {0} --before {1}'.format(add_path, remove_path))
-
-        self.assertEqual(['20111105000055_add_action',
-                          '20111106000055_remove_action'],
-                         sorted(os.listdir(paths['upgrades'])))
+        self.assert_upgrades('20111105000055_add_action',
+                             '20111106000055_remove_action')
 
     def test_moving_before_and_after_at_same_time_is_not_allowed(self):
-        paths = create(Builder('package').within(self.layer.sample_buildout))
-        add_path = create(Builder('upgrade step')
-                          .named('20111105000000_add_action')
-                          .within(paths['upgrades']))
+        self.package = create(
+            self.package_builder
+            .with_profile(Builder('genericsetup profile')
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2011, 1, 1))
+                                        .named('add_action'))
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2011, 1, 2))
+                                        .named('remove_action'))
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2022, 1, 3))
+                                        .named('update action'))))
 
-        remove_path = create(Builder('upgrade step')
-                             .named('20111125000000_remove_action')
-                             .within(paths['upgrades']))
-
-        update_path = create(Builder('upgrade step')
-                             .named('20221212111111_update_action')
-                             .within(paths['upgrades']))
-
-        args = 'touch {0} --before {1} --after {2}'.format(add_path, remove_path, update_path)
-        exitcode, output = self.layer.upgrade_script(args, assert_exitcode=False)
+        cmd = 'touch {add_action} --before {remove_action} --after {update_action}'.format(
+            **self.upgrades())
+        exitcode, output = self.layer.upgrade_script(cmd, assert_exitcode=False)
         self.assertEqual(2, exitcode, 'command should fail because --after and --before can'
                          ' not be used at the same time.')
         self.assertIn('error: argument --after/-a: not allowed with argument --before/-b',
@@ -127,19 +136,36 @@ class TestTouchCommand(TestCase):
         but not the path of the package in development or its dependencies.
         Therefore the bin/upgrade command should not import any code.
         """
-        paths = create(Builder('package').within(self.layer.sample_buildout))
-        first_path = create(Builder('upgrade step')
-                            .named('20111111020202_migrate_content_type')
-                            .within(paths['upgrades'])
-                            .with_upgrade_code('from any.package.content import thing\n' +
-                                               UPGRADE_CODE))
 
-        second_path = create(Builder('upgrade step')
-                             .named('20121212030303_add_action')
-                             .within(paths['upgrades']))
+        code = 'raise AssertionError("Upgrade code should not be imported..")'
+        self.package = create(
+            self.package_builder
+            .with_profile(Builder('genericsetup profile')
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2022, 12, 12, 0, 0, 0))
+                                        .named('remove_action')
+                                        .with_code(code))
+                          .with_upgrade(Builder('ftw upgrade step')
+                                        .to(datetime(2011, 11, 5, 0, 0, 55))
+                                        .named('add_action')
+                                        .with_code(code))))
 
-        self.layer.upgrade_script('touch {0} --before {1}'.format(second_path, first_path))
+        self.layer.upgrade_script('touch {remove_action} --after {add_action}'.format(
+                **self.upgrades()))
 
-        self.assertEqual(['20111110020202_add_action',
-                          '20111111020202_migrate_content_type'],
-                         sorted(os.listdir(paths['upgrades'])))
+        self.assert_upgrades('20111105000055_add_action',
+                             '20111106000055_remove_action')
+
+    def upgrades(self):
+        upgrades_dir = self.package.package_path.joinpath('upgrades')
+        self.assertTrue(upgrades_dir.isdir(),
+                        '"upgrades" directory is missing at {0}'.format(upgrades_dir))
+        return dict([(path.name.split('_', 1)[1], path) for path in upgrades_dir.dirs()])
+
+    def assert_upgrades(self, *expected):
+        upgrades_dir = self.package.package_path.joinpath('upgrades')
+        self.assertTrue(upgrades_dir.isdir(),
+                        '"upgrades" directory is missing at {0}'.format(upgrades_dir))
+        expected = set(expected)
+        got = set([str(path.name) for path in upgrades_dir.dirs()])
+        self.assertEqual(expected, got, 'Unexpected upgrades.')

@@ -80,6 +80,7 @@ class UpgradeStepBuilder(object):
         self.package = None
         self.profile_builder = None
         self.named('Upgrade')
+        self.code = None
 
     def to(self, destination):
         if hasattr(destination, 'strftime'):
@@ -96,6 +97,10 @@ class UpgradeStepBuilder(object):
         self.profile_builder = profile_builder
         if self.profile_builder.fs_version is None:
             self.profile_builder.with_fs_version(False)
+        return self
+
+    def with_code(self, code_as_string):
+        self.code = code_as_string
         return self
 
     def create(self):
@@ -130,12 +135,15 @@ class UpgradeStepBuilder(object):
         name = self.name.replace(' ', '_').replace('\.$', '')
         step_name = '{0}_{1}'.format(self.destination_version,
                                      inflection.underscore(name))
-        self.package.with_file(
-            os.path.join(step_name, 'upgrade.py'),
-            scaffold.PYTHON_TEMPLATE.format(
+        if self.code is None:
+            self.code = scaffold.PYTHON_TEMPLATE.format(
                 classname=inflection.camelize(name),
                 docstring=inflection.humanize(
-                    inflection.underscore(name))),
+                    inflection.underscore(name)))
+
+        self.package.with_file(
+            os.path.join(step_name, 'upgrade.py'),
+            self.code,
             makedirs=True)
         return step_name
 

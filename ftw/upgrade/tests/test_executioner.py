@@ -1,7 +1,6 @@
 from ftw.builder import Builder
 from ftw.upgrade.executioner import Executioner
 from ftw.upgrade.interfaces import IExecutioner
-from ftw.upgrade.testing import NEW_UPGRADE_INTEGRATION_TESTING
 from ftw.upgrade.tests.base import UpgradeTestCase
 from Products.CMFCore.utils import getToolByName
 from zope.component import queryAdapter
@@ -10,7 +9,6 @@ import transaction
 
 
 class TestExecutioner(UpgradeTestCase):
-    layer = NEW_UPGRADE_INTEGRATION_TESTING
 
     def test_component_is_registered(self):
         setup_tool = getToolByName(self.layer['portal'], 'portal_setup')

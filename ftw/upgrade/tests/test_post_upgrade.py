@@ -1,12 +1,10 @@
 from ftw.builder import Builder
 from ftw.upgrade.interfaces import IPostUpgrade
-from ftw.upgrade.testing import NEW_UPGRADE_INTEGRATION_TESTING
 from ftw.upgrade.tests.base import UpgradeTestCase
 from zope.interface import Interface
 
 
 class TestPostUpgrade(UpgradeTestCase):
-    layer = NEW_UPGRADE_INTEGRATION_TESTING
 
     def test_post_upgrade_adapters_are_executed(self):
         execution_info = {}

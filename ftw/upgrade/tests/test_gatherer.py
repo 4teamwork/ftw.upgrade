@@ -5,7 +5,6 @@ from ftw.upgrade.gatherer import extend_auto_upgrades_with_human_formatted_date_
 from ftw.upgrade.gatherer import UpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
-from ftw.upgrade.testing import NEW_UPGRADE_INTEGRATION_TESTING
 from ftw.upgrade.tests.base import UpgradeTestCase
 from unittest2 import TestCase
 from zope.component import getMultiAdapter
@@ -16,7 +15,6 @@ import re
 
 
 class TestUpgradeInformationGatherer(UpgradeTestCase):
-    layer = NEW_UPGRADE_INTEGRATION_TESTING
 
     def test_implements_interface(self):
         verifyClass(IUpgradeInformationGatherer, UpgradeInformationGatherer)

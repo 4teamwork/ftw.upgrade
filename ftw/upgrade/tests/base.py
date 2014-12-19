@@ -3,15 +3,16 @@ from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
-from ftw.upgrade.testing import NEW_UPGRADE_INTEGRATION_TESTING
+from ftw.upgrade.testing import NEW_UPGRADE_FUNCTIONAL_TESTING
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
 from zope.component import queryAdapter
+import transaction
 
 
 class UpgradeTestCase(TestCase):
-    layer = NEW_UPGRADE_INTEGRATION_TESTING
+    layer = NEW_UPGRADE_FUNCTIONAL_TESTING
 
     def setUp(self):
         self.package = (Builder('python package')

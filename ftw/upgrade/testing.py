@@ -1,7 +1,6 @@
 from ftw.builder.session import BuilderSession
 from ftw.builder.testing import BUILDER_LAYER
 from ftw.builder.testing import set_builder_session_factory
-from ftw.testing.layer import ComponentRegistryLayer
 from path import Path
 from pkg_resources import DistributionNotFound
 from pkg_resources import get_distribution
@@ -165,24 +164,6 @@ FTW_UPGRADE_FUNCTIONAL_TESTING = FunctionalTesting(
     name='FtwUpgrade:Functional')
 
 
-class CyclicDependenciesLayer(PloneSandboxLayer):
-
-    defaultBases = (FTW_UPGRADE_FIXTURE,)
-
-    def setUpZope(self, app, configurationContext):
-        import ftw.upgrade.tests.profiles
-        xmlconfig.file('cyclic-dependencies.zcml',
-                       ftw.upgrade.tests.profiles,
-                       context=configurationContext)
-
-
-CYCLIC_DEPENDENCIES_FIXTURE = CyclicDependenciesLayer()
-CYCLIC_DEPENDENCIES_FUNCTIONAL = FunctionalTesting(
-    bases=(CYCLIC_DEPENDENCIES_FIXTURE, ),
-    name='ftw.upgrade:cyclic-dependencies:functional')
-
-
-
 class NewUpgradeLayer(PloneSandboxLayer):
     defaultBases = (PLONE_FIXTURE, BUILDER_LAYER)
 
@@ -214,5 +195,7 @@ class NewUpgradeLayer(PloneSandboxLayer):
 
 
 NEW_UPGRADE_LAYER = NewUpgradeLayer()
-NEW_UPGRADE_INTEGRATION_TESTING = IntegrationTesting(
-    bases=(NEW_UPGRADE_LAYER,), name="ftw.upgrade:integration")
+NEW_UPGRADE_FUNCTIONAL_TESTING = FunctionalTesting(
+    bases=(NEW_UPGRADE_LAYER,
+           set_builder_session_factory(functional_session_factory)),
+    name="ftw.upgrade:functional")

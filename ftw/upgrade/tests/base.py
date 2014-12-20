@@ -8,7 +8,6 @@ from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
 from zope.component import queryAdapter
-import transaction
 
 
 class UpgradeTestCase(TestCase):

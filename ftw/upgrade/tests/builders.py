@@ -1,5 +1,7 @@
 from ftw.builder import builder_registry
+from ftw.builder.utils import serialize_callable
 from ftw.upgrade.directory import scaffold
+from path import Path
 import inflection
 import os
 
@@ -14,6 +16,8 @@ class UpgradeStepBuilder(object):
         self.profile_builder = None
         self.named('Upgrade')
         self.code = None
+        self.directories = []
+        self.files = []
 
     def to(self, destination):
         if hasattr(destination, 'strftime'):
@@ -36,13 +40,41 @@ class UpgradeStepBuilder(object):
         self.code = code_as_string
         return self
 
+    def calling(self, callable_, *to_import):
+        """Make the upgrade step execute the callable passed as argument.
+        The callable will be serialized to a string.
+
+        If the callable is a class, superclasses are automatically imported.
+        Other globals are not imported and need to be passed to ``calling``
+        as additional positional arguments.
+        """
+
+        source = serialize_callable(callable_, *to_import)
+        return self.with_code(source)
+
+    def with_directory(self, relative_path):
+        """Create a directory in the profile.
+        """
+        self.directories.append(relative_path)
+        return self
+
+    def with_file(self, relative_path, contents, makedirs=False):
+        """Create a file within this package.
+        """
+        if makedirs and Path(relative_path).parent:
+            self.with_directory(Path(relative_path).parent)
+
+        self.files.append((relative_path, contents))
+        return self
+
     def create(self):
         if self.destination_version is None:
             raise ValueError('A destination version is required.'
                              ' Use .to(datetime(...)).')
         self._set_package()
         self._declare_zcml_directory()
-        return self._create_upgrade()
+        name = self._create_upgrade()
+        self._register_files_and_dirs_in_package_builder(name)
 
     def _set_package(self):
         self.package = self.profile_builder.package.get_subpackage('upgrades')
@@ -79,6 +111,13 @@ class UpgradeStepBuilder(object):
             self.code,
             makedirs=True)
         return step_name
+
+    def _register_files_and_dirs_in_package_builder(self, step_name):
+        for relative_path in self.directories:
+            self.package.with_directory(os.path.join(step_name, relative_path))
+
+        for path, contents in self.files:
+            self.package.with_file(os.path.join(step_name, path), contents)
 
 
 builder_registry.register('ftw upgrade step', UpgradeStepBuilder)

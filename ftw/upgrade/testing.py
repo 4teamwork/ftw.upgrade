@@ -140,10 +140,6 @@ class FtwUpgradeLayer(PloneSandboxLayer):
         xmlconfig.file('configure.zcml', ftw.upgrade.tests.profiles,
                        context=configurationContext)
 
-        import ftw.upgrade.tests.upgrades
-        xmlconfig.file('navigation.zcml', ftw.upgrade.tests.upgrades,
-                       context=configurationContext)
-
         z2.installProduct(app, 'Products.CMFPlacefulWorkflow')
 
     def setUpPloneSite(self, portal):

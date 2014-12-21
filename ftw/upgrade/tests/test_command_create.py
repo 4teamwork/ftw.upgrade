@@ -1,9 +1,8 @@
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.testing import COMMAND_LAYER
-from path import Path
 from unittest2 import TestCase
-import os
+
 
 class TestCreateCommand(TestCase):
     layer = COMMAND_LAYER

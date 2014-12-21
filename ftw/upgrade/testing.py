@@ -1,4 +1,3 @@
-from ftw.builder.session import BuilderSession
 from ftw.builder.testing import BUILDER_LAYER
 from ftw.builder.testing import functional_session_factory
 from ftw.builder.testing import set_builder_session_factory
@@ -7,10 +6,8 @@ from pkg_resources import DistributionNotFound
 from pkg_resources import get_distribution
 from plone.app.testing import applyProfile
 from plone.app.testing import FunctionalTesting
-from plone.app.testing import IntegrationTesting
 from plone.app.testing import PLONE_FIXTURE
 from plone.app.testing import PloneSandboxLayer
-from plone.app.testing import setRoles, TEST_USER_ID, TEST_USER_NAME, login
 from plone.testing import Layer
 from plone.testing import z2
 from plone.testing import zca

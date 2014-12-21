@@ -152,8 +152,6 @@ class FtwUpgradeLayer(PloneSandboxLayer):
 
 
 FTW_UPGRADE_FIXTURE = FtwUpgradeLayer()
-FTW_UPGRADE_INTEGRATION_TESTING = IntegrationTesting(
-    bases=(FTW_UPGRADE_FIXTURE,), name="FtwUpgrade:Integration")
 FTW_UPGRADE_FUNCTIONAL_TESTING = FunctionalTesting(
     bases=(FTW_UPGRADE_FIXTURE,
            set_builder_session_factory(functional_session_factory)),

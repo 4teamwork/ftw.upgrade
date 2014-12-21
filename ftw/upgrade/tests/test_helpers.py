@@ -1,18 +1,20 @@
-from Products.CMFCore.utils import getToolByName
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.helpers import update_security_for
-from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
-from unittest2 import TestCase
+from ftw.upgrade.testing import NEW_UPGRADE_FUNCTIONAL_TESTING
+from ftw.upgrade.tests.base import WorkflowTestCase
+from plone.app.testing import setRoles
+from plone.app.testing import TEST_USER_ID
+from Products.CMFCore.utils import getToolByName
 
 
-class TestUpdateSecurity(TestCase):
+class TestUpdateSecurity(WorkflowTestCase):
 
-    layer = FTW_UPGRADE_FUNCTIONAL_TESTING
+    layer = NEW_UPGRADE_FUNCTIONAL_TESTING
 
     def setUp(self):
-        super(TestCase, self).setUp()
-        self.portal = self.layer['portal']
+        super(TestUpdateSecurity, self).setUp()
+        setRoles(self.portal, TEST_USER_ID, ['Manager'])
 
     def test_removes_rules_unmanaged_by_workflow(self):
         self.set_workflow_chain(for_type='Folder',
@@ -78,34 +80,6 @@ class TestUpdateSecurity(TestCase):
 
         self.assertEquals(['Reader'],
                           self.get_allowed_roles_and_users_for(folder))
-
-    def set_workflow_chain(self, for_type, to_workflow):
-        wftool = getToolByName(self.portal, 'portal_workflow')
-        wftool.setChainForPortalTypes((for_type,),
-                                      (to_workflow,))
-
-    def assert_permission_acquired(self, permission, obj):
-        not_acquired_permissions = self.get_not_acquired_permissions_of(obj)
-
-        self.assertNotIn(
-            permission, not_acquired_permissions,
-            'Expected permission "%s" to be acquired on %s' % (
-                permission, str(obj)))
-
-    def assert_permission_not_acquired(self, permission, obj):
-        not_acquired_permissions = self.get_not_acquired_permissions_of(obj)
-
-        self.assertIn(
-            permission, not_acquired_permissions,
-            'Expected permission "%s" to NOT be acquired on %s' % (
-                permission, str(obj)))
-
-    def get_not_acquired_permissions_of(self, obj):
-        acquired_permissions = filter(
-            lambda item: not item.get('acquire'),
-            obj.permission_settings())
-
-        return map(lambda item: item.get('name'), acquired_permissions)
 
     def get_allowed_roles_and_users_for(self, obj):
         catalog = getToolByName(self.portal, 'portal_catalog')

@@ -123,37 +123,6 @@ def functional_session_factory():
     return sess
 
 
-class FtwUpgradeLayer(PloneSandboxLayer):
-
-    defaultBases = (PLONE_FIXTURE, BUILDER_LAYER)
-
-    def setUpZope(self, app, configurationContext):
-        import Products.CMFPlacefulWorkflow
-        xmlconfig.file('configure.zcml', Products.CMFPlacefulWorkflow,
-                       context=configurationContext)
-
-        import ftw.upgrade
-        xmlconfig.file('configure.zcml', ftw.upgrade,
-                       context=configurationContext)
-
-        import ftw.upgrade.tests.profiles
-        xmlconfig.file('configure.zcml', ftw.upgrade.tests.profiles,
-                       context=configurationContext)
-
-        z2.installProduct(app, 'Products.CMFPlacefulWorkflow')
-
-    def setUpPloneSite(self, portal):
-        applyProfile(
-            portal, 'Products.CMFPlacefulWorkflow:CMFPlacefulWorkflow')
-        applyProfile(portal, 'ftw.upgrade:default')
-
-        setRoles(portal, TEST_USER_ID, ['Manager'])
-        login(portal, TEST_USER_NAME)
-
-
-FTW_UPGRADE_FIXTURE = FtwUpgradeLayer()
-
-
 class NewUpgradeLayer(PloneSandboxLayer):
     defaultBases = (PLONE_FIXTURE, BUILDER_LAYER)
 

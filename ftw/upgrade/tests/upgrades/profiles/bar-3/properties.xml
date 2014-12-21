@@ -1,4 +1,0 @@
-<?xml version="1.0"?>
-<site>
-    <property name="email_from_name" type="string">Foobar</property>
-</site>

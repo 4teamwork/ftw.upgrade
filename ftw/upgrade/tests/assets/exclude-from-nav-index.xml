@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<object name="portal_catalog" meta_type="Plone Catalog Tool">
+
+    <index name="excludeFromNav" meta_type="KeywordIndex">
+        <indexed_attr value="excludeFromNav"/>
+    </index>
+
+</object>

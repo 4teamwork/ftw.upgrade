@@ -76,10 +76,7 @@ class TestUpgradeStepBuilder(UpgradeTestCase):
         self.profile.with_upgrade(
             Builder('ftw upgrade step')
             .to(datetime(2011, 1, 1))
-            .with_file('properties.xml', '\n'.join((
-                        '<site>',
-                        '  <property name="foo" type="string">bar</property>'
-                        '</site>'))))
+            .with_file('properties.xml', self.asset('foo-property.xml')))
 
         with self.package_created():
             self.install_profile('the.package:default', '0')

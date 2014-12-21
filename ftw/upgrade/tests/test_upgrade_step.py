@@ -21,17 +21,6 @@ class IMyProductLayer(Interface):
     """
 
 
-CATALOG_XML_ADD_EXCLUDE_FROM_NAV_INDEX = '''<?xml version="1.0"?>
-<object name="portal_catalog" meta_type="Plone Catalog Tool">
-
-    <index name="excludeFromNav" meta_type="KeywordIndex">
-        <indexed_attr value="excludeFromNav"/>
-    </index>
-
-</object>
-'''
-
-
 class TestUpgradeStep(UpgradeTestCase):
 
     def setUp(self):
@@ -407,7 +396,7 @@ class TestUpgradeStep(UpgradeTestCase):
     def test_setup_install_profile(self):
         self.package.with_profile(
             Builder('genericsetup profile')
-            .with_file('catalog.xml', CATALOG_XML_ADD_EXCLUDE_FROM_NAV_INDEX))
+            .with_file('catalog.xml', self.asset('exclude-from-nav-index.xml')))
 
         testcase = self
 
@@ -439,10 +428,7 @@ class TestUpgradeStep(UpgradeTestCase):
             .with_upgrade(Builder('ftw upgrade step')
                           .to(datetime(2011, 1, 1))
                           .calling(AddSiteProperty)
-                          .with_file('properties.xml', '\n'.join((
-                            '<site>',
-                            '  <property name="foo" type="string">bar</property>'
-                            '</site>')))))
+                          .with_file('properties.xml', self.asset('foo-property.xml'))))
 
         with self.package_created():
             self.install_profile('the.package:default', '0')

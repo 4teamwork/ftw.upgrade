@@ -3,7 +3,7 @@ from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
-from ftw.upgrade.testing import NEW_UPGRADE_FUNCTIONAL_TESTING
+from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
 from operator import itemgetter
 from path import Path
 from plone.app.testing import setRoles
@@ -14,7 +14,7 @@ from zope.component import queryAdapter
 
 
 class UpgradeTestCase(TestCase):
-    layer = NEW_UPGRADE_FUNCTIONAL_TESTING
+    layer = UPGRADE_FUNCTIONAL_TESTING
 
     def setUp(self):
         self.package = (Builder('python package')
@@ -51,7 +51,7 @@ class UpgradeTestCase(TestCase):
 
 class WorkflowTestCase(TestCase):
 
-    layer = NEW_UPGRADE_FUNCTIONAL_TESTING
+    layer = UPGRADE_FUNCTIONAL_TESTING
 
     def setUp(self):
         self.portal = self.layer['portal']

@@ -1,5 +1,6 @@
 from ftw.builder.session import BuilderSession
 from ftw.builder.testing import BUILDER_LAYER
+from ftw.builder.testing import functional_session_factory
 from ftw.builder.testing import set_builder_session_factory
 from path import Path
 from pkg_resources import DistributionNotFound
@@ -117,13 +118,7 @@ class CommandLayer(Layer):
 COMMAND_LAYER = CommandLayer()
 
 
-def functional_session_factory():
-    sess = BuilderSession()
-    sess.auto_commit = True
-    return sess
-
-
-class NewUpgradeLayer(PloneSandboxLayer):
+class UpgradeLayer(PloneSandboxLayer):
     defaultBases = (PLONE_FIXTURE, BUILDER_LAYER)
 
     def setUpZope(self, app, configurationContext):
@@ -153,8 +148,8 @@ class NewUpgradeLayer(PloneSandboxLayer):
         zca.popGlobalRegistry()
 
 
-NEW_UPGRADE_LAYER = NewUpgradeLayer()
-NEW_UPGRADE_FUNCTIONAL_TESTING = FunctionalTesting(
-    bases=(NEW_UPGRADE_LAYER,
+UPGRADE_LAYER = UpgradeLayer()
+UPGRADE_FUNCTIONAL_TESTING = FunctionalTesting(
+    bases=(UPGRADE_LAYER,
            set_builder_session_factory(functional_session_factory)),
     name="ftw.upgrade:functional")

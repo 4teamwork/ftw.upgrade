@@ -1,19 +1,13 @@
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.placefulworkflow import PlacefulWorkflowPolicyActivator
-from ftw.upgrade.testing import NEW_UPGRADE_FUNCTIONAL_TESTING
 from ftw.upgrade.tests.base import WorkflowTestCase
-from plone.app.testing import setRoles
-from plone.app.testing import TEST_USER_ID
 
 
 class TestPlacefulWorkflowPolicyActivator(WorkflowTestCase):
 
-    layer = NEW_UPGRADE_FUNCTIONAL_TESTING
-
     def setUp(self):
         super(TestPlacefulWorkflowPolicyActivator, self).setUp()
-        setRoles(self.portal, TEST_USER_ID, ['Manager'])
 
         self.set_workflow_chain(for_type='Folder',
                                 to_workflow='intranet_workflow')

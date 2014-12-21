@@ -1,20 +1,11 @@
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.helpers import update_security_for
-from ftw.upgrade.testing import NEW_UPGRADE_FUNCTIONAL_TESTING
 from ftw.upgrade.tests.base import WorkflowTestCase
-from plone.app.testing import setRoles
-from plone.app.testing import TEST_USER_ID
 from Products.CMFCore.utils import getToolByName
 
 
 class TestUpdateSecurity(WorkflowTestCase):
-
-    layer = NEW_UPGRADE_FUNCTIONAL_TESTING
-
-    def setUp(self):
-        super(TestUpdateSecurity, self).setUp()
-        setRoles(self.portal, TEST_USER_ID, ['Manager'])
 
     def test_removes_rules_unmanaged_by_workflow(self):
         self.set_workflow_chain(for_type='Folder',

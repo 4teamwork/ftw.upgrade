@@ -1,22 +1,13 @@
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.placefulworkflow import PlacefulWorkflowPolicyActivator
-from ftw.upgrade.testing import NEW_UPGRADE_FUNCTIONAL_TESTING
 from ftw.upgrade.tests.base import WorkflowTestCase
 from ftw.upgrade.workflow import WorkflowChainUpdater
 from ftw.upgrade.workflow import WorkflowSecurityUpdater
-from plone.app.testing import setRoles
-from plone.app.testing import TEST_USER_ID
 from Products.CMFCore.utils import getToolByName
 
 
 class TestWorkflowChainUpdater(WorkflowTestCase):
-
-    layer = NEW_UPGRADE_FUNCTIONAL_TESTING
-
-    def setUp(self):
-        super(TestWorkflowChainUpdater, self).setUp()
-        setRoles(self.portal, TEST_USER_ID, ['Manager'])
 
     def test_changing_workflow_with_mapping(self):
         self.set_workflow_chain(for_type='Folder',
@@ -181,12 +172,6 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
 
 
 class TestWorkflowSecurityUpdater(WorkflowTestCase):
-
-    layer = NEW_UPGRADE_FUNCTIONAL_TESTING
-
-    def setUp(self):
-        super(TestWorkflowSecurityUpdater, self).setUp()
-        setRoles(self.portal, TEST_USER_ID, ['Manager'])
 
     def test_updates_only_objects_with_specified_workflows(self):
         self.set_workflow_chain(for_type='Folder',

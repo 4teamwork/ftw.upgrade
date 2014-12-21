@@ -5,6 +5,8 @@ from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.testing import NEW_UPGRADE_FUNCTIONAL_TESTING
 from operator import itemgetter
+from plone.app.testing import setRoles
+from plone.app.testing import TEST_USER_ID
 from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
 from zope.component import queryAdapter
@@ -46,8 +48,11 @@ class UpgradeTestCase(TestCase):
 
 class WorkflowTestCase(TestCase):
 
+    layer = NEW_UPGRADE_FUNCTIONAL_TESTING
+
     def setUp(self):
         self.portal = self.layer['portal']
+        setRoles(self.portal, TEST_USER_ID, ['Manager'])
 
     def assertReviewStates(self, expected):
         wftool = getToolByName(self.portal, 'portal_workflow')

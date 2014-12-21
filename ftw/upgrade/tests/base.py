@@ -5,6 +5,7 @@ from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.testing import NEW_UPGRADE_FUNCTIONAL_TESTING
 from operator import itemgetter
+from path import Path
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 from Products.CMFCore.utils import getToolByName
@@ -44,6 +45,8 @@ class UpgradeTestCase(TestCase):
         executioner = queryAdapter(self.portal_setup, IExecutioner)
         executioner.install(upgrade_info)
 
+    def asset(self, filename):
+        return Path(__file__).dirname().joinpath('assets', filename).text()
 
 
 class WorkflowTestCase(TestCase):

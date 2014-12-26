@@ -1,22 +1,21 @@
 from ftw.builder.testing import BUILDER_LAYER
 from ftw.builder.testing import functional_session_factory
 from ftw.builder.testing import set_builder_session_factory
+from ftw.testing.layer import COMPONENT_REGISTRY_ISOLATION
+from ftw.testing.layer import TEMP_DIRECTORY
 from path import Path
 from pkg_resources import DistributionNotFound
 from pkg_resources import get_distribution
 from plone.app.testing import applyProfile
 from plone.app.testing import FunctionalTesting
-from plone.app.testing import PLONE_FIXTURE
 from plone.app.testing import PloneSandboxLayer
 from plone.testing import Layer
 from plone.testing import z2
-from plone.testing import zca
 from Products.CMFPlone.utils import getFSVersionTuple
 from zope.configuration import xmlconfig
 import ftw.upgrade.tests.builders
 import logging
 import os
-import tempfile
 import zc.buildout.easy_install
 import zc.buildout.testing
 
@@ -116,7 +115,9 @@ COMMAND_LAYER = CommandLayer()
 
 
 class UpgradeLayer(PloneSandboxLayer):
-    defaultBases = (PLONE_FIXTURE, BUILDER_LAYER)
+    defaultBases = (COMPONENT_REGISTRY_ISOLATION,
+                    BUILDER_LAYER,
+                    TEMP_DIRECTORY)
 
     def setUpZope(self, app, configurationContext):
         import Products.CMFPlacefulWorkflow
@@ -133,16 +134,6 @@ class UpgradeLayer(PloneSandboxLayer):
         applyProfile(
             portal, 'Products.CMFPlacefulWorkflow:CMFPlacefulWorkflow')
         applyProfile(portal, 'ftw.upgrade:default')
-
-    def testSetUp(self):
-        self['temp_directory'] = Path(tempfile.mkdtemp('ftw.builder'))
-        zca.pushGlobalRegistry()
-        self['configurationContext'] = zca.stackConfigurationContext(
-            self.get('configurationContext'), name='ftw.upgrade')
-
-    def testTearDown(self):
-        self['temp_directory'].rmtree_p()
-        zca.popGlobalRegistry()
 
 
 UPGRADE_LAYER = UpgradeLayer()

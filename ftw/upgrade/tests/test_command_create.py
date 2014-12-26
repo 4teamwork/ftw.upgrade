@@ -1,11 +1,9 @@
 from ftw.builder import Builder
 from ftw.builder import create
-from ftw.upgrade.testing import COMMAND_LAYER
-from unittest2 import TestCase
+from ftw.upgrade.tests.base import CommandTestCase
 
 
-class TestCreateCommand(TestCase):
-    layer = COMMAND_LAYER
+class TestCreateCommand(CommandTestCase):
 
     def test_creating_an_upgrade_step(self):
         package = create(Builder('python package')
@@ -13,7 +11,7 @@ class TestCreateCommand(TestCase):
                          .at_path(self.layer.sample_buildout)
                          .with_directory('upgrades'))
 
-        self.layer.upgrade_script('create AddControlpanelAction')
+        self.upgrade_script('create AddControlpanelAction')
 
         upgrades_dir = package.package_path.joinpath('upgrades')
         self.assertEqual(
@@ -38,7 +36,7 @@ class TestCreateCommand(TestCase):
 
         upgrades_dir = package.package_path.joinpath('upgrades')
         subpackage_upgrades_dir = package.package_path.joinpath('subpackage', 'upgrades')
-        self.layer.upgrade_script('create AddControlpanelAction --path {0}'.format(
+        self.upgrade_script('create AddControlpanelAction --path {0}'.format(
                 subpackage_upgrades_dir))
 
         self.assertEqual(
@@ -52,7 +50,7 @@ class TestCreateCommand(TestCase):
                 subpackage_upgrades_dir.listdir()))
 
     def test_fails_when_no_egginfo_found(self):
-        exitcode, output = self.layer.upgrade_script('create Title', assert_exitcode=False)
+        exitcode, output = self.upgrade_script('create Title', assert_exitcode=False)
         self.assertEqual(1, exitcode, 'command should fail because there is no egg-info')
         self.assertIn('WARNING: no *.egg-info directory could be found.',
                       output)
@@ -64,7 +62,7 @@ class TestCreateCommand(TestCase):
                .named('the.package')
                .at_path(self.layer.sample_buildout))
 
-        exitcode, output = self.layer.upgrade_script('create Title', assert_exitcode=False)
+        exitcode, output = self.upgrade_script('create Title', assert_exitcode=False)
         self.assertEqual(1, exitcode, 'command should fail because there is no upgrades directory')
         self.assertIn('WARNING: no "upgrades" directory could be found.',
                       output)

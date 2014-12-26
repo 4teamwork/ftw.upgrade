@@ -1,12 +1,10 @@
+from ftw.upgrade.tests.base import CommandTestCase
 from datetime import datetime
 from ftw.builder import Builder
 from ftw.builder import create
-from ftw.upgrade.testing import COMMAND_LAYER
-from unittest2 import TestCase
 
 
-class TestTouchCommand(TestCase):
-    layer = COMMAND_LAYER
+class TestTouchCommand(CommandTestCase):
 
     def setUp(self):
         self.package_builder = (Builder('python package')
@@ -26,7 +24,7 @@ class TestTouchCommand(TestCase):
         self.assertTrue(
             path.exists(),
             'Expected path to exist: {0}'.format(path))
-        self.layer.upgrade_script('touch {0}'.format(path))
+        self.upgrade_script('touch {0}'.format(path))
         self.assertFalse(path.exists(),
                          'Expected path to no longer exist: {0}'.format(path))
 
@@ -48,7 +46,7 @@ class TestTouchCommand(TestCase):
                                         .to(datetime(2022, 12, 12))
                                         .named('update_action'))))
 
-        self.layer.upgrade_script('touch {update_action} --after {add_action}'.format(
+        self.upgrade_script('touch {update_action} --after {add_action}'.format(
                 **self.upgrades()))
         self.assert_upgrades('20111105000000_add_action',
                              '20111115000000_update_action',
@@ -65,7 +63,7 @@ class TestTouchCommand(TestCase):
                                         .to(datetime(2011, 11, 5, 0, 0, 55))
                                         .named('add_action'))))
 
-        self.layer.upgrade_script('touch {remove_action} --after {add_action}'.format(
+        self.upgrade_script('touch {remove_action} --after {add_action}'.format(
                 **self.upgrades()))
 
         self.assert_upgrades('20111105000055_add_action',
@@ -85,7 +83,7 @@ class TestTouchCommand(TestCase):
                                         .to(datetime(2022, 12, 12))
                                         .named('update_action'))))
 
-        self.layer.upgrade_script('touch {update_action} --before {remove_action}'.format(
+        self.upgrade_script('touch {update_action} --before {remove_action}'.format(
                 **self.upgrades()))
 
         self.assert_upgrades('20111105000000_add_action',
@@ -103,7 +101,7 @@ class TestTouchCommand(TestCase):
                                         .to(datetime(2022, 12, 12, 12, 12, 12))
                                         .named('add_action'))))
 
-        self.layer.upgrade_script('touch {add_action} --before {remove_action}'.format(
+        self.upgrade_script('touch {add_action} --before {remove_action}'.format(
                 **self.upgrades()))
 
         self.assert_upgrades('20111105000055_add_action',
@@ -125,7 +123,7 @@ class TestTouchCommand(TestCase):
 
         cmd = 'touch {add_action} --before {remove_action} --after {update_action}'.format(
             **self.upgrades())
-        exitcode, output = self.layer.upgrade_script(cmd, assert_exitcode=False)
+        exitcode, output = self.upgrade_script(cmd, assert_exitcode=False)
         self.assertEqual(2, exitcode, 'command should fail because --after and --before can'
                          ' not be used at the same time.')
         self.assertIn('error: argument --after/-a: not allowed with argument --before/-b',
@@ -150,7 +148,7 @@ class TestTouchCommand(TestCase):
                                         .named('add_action')
                                         .with_code(code))))
 
-        self.layer.upgrade_script('touch {remove_action} --after {add_action}'.format(
+        self.upgrade_script('touch {remove_action} --after {add_action}'.format(
                 **self.upgrades()))
 
         self.assert_upgrades('20111105000055_add_action',

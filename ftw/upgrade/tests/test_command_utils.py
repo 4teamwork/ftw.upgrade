@@ -1,8 +1,9 @@
 from ftw.builder import Builder
 from ftw.builder import create
+from ftw.builder.testing import BUILDER_LAYER
+from ftw.testing.layer import TempDirectoryLayer
 from ftw.upgrade.command.utils import find_egginfo
 from ftw.upgrade.command.utils import find_package_namespace_path
-from ftw.upgrade.testing import COMMAND_LAYER
 from ftw.upgrade.tests.helpers import capture_streams
 from ftw.upgrade.tests.helpers import chdir
 from path import Path
@@ -10,11 +11,15 @@ from StringIO import StringIO
 from unittest2 import TestCase
 
 
+LAYER = TempDirectoryLayer(bases=(BUILDER_LAYER, ),
+                           name='ftw.upgrade.test_command_utils')
+
+
 class TestFindEgginfo(TestCase):
-    layer = COMMAND_LAYER
+    layer = LAYER
 
     def setUp(self):
-        self.path = Path(self.layer.sample_buildout)
+        self.path = Path(self.layer['temp_directory']).realpath()
         self.package_builder = (Builder('python package')
                                 .named('the.package')
                                 .at_path(self.path))
@@ -51,10 +56,10 @@ class TestFindEgginfo(TestCase):
 
 
 class TestFindPackageNamespacePath(TestCase):
-    layer = COMMAND_LAYER
+    layer = LAYER
 
     def setUp(self):
-        self.path = Path(self.layer.sample_buildout)
+        self.path = Path(self.layer['temp_directory']).realpath()
 
     def test_returns_absolute_path_to_toplevel_namespace_directory(self):
         create(Builder('python package').named('the.package').at_path(self.path))

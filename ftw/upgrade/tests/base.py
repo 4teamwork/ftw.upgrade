@@ -3,6 +3,7 @@ from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.testing import COMMAND_LAYER
 from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
 from operator import itemgetter
 from path import Path
@@ -47,6 +48,14 @@ class UpgradeTestCase(TestCase):
 
     def asset(self, filename):
         return Path(__file__).dirname().joinpath('assets', filename).text()
+
+
+class CommandTestCase(TestCase):
+    layer = COMMAND_LAYER
+
+    def upgrade_script(self, args, assert_exitcode=True):
+        command = ' '.join(('upgrade', args))
+        return self.layer['execute_script'](command, assert_exitcode=assert_exitcode)
 
 
 class WorkflowTestCase(TestCase):

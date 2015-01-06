@@ -55,7 +55,7 @@ setup(name='ftw.upgrade',
         'inflection',
         'setuptools',
         'tarjan',
-        'path.py',
+        'path.py >= 6.2',
 
         # Zope
         'AccessControl',

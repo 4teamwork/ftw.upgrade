@@ -5,6 +5,9 @@ Changelog
 1.11.0 (unreleased)
 -------------------
 
+- create-upgrade: Make sure to quote argument passed to bin/upgrade.
+  [lgraf]
+
 - Add a ``create-upgrade`` script which can be installed globally.
   [jone]
 

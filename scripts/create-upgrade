@@ -2,6 +2,7 @@
 
 from subprocess import Popen
 import os
+import pipes
 import shlex
 import sys
 
@@ -17,7 +18,8 @@ def find_upgrades_script():
 
 
 def delegate_to_script(upgrade_script):
-    command = ' '.join((upgrade_script, ' '.join(sys.argv[1:]), '--path', os.getcwd()))
+    arg = pipes.quote(' '.join(sys.argv[1:]))
+    command = ' '.join((upgrade_script, arg, '--path', os.getcwd()))
     print '>', command
     exitcode = Popen(shlex.split(command)).wait()
     sys.exit(exitcode)

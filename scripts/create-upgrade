@@ -19,7 +19,7 @@ def find_upgrades_script():
 
 def delegate_to_script(upgrade_script):
     arg = pipes.quote(' '.join(sys.argv[1:]))
-    command = ' '.join((upgrade_script, arg, '--path', os.getcwd()))
+    command = ' '.join((upgrade_script, 'create', arg, '--path', os.getcwd()))
     print '>', command
     exitcode = Popen(shlex.split(command)).wait()
     sys.exit(exitcode)

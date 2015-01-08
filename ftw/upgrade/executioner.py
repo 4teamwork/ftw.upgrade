@@ -99,5 +99,5 @@ class Executioner(object):
                 return cmp(profile_order.index(name_a),
                            profile_order.index(name_b))
 
-        adapters.sort(_sorter)
+        adapters.sort(_sorter, reverse=True)
         return [adapter for name, adapter in adapters]

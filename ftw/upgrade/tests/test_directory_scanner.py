@@ -1,77 +1,60 @@
+from contextlib import contextmanager
+from datetime import datetime
 from ftw.builder import Builder
 from ftw.builder import create
-from ftw.builder.testing import BUILDER_LAYER
 from ftw.upgrade.directory.scanner import Scanner
 from ftw.upgrade.exceptions import UpgradeStepDefinitionError
-from ftw.upgrade.tests.builders import TWO_UPGRADES_CODE
-from unittest2 import TestCase
-import os.path
-import shutil
-import tempfile
+from ftw.upgrade.tests.base import UpgradeTestCase
 
 
-class TestDirectoryScanner(TestCase):
-
-    layer = BUILDER_LAYER
+class TestDirectoryScanner(UpgradeTestCase):
 
     def setUp(self):
-        self.upgrades_directory = tempfile.mkdtemp('ftw.upgrade.tests')
-        open(os.path.join(self.upgrades_directory, '__init__.py'), 'w+').close()
-
-    def tearDown(self):
-        shutil.rmtree(self.upgrades_directory)
+        super(TestDirectoryScanner, self).setUp()
+        self.profile = Builder('genericsetup profile')
+        self.package.with_profile(self.profile)
 
     def test_returns_chained_upgrade_infos(self):
-        add_path = create(Builder('upgrade step')
-                          .named('20110101080000_add_action')
-                          .titled('Add an action')
-                          .within(self.upgrades_directory))
+        self.profile.with_upgrade(Builder('ftw upgrade step')
+                                  .to(datetime(2011, 1, 1, 8))
+                                  .named('add an action'))
+        self.profile.with_upgrade(Builder('ftw upgrade step')
+                                  .to(datetime(2011, 2, 2, 8))
+                                  .named('update the action'))
+        self.profile.with_upgrade(Builder('ftw upgrade step')
+                                  .to(datetime(2011, 3, 3, 8))
+                                  .named('remove the action'))
 
-        update_path = create(Builder('upgrade step')
-                             .named('20110202080000_update_action')
-                             .titled('Update the action')
-                             .within(self.upgrades_directory))
+        with self.scanned() as upgrade_infos:
+            map(lambda info: (info.__delitem__('path'),
+                              info.__delitem__('callable')),
+                upgrade_infos)
 
-        remove_path = create(Builder('upgrade step')
-                             .named('20110303080000_remove_action')
-                             .titled('Remove the action')
-                             .within(self.upgrades_directory))
+            self.maxDiff = None
+            self.assertEqual(
+                [{'source-version': None,
+                  'target-version': '20110101080000',
+                  'title': 'Add an action.'},
 
-        upgrade_infos = Scanner('ftw.upgrade.tests', self.upgrades_directory).scan()
-        # "callable" should contain the upgrade step class object.
-        # It is not easy to compare this, therfore we cast it to bool.
-        map(lambda info: info.update(callable=bool(info['callable'])), upgrade_infos)
+                 {'source-version': '20110101080000',
+                  'target-version': '20110202080000',
+                  'title': 'Update the action.'},
 
-        self.maxDiff = None
-        self.assertEqual(
-            [{'source-version': None,
-              'target-version': '20110101080000',
-              'title': 'Add an action',
-              'path': add_path,
-              'callable': True},
+                 {'source-version': '20110202080000',
+                  'target-version': '20110303080000',
+                  'title': 'Remove the action.'}],
 
-             {'source-version': '20110101080000',
-              'target-version': '20110202080000',
-              'title': 'Update the action',
-              'path': update_path,
-              'callable': True},
+                upgrade_infos)
 
-             {'source-version': '20110202080000',
-              'target-version': '20110303080000',
-              'title': 'Remove the action',
-              'path': remove_path,
-              'callable': True}],
+    def test_exception_raised_when_upgrade_has_no_code(self):
+        self.profile.with_upgrade(Builder('ftw upgrade step')
+                                  .to(datetime(2011, 1, 1, 8))
+                                  .named('add action')
+                                  .with_code(''))
 
-            upgrade_infos)
-
-    def test_exception_raised_when_no_upgrade_code(self):
-        create(Builder('upgrade step')
-               .named('20110101080000_add_action')
-               .with_upgrade_code('')
-               .within(self.upgrades_directory))
-
-        with self.assertRaises(UpgradeStepDefinitionError) as cm:
-            Scanner('ftw.upgrade.tests', self.upgrades_directory).scan()
+        with create(self.package) as package:
+            with self.assertRaises(UpgradeStepDefinitionError) as cm:
+                self.scan(package)
 
         self.assertEqual(
             'The upgrade step 20110101080000_add_action has no upgrade class'
@@ -79,13 +62,19 @@ class TestDirectoryScanner(TestCase):
             str(cm.exception))
 
     def test_exception_raised_when_multiple_upgrade_steps_detected(self):
-        create(Builder('upgrade step')
-               .named('20110101080000_add_action')
-               .with_upgrade_code(TWO_UPGRADES_CODE)
-               .within(self.upgrades_directory))
+        code = '\n'.join((
+                'from ftw.upgrade import UpgradeStep',
+                'class Foo(UpgradeStep): pass',
+                'class Bar(UpgradeStep): pass'))
 
-        with self.assertRaises(UpgradeStepDefinitionError) as cm:
-            Scanner('ftw.upgrade.tests', self.upgrades_directory).scan()
+        self.profile.with_upgrade(Builder('ftw upgrade step')
+                                  .to(datetime(2011, 1, 1, 8))
+                                  .named('add action')
+                                  .with_code(code))
+
+        with create(self.package) as package:
+            with self.assertRaises(UpgradeStepDefinitionError) as cm:
+                self.scan(package)
 
         self.assertEqual(
             'The upgrade step 20110101080000_add_action has more than one upgrade'
@@ -93,5 +82,19 @@ class TestDirectoryScanner(TestCase):
             str(cm.exception))
 
     def test_does_not_fail_when_no_upgrades_present(self):
-        upgrade_infos = Scanner('ftw.upgrade.tests', self.upgrades_directory).scan()
-        self.assertEqual([], upgrade_infos)
+        self.package.with_zcml_include('ftw.upgrade', file='meta.zcml')
+        self.package.with_zcml_node('upgrade-step:directory',
+                                    profile='the.package:default',
+                                    directory='.')
+
+        with self.scanned() as upgrade_infos:
+            self.assertEqual( [], upgrade_infos)
+
+    @contextmanager
+    def scanned(self):
+        with create(self.package) as package:
+            yield self.scan(package)
+
+    def scan(self, package):
+        upgrades = package.package_path.joinpath('upgrades')
+        return Scanner('the.package.upgrades', upgrades).scan()

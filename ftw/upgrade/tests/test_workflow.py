@@ -1,16 +1,13 @@
-from Products.CMFCore.utils import getToolByName
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.placefulworkflow import PlacefulWorkflowPolicyActivator
-from ftw.upgrade.testing import FTW_UPGRADE_INTEGRATION_TESTING
 from ftw.upgrade.tests.base import WorkflowTestCase
 from ftw.upgrade.workflow import WorkflowChainUpdater
 from ftw.upgrade.workflow import WorkflowSecurityUpdater
+from Products.CMFCore.utils import getToolByName
 
 
 class TestWorkflowChainUpdater(WorkflowTestCase):
-
-    layer = FTW_UPGRADE_INTEGRATION_TESTING
 
     def test_changing_workflow_with_mapping(self):
         self.set_workflow_chain(for_type='Folder',
@@ -175,11 +172,6 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
 
 
 class TestWorkflowSecurityUpdater(WorkflowTestCase):
-
-    layer = FTW_UPGRADE_INTEGRATION_TESTING
-
-    def setUp(self):
-        self.portal = self.layer['portal']
 
     def test_updates_only_objects_with_specified_workflows(self):
         self.set_workflow_chain(for_type='Folder',

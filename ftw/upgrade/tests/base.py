@@ -1,11 +1,70 @@
+from contextlib import contextmanager
+from ftw.builder import Builder
+from ftw.builder import create
+from ftw.upgrade.interfaces import IExecutioner
+from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.testing import COMMAND_LAYER
+from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
+from operator import itemgetter
+from path import Path
+from plone.app.testing import setRoles
+from plone.app.testing import TEST_USER_ID
 from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
+from zope.component import queryAdapter
+
+
+class UpgradeTestCase(TestCase):
+    layer = UPGRADE_FUNCTIONAL_TESTING
+
+    def setUp(self):
+        self.package = (Builder('python package')
+                        .at_path(self.layer['temp_directory'])
+                        .named('the.package'))
+        self.portal = self.layer['portal']
+        self.portal_setup = getToolByName(self.portal, 'portal_setup')
+        self.portal_quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
+
+    @contextmanager
+    def package_created(self):
+        with create(self.package).zcml_loaded(self.layer['configurationContext']) as package:
+            yield package
+
+    def default_upgrade(self):
+        return Builder('plone upgrade step').upgrading('1000', to='1001')
+
+    def install_profile(self, profileid, version=None):
+        self.portal_setup.runAllImportStepsFromProfile('profile-{0}'.format(profileid))
+        if version is not None:
+            self.portal_setup.setLastVersionForProfile(profileid, (unicode(version),))
+
+    def install_profile_upgrades(self, *profileids):
+        gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
+        upgrade_info = [(profile['id'], map(itemgetter('id'), profile['upgrades']))
+                        for profile in gatherer.get_upgrades()
+                        if profile['id'] in profileids]
+        executioner = queryAdapter(self.portal_setup, IExecutioner)
+        executioner.install(upgrade_info)
+
+    def asset(self, filename):
+        return Path(__file__).dirname().joinpath('assets', filename).text()
+
+
+class CommandTestCase(TestCase):
+    layer = COMMAND_LAYER
+
+    def upgrade_script(self, args, assert_exitcode=True):
+        command = ' '.join(('upgrade', args))
+        return self.layer['execute_script'](command, assert_exitcode=assert_exitcode)
 
 
 class WorkflowTestCase(TestCase):
 
+    layer = UPGRADE_FUNCTIONAL_TESTING
+
     def setUp(self):
         self.portal = self.layer['portal']
+        setRoles(self.portal, TEST_USER_ID, ['Manager'])
 
     def assertReviewStates(self, expected):
         wftool = getToolByName(self.portal, 'portal_workflow')

@@ -1,59 +1,56 @@
 from ftw.builder import Builder
 from ftw.builder import create
-from ftw.upgrade.testing import COMMAND_LAYER
-from path import Path
-from unittest2 import TestCase
-import os
+from ftw.upgrade.tests.base import CommandTestCase
 
-class TestCreateCommand(TestCase):
-    layer = COMMAND_LAYER
+
+class TestCreateCommand(CommandTestCase):
 
     def test_creating_an_upgrade_step(self):
-        paths = create(Builder('package')
-                       .within(self.layer.sample_buildout)
-                       .with_egginfo())
+        package = create(Builder('python package')
+                         .named('the.package')
+                         .at_path(self.layer.sample_buildout)
+                         .with_directory('upgrades'))
 
-        self.layer.upgrade_script('create AddControlpanelAction')
+        self.upgrade_script('create AddControlpanelAction')
 
+        upgrades_dir = package.package_path.joinpath('upgrades')
         self.assertEqual(
-            1, len(os.listdir(paths['upgrades'])),
+            1, len(upgrades_dir.listdir()),
             'Expected exactly one directory to be generated, got {0}'.format(
-                os.listdir(paths['upgrades'])))
+                upgrades_dir.listdir()))
 
-        step_name, = os.listdir(paths['upgrades'])
-        step_path = os.path.join(paths['upgrades'], step_name)
+        step_path, = upgrades_dir.listdir()
+        self.assertRegexpMatches(step_path.name, r'^\d{14}_add_controlpanel_action$')
 
-        self.assertRegexpMatches(step_name, r'^\d{14}_add_controlpanel_action$')
-        self.assertEqual(['upgrade.py'], os.listdir(step_path))
-
-        with open(os.path.join(step_path, 'upgrade.py')) as upgrade_file:
-            upgrade_code = upgrade_file.read()
-
+        code_path = step_path.joinpath('upgrade.py')
+        self.assertTrue(code_path.exists(), 'upgrade.py is missing')
         self.maxDiff = True
-        self.assertIn('class AddControlpanelAction(UpgradeStep):', upgrade_code)
+        self.assertIn('class AddControlpanelAction(UpgradeStep):', code_path.text())
 
     def test_creating_an_upgrade_step_with_specifying_upgrades_directory(self):
-        paths = create(Builder('package')
-                       .within(self.layer.sample_buildout)
-                       .with_egginfo())
-        subpackage_upgrades_dir = os.path.join(paths['code_directory'], 'subpackage', 'upgrades')
-        os.makedirs(subpackage_upgrades_dir)
+        package = create(Builder('python package')
+                         .named('the.package')
+                         .at_path(self.layer.sample_buildout)
+                         .with_directory('upgrades')
+                         .with_directory('subpackage/upgrades'))
 
-        self.layer.upgrade_script('create AddControlpanelAction --path {0}'.format(
+        upgrades_dir = package.package_path.joinpath('upgrades')
+        subpackage_upgrades_dir = package.package_path.joinpath('subpackage', 'upgrades')
+        self.upgrade_script('create AddControlpanelAction --path {0}'.format(
                 subpackage_upgrades_dir))
 
         self.assertEqual(
-            0, len(os.listdir(paths['upgrades'])),
+            0, len(upgrades_dir.listdir()),
             'Expected default upgrades directory to be empty; {0}'.format(
-                os.listdir(paths['upgrades'])))
+                upgrades_dir.listdir()))
 
         self.assertEqual(
-            1, len(os.listdir(subpackage_upgrades_dir)),
+            1, len(subpackage_upgrades_dir.listdir()),
             'Expected subpackage upgrades directory to have one upgrade; {0}'.format(
-                os.listdir(subpackage_upgrades_dir)))
+                subpackage_upgrades_dir.listdir()))
 
     def test_fails_when_no_egginfo_found(self):
-        exitcode, output = self.layer.upgrade_script('create Title', assert_exitcode=False)
+        exitcode, output = self.upgrade_script('create Title', assert_exitcode=False)
         self.assertEqual(1, exitcode, 'command should fail because there is no egg-info')
         self.assertIn('WARNING: no *.egg-info directory could be found.',
                       output)
@@ -61,10 +58,11 @@ class TestCreateCommand(TestCase):
                       output)
 
     def test_fails_when_no_upgrades_directory_found(self):
-        paths = create(Builder('package').within(self.layer.sample_buildout).with_egginfo())
-        Path(paths['upgrades']).rmtree()
+        create(Builder('python package')
+               .named('the.package')
+               .at_path(self.layer.sample_buildout))
 
-        exitcode, output = self.layer.upgrade_script('create Title', assert_exitcode=False)
+        exitcode, output = self.upgrade_script('create Title', assert_exitcode=False)
         self.assertEqual(1, exitcode, 'command should fail because there is no upgrades directory')
         self.assertIn('WARNING: no "upgrades" directory could be found.',
                       output)

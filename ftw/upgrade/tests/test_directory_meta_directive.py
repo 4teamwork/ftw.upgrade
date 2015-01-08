@@ -1,218 +1,157 @@
+from datetime import datetime
 from ftw.builder import Builder
 from ftw.builder import create
-from ftw.upgrade.testing import ZCML_LAYER
-from operator import itemgetter
+from ftw.upgrade.tests.base import UpgradeTestCase
 from Products.CMFPlone.interfaces import IMigratingPloneSiteRoot
-from Products.GenericSetup.interfaces import BASE
 from Products.GenericSetup.interfaces import EXTENSION
-from Products.GenericSetup.registry import _profile_registry
-from Products.GenericSetup.upgrade import _upgrade_registry
-from unittest2 import TestCase
 from zope.configuration.config import ConfigurationExecutionError
-import imp
-import os.path
-import shutil
-import sys
-import tempfile
 
 
-class TestDirectoryMetaDirective(TestCase):
-
-    layer = ZCML_LAYER
+class TestDirectoryMetaDirective(UpgradeTestCase):
 
     def setUp(self):
-        self.temp_directory = tempfile.mkdtemp('ftw.upgrade.tests')
-        open(os.path.join(self.temp_directory, '__init__.py'), 'w+').close()
-
-        self.upgrades_directory = os.path.join(self.temp_directory, 'upgrades')
-        os.mkdir(self.upgrades_directory)
-        open(os.path.join(self.upgrades_directory, '__init__.py'), 'w+').close()
-
-        self.profile_directory = os.path.join(self.temp_directory,
-                                              'profiles', 'default')
-        os.makedirs(self.profile_directory)
-
-    def tearDown(self):
-        shutil.rmtree(self.temp_directory)
+        super(TestDirectoryMetaDirective, self).setUp()
+        self.profile = Builder('genericsetup profile')
+        self.package.with_profile(self.profile)
 
     def test_upgrade_steps_are_registered(self):
-        create(Builder('upgrade step')
-               .named('20110101080000_add_action')
-               .titled('Add an action')
-               .within(self.upgrades_directory))
+        self.profile.with_upgrade(Builder('ftw upgrade step')
+                                  .to(datetime(2011, 1, 1, 8))
+                                  .named('add_action'))
+        self.profile.with_upgrade(Builder('ftw upgrade step')
+                                  .to(datetime(2011, 2, 2, 8))
+                                  .named('remove_action'))
 
-        create(Builder('upgrade step')
-               .named('20110202080000_update_action')
-               .titled('Remove the action')
-               .within(self.upgrades_directory))
+        with self.package_created():
+            self.assert_upgrades([
+                    {'source': ('10000000000000',),
+                     'dest': ('20110101080000',),
+                     'title': u'Add action.'},
 
-        self.load_upgrade_step_directory_zcml()
-        self.assert_upgrades([
-                {'source': ('10000000000000',),
-                 'dest': ('20110101080000',),
-                 'title': u'Add an action'},
-
-                {'source': ('20110101080000',),
-                 'dest': ('20110202080000',),
-                 'title': u'Remove the action'}])
+                    {'source': ('20110101080000',),
+                     'dest': ('20110202080000',),
+                     'title': u'Remove action.'}])
 
     def test_first_source_version_is_last_regulare_upgrade_step(self):
-        create(Builder('upgrade step')
-               .named('20110101080000_add_action')
-               .titled('Add an action')
-               .within(self.upgrades_directory))
+        self.profile.with_upgrade(Builder('plone upgrade step')
+                                  .upgrading('1000', to='1001')
+                                  .titled('Register foo utility.'))
+        self.profile.with_upgrade(Builder('ftw upgrade step')
+                                  .to(datetime(2011, 1, 1, 8))
+                                  .named('add_action'))
 
-        self.load_upgrade_step_directory_zcml('''
-            <genericsetup:upgradeStep
-                profile="my.package:default"
-                source="1"
-                destination="2"
-                title="Register foo utility"
-                handler="ftw.upgrade.tests.upgrades.foo.register_foo_utility"
-                />
-            ''')
+        with self.package_created():
+            self.assert_upgrades([
+                    {'source': ('1000',),
+                     'dest': ('1001',),
+                     'title': u'Register foo utility.'},
 
-        self.assert_upgrades([
-                {'source': ('1',),
-                 'dest': ('2',),
-                 'title': u'Register foo utility'},
-
-                {'source': ('2',),
-                 'dest': ('20110101080000',),
-                 'title': u'Add an action'}])
+                    {'source': ('1001',),
+                     'dest': ('20110101080000',),
+                     'title': u'Add action.'}])
 
     def test_registers_migration_generic_setup_profile_foreach_step(self):
-        path = create(Builder('upgrade step')
-                      .named('20110101080000_add_action')
-                      .titled('Add an action')
-                      .within(self.upgrades_directory))
+        self.profile.with_upgrade(Builder('ftw upgrade step')
+                                  .to(datetime(2011, 1, 1, 8))
+                                  .named('add_an_action'))
 
-        self.load_upgrade_step_directory_zcml()
-        self.assert_profile(
-            {'id': 'my.package:default-upgrade-20110101080000',
-             'title': 'Upgrade my.package:default ' + \
-                 'to 20110101080000: Add an action',
-             'description': '',
-             'path': path,
-             'product': 'my.package',
-             'type': EXTENSION,
-             'for': IMigratingPloneSiteRoot})
+        with self.package_created() as package:
+            upgrade_path = package.package_path.joinpath(
+                'upgrades', '20110101080000_add_an_action')
+            self.assert_profile(
+                {'id': 'the.package.upgrades:default-upgrade-20110101080000',
+                 'title': 'Upgrade the.package:default ' + \
+                     'to 20110101080000: Add an action.',
+                 'description': '',
+                 'path': upgrade_path,
+                 'product': 'the.package.upgrades',
+                 'type': EXTENSION,
+                 'for': IMigratingPloneSiteRoot})
 
     def test_profile_must_be_registed_before_registering_upgrade_directory(self):
-        with self.assertRaises(ConfigurationExecutionError) as cm:
-            self.load_upgrade_step_directory_zcml(no_profile=True)
+        package_builder = (Builder('python package')
+                           .named('other.package')
+                           .at_path(self.layer['temp_directory'])
+                           .with_zcml_include('ftw.upgrade', file='meta.zcml')
+                           .with_zcml_node('upgrade-step:directory',
+                                           profile='other.package:default',
+                                           directory='.'))
+
+        with create(package_builder) as package:
+            with self.assertRaises(ConfigurationExecutionError) as cm:
+                package.load_zcml(self.layer['configurationContext'])
 
         self.assertEqual(
             "<class 'ftw.upgrade.exceptions.UpgradeStepConfigurationError'>: "
-            'The profile "my.package:default" needs to be registered'
+            'The profile "other.package:default" needs to be registered'
             ' before registering its upgrade step directory.',
             str(cm.exception).splitlines()[0])
 
     def test_profile_version_is_set_to_latest_profile_version(self):
-        create(Builder('upgrade step')
-               .named('20110101080000_add_action')
-               .titled('Add an action')
-               .within(self.upgrades_directory))
+        self.profile.with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1, 8)))
+        self.profile.with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 2, 2, 8)))
 
-        create(Builder('upgrade step')
-               .named('20110202080000_update_action')
-               .titled('Remove the action')
-               .within(self.upgrades_directory))
+        with self.package_created() as package:
+            profile_path = package.package_path.joinpath('profiles', 'default')
+            self.assert_profile(
+                {'id': u'the.package:default',
+                 'title': u'the.package',
+                 'description': u'',
+                 'path': profile_path,
+                 'version': '20110202080000',
+                 'product': 'the.package',
+                 'type': EXTENSION,
+                 'for': None})
 
-        self.load_upgrade_step_directory_zcml()
-        self.assert_profile(
-            {'id': u'my.package:default',
-             'title': u'my.package',
-             'description': u'',
-             'path': self.profile_directory,
-             'version': u'20110202080000',
-             'product': 'my.package',
-             'type': BASE,
-             'for': None})
+    def test_version_set_to_default_when_no_upgrades_defined(self):
+        upgrades = self.package.package.get_subpackage('upgrades')
+        upgrades.with_zcml_include('ftw.upgrade', file='meta.zcml')
+        upgrades.with_zcml_node('upgrade-step:directory',
+                                profile='the.package:default',
+                                directory='.')
+
+        with self.package_created() as package:
+            profile_path = package.package_path.joinpath('profiles', 'default')
+            self.assert_profile(
+                {'id': u'the.package:default',
+                 'title': u'the.package',
+                 'description': u'',
+                 'path': profile_path,
+                 'version': u'10000000000000',
+                 'product': 'the.package',
+                 'type': EXTENSION,
+                 'for': None})
 
     def test_profile_must_not_have_a_metadata_version_defined(self):
-        metadata_path = os.path.join(self.profile_directory, 'metadata.xml')
-        with open(metadata_path, 'w+') as metadata:
-            metadata.write('''<?xml version="1.0"?>
-            <metadata>
-                <version>1</version>
-            </metadata>
-            ''')
+        self.profile.with_fs_version('1000')
+        self.profile.with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1, 8)))
 
-        with self.assertRaises(ConfigurationExecutionError) as cm:
-            self.load_upgrade_step_directory_zcml()
+        with create(self.package) as package:
+            with self.assertRaises(ConfigurationExecutionError) as cm:
+                package.load_zcml(self.layer['configurationContext'])
 
         self.assertEqual(
             "<class 'ftw.upgrade.exceptions.UpgradeStepConfigurationError'>: "
-            'Registering an upgrades directory for "my.package:default" requires'
+            'Registering an upgrades directory for "the.package:default" requires'
             ' this profile to not define a version in its metadata.xml.'
             ' The version is automatically set to the latest upgrade.',
             str(cm.exception).splitlines()[0])
 
-    def test_version_set_to_default_when_no_upgrades_defined(self):
-        self.load_upgrade_step_directory_zcml()
-        self.assert_profile(
-            {'id': u'my.package:default',
-             'title': u'my.package',
-             'description': u'',
-             'path': self.profile_directory,
-             'version': u'10000000000000',
-             'product': 'my.package',
-             'type': BASE,
-             'for': None})
-
-    def load_upgrade_step_directory_zcml(self, additional_zcml='', no_profile=False):
-        profile_zcml = '''
-        <genericsetup:registerProfile
-            name="default"
-            title="my.package"
-            directory="profiles/default"
-            />
-        '''
-        if no_profile:
-            profile_zcml = ''
-
-        with open(os.path.join(self.temp_directory, 'configure.zcml'), 'w+') as f:
-            f.write('''
-                <configure
-                    xmlns="http://namespaces.zope.org/zope"
-                    xmlns:upgrade-step="http://namespaces.zope.org/ftw.upgrade"
-                    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
-                    i18n_domain="my.package">
-
-                    <include package="ftw.upgrade" file="meta.zcml" />
-
-                    {0}
-                    {1}
-
-                    <upgrade-step:directory
-                        profile="my.package:default"
-                        directory="upgrades"
-                        />
-
-                </configure>
-                '''.format(profile_zcml, additional_zcml))
-
-        fp, pathname, description = imp.find_module('.', [self.temp_directory])
-        module = imp.load_module('my.package',
-                                 fp, pathname, description)
-        try:
-            self.layer.load_zcml_file('configure.zcml', module)
-        finally:
-            del sys.modules['my.package']
-
     def assert_upgrades(self, expected):
-        upgrades = _upgrade_registry.getUpgradeStepsForProfile(
-            u'my.package:default')
-        got = [dict((key, value) for (key, value) in vars(step).items()
+        upgrades = self.portal_setup.listUpgrades('the.package:default')
+        got = [dict((key, value) for (key, value) in step.items()
                     if key in ('source', 'dest', 'title'))
-               for step in upgrades.values()]
-        got.sort(key=itemgetter('dest'))
-
+               for step in upgrades]
         self.maxDiff = None
-        self.assertEqual(expected, got)
+        self.assertItemsEqual(expected, got)
 
     def assert_profile(self, expected):
-        got = _profile_registry.getProfileInfo(expected['id'])
+        self.assertTrue(
+            self.portal_setup.profileExists(expected['id']),
+            'Profile "{0}" does not exist. Profiles: {1}'.format(
+                expected['id'],
+                [profile['id'] for profile in self.portal_setup.listProfileInfo()]))
+
+        got = self.portal_setup.getProfileInfo(expected['id'])
         self.maxDiff = None
         self.assertDictEqual(expected, got)

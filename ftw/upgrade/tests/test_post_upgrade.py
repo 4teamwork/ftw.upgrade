@@ -1,105 +1,75 @@
-from Products.CMFCore.utils import getToolByName
-from ftw.testing import MockTestCase
-from ftw.upgrade.interfaces import IExecutioner
+from ftw.builder import Builder
 from ftw.upgrade.interfaces import IPostUpgrade
-from ftw.upgrade.testing import FTW_UPGRADE_FIXTURE
-from mocker import ANY
-from plone.app.testing import FunctionalTesting
-from plone.app.testing import PloneSandboxLayer
-from zope.component import provideAdapter
-from zope.component import queryAdapter
-from zope.configuration import xmlconfig
+from ftw.upgrade.tests.base import UpgradeTestCase
 from zope.interface import Interface
 
 
-class UpgradesRegistered(PloneSandboxLayer):
+class TestPostUpgrade(UpgradeTestCase):
 
-    defaultBases = (FTW_UPGRADE_FIXTURE,)
+    def test_post_upgrade_adapters_are_executed(self):
+        execution_info = {}
+        def post_upgrade_adapter(portal, request):
+            execution_info.update({
+                    'executed': True,
+                    'portal_argument': portal,
+                    'request_argument': request})
 
-    def setUpZope(self, app, configurationContext):
-        import ftw.upgrade.tests.profiles
-        xmlconfig.file('configure.zcml', ftw.upgrade.tests.profiles,
-                       context=configurationContext)
+        self.portal.getSiteManager().registerAdapter(
+            post_upgrade_adapter,
+            required=(Interface, Interface),
+            provided=IPostUpgrade,
+            name='name-is-not-really-relevant')
 
-        import ftw.upgrade.tests.upgrades
-        xmlconfig.file('foo.zcml', ftw.upgrade.tests.upgrades,
-                       context=configurationContext)
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_upgrade(self.default_upgrade()))
 
+        with self.package_created():
+            self.install_profile('the.package:default', version='1000')
+            self.install_profile_upgrades('the.package:default')
+            self.assertDictEqual(
+                {'executed': True,
+                 'portal_argument': self.portal,
+                 'request_argument': self.portal.REQUEST},
+                execution_info)
 
-UPGRADES_REGISTERED = UpgradesRegistered()
-UPGRADES_REGISTERED_FUNCTIONAL = FunctionalTesting(
-    bases=(UPGRADES_REGISTERED,), name='FtwUpgrade.exec.barbaz:Functional')
+    def test_post_upgrade_adapters_are_executed_in_order_of_name(self):
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_upgrade(self.default_upgrade()))
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .named('bar')
+                                  .with_dependencies('the.package:foo'))
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .named('foo')
+                                  .with_dependencies('the.package:default'))
 
+        site_manager = self.portal.getSiteManager()
+        execution_order = []
 
-class TestPostUpgrade(MockTestCase):
+        def register_post_component_adapter(profile_id):
+            class PostComponentAdapter(object):
+                def __init__(self, portal, request):
+                    pass
+                def __call__(self):
+                    execution_order.append(profile_id)
+            site_manager.registerAdapter(PostComponentAdapter,
+                                         required=(Interface, Interface),
+                                         provided=IPostUpgrade,
+                                         name=profile_id)
 
-    layer = UPGRADES_REGISTERED_FUNCTIONAL
+        map(register_post_component_adapter,
+            ('the.package:default', 'the.package:foo', 'the.package:bar'))
 
-    def setUp(self):
-        super(TestPostUpgrade, self).setUp()
-        self.portal_setup = getToolByName(
-            self.layer['portal'], 'portal_setup')
+        with self.package_created():
+            self.install_profile('the.package:default', version='1000')
+            self.install_profile('the.package:foo')
+            self.install_profile('the.package:bar')
 
-        profileid = 'ftw.upgrade.tests.profiles:foo'
-        foo_upgrades = self.portal_setup.listUpgrades(profileid)
-        self.data = [(profileid, [foo_upgrades[0]['id']])]
+            self.assertEquals([], execution_order)
+            self.install_profile_upgrades('the.package:default')
 
-    def test_installs_upgrades(self):
-        foo_adapter = self.mocker.mock()
-        self.expect(foo_adapter(ANY, ANY)())
-        self.replay()
-
-        provideAdapter(foo_adapter,
-                       adapts=(Interface, Interface),
-                       provides=IPostUpgrade,
-                       name='ftw.upgrade.tests.profiles:foo')
-
-        executioner = queryAdapter(self.portal_setup, IExecutioner)
-        executioner.install(self.data)
-
-    def test_executes_post_upgrades_in_order(self):
-        first_adapter_class = self.mocker.mock()
-        first_adapter = self.mocker.mock()
-        second_adapter_class = self.mocker.mock()
-        second_adapter = self.mocker.mock()
-        third_adapter_class = self.mocker.mock()
-        third_adapter = self.mocker.mock()
-        fourth_adapter_class = self.mocker.mock()
-        fourth_adapter = self.mocker.mock()
-
-        self.expect(first_adapter_class(ANY, ANY)).result(first_adapter)
-        self.expect(second_adapter_class(ANY, ANY)).result(second_adapter)
-        self.expect(third_adapter_class(ANY, ANY)).result(third_adapter)
-        self.expect(fourth_adapter_class(ANY, ANY)).result(fourth_adapter)
-
-        with self.mocker.order():
-            # Assert that the adapters are called in the right order:
-            self.expect(first_adapter())
-            self.expect(second_adapter())
-            self.expect(third_adapter())
-            self.expect(fourth_adapter())
-
-        self.replay()
-
-        provideAdapter(fourth_adapter_class,
-                       adapts=(Interface, Interface),
-                       provides=IPostUpgrade,
-                       name='ftw.upgrade.tests.profiles:baz')
-
-        provideAdapter(first_adapter_class,
-                       adapts=(Interface, Interface),
-                       provides=IPostUpgrade,
-                       name='any.package:default')
-
-        provideAdapter(third_adapter_class,
-                       adapts=(Interface, Interface),
-                       provides=IPostUpgrade,
-                       name='ftw.upgrade.tests.profiles:bar')
-
-        provideAdapter(second_adapter_class,
-                       adapts=(Interface, Interface),
-                       provides=IPostUpgrade,
-                       name='ftw.upgrade.tests.profiles:foo')
-
-        executioner = queryAdapter(self.portal_setup, IExecutioner)
-        executioner.install(self.data)
+            # XXX the order should actually be reversed.
+            # See https://github.com/4teamwork/ftw.upgrade/issues/59
+            self.assertEquals(['the.package:default',
+                               'the.package:foo',
+                               'the.package:bar'],
+                              execution_order)

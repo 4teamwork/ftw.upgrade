@@ -1,12 +1,11 @@
-from Products.CMFCore.utils import getToolByName
-from StringIO import StringIO
+from ftw.builder import Builder
 from ftw.testbrowser import browsing
 from ftw.testbrowser.pages import statusmessages
 from ftw.upgrade.browser.manage import ResponseLogger
-from ftw.upgrade.testing import CYCLIC_DEPENDENCIES_FUNCTIONAL
-from ftw.upgrade.testing import FTW_UPGRADE_FUNCTIONAL_TESTING
-from plone.app.testing import TEST_USER_NAME, TEST_USER_PASSWORD
-from plone.testing.z2 import Browser
+from ftw.upgrade.tests.base import UpgradeTestCase
+from plone.app.testing import SITE_OWNER_NAME
+from Products.CMFCore.utils import getToolByName
+from StringIO import StringIO
 from unittest2 import TestCase
 import logging
 import re
@@ -51,83 +50,81 @@ class TestResponseLogger(TestCase):
             output.split('\n'))
 
 
-class TestManageUpgrades(TestCase):
-
-    layer = FTW_UPGRADE_FUNCTIONAL_TESTING
+class TestManageUpgrades(UpgradeTestCase):
 
     def setUp(self):
         super(TestManageUpgrades, self).setUp()
-
         self.portal_url = self.layer['portal'].portal_url()
+        self.portal = self.layer['portal']
 
-        self.browser = Browser(self.layer['app'])
-        self.browser.handleErrors = False
-        self.browser.addHeader('Authorization', 'Basic %s:%s' % (
-                TEST_USER_NAME, TEST_USER_PASSWORD,))
+    @browsing
+    def test_registered_in_controlpanel(self, browser):
+        browser.login(SITE_OWNER_NAME).open(view='overview-controlpanel')
+        link = browser.css('#content').find('Upgrades').first
+        self.assertEqual(self.portal_url + '/@@manage-upgrades', link.attrib['href'])
 
-    def test_registered_in_controlpanel(self):
-        self.browser.open(self.portal_url + '/@@overview-controlpanel')
-        link = self.browser.getLink('Upgrades')
-        self.assertEqual(self.portal_url + '/@@manage-upgrades', link.url)
+    @browsing
+    def test_manage_view_renders(self, browser):
+        browser.login(SITE_OWNER_NAME).open(view='manage-upgrades')
 
-    def test_manage_view_renders(self):
-        self.browser.open(self.portal_url + '/@@manage-upgrades')
+        up_link = browser.css('#content').find('Up to Site Setup').first
+        self.assertEqual(self.portal_url + '/@@overview-controlpanel',
+                         up_link.attrib['href'])
 
-        link = self.browser.getLink('Up to Site Setup')
-        self.assertEqual(self.portal_url + '/@@overview-controlpanel', link.url)
+        self.assertTrue(browser.css('input[value="plone.app.discussion:default"]').first)
 
-        self.assertIn('plone.app.discussion:default', self.browser.contents)
+    @browsing
+    def test_manage_plain_view_renders(self, browser):
+        browser.login(SITE_OWNER_NAME).open(view='manage-upgrades-plain')
+        self.assertTrue(browser.css('input[value="plone.app.discussion:default"]').first)
 
-    def test_manage_plain_view_renders(self):
-        self.browser.open(self.portal_url + '/@@manage-upgrades-plain')
+    @browsing
+    def test_install(self, browser):
+        def upgrade_step(setup_context):
+            portal = getToolByName(setup_context, 'portal_url').getPortalObject()
+            portal.upgrade_installed = True
 
-        link = self.browser.getLink('Up to Site Setup')
-        self.assertEqual(self.portal_url + '/@@overview-controlpanel', link.url)
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_upgrade(Builder('plone upgrade step')
+                                                .upgrading('1111', '2222')
+                                                .calling(upgrade_step, getToolByName)))
 
-        self.assertIn('plone.app.discussion:default', self.browser.contents)
+        with self.package_created():
+            self.install_profile('the.package:default', '1111')
+            self.portal.upgrade_installed = False
+            transaction.commit()
 
-    def test_install(self):
-        profileid = 'ftw.upgrade.tests.profiles:navigation-index'
-        portal_setup = getToolByName(self.layer['portal'], 'portal_setup')
-        portal_setup.runAllImportStepsFromProfile(
-            'profile-%s' % profileid,
-            purge_old=False)
-        transaction.commit()
+            transaction.begin()  # sync transaction
+            self.assertFalse(self.portal.upgrade_installed)
 
-        catalog = getToolByName(self.layer['portal'], 'portal_catalog')
-        self.assertEqual(
-            'KeywordIndex',
-            type(catalog.Indexes.get('excludeFromNav')).__name__)
+            browser.login(SITE_OWNER_NAME).open(view='manage-upgrades')
+            # Install proposed upgrades
+            browser.find('Install').click()
 
-        self.browser.open(self.portal_url + '/@@manage-upgrades')
-        self.assertIn('ftw.upgrade.tests.profiles:navigation-index',
-                      self.browser.contents)
-
-        # This upgrade changes KeywordIndex -> FieldIndex
-
-        self.browser.getControl(name='submitted').click()
-
-        self.assertEqual(
-            'FieldIndex',
-            type(catalog.Indexes.get('excludeFromNav')).__name__)
-
-
-class TestManageUpgradesCyclicDependencies(TestCase):
-    """The layer of this test case loads GS profiles "first" and "second",
-    which have cyclic dependencies.
-    """
-
-    layer = CYCLIC_DEPENDENCIES_FUNCTIONAL
+            transaction.begin()  # sync transaction
+            self.assertTrue(self.portal.upgrade_installed)
 
     @browsing
     def test_upgrades_view_shows_cyclic_dependencies_error(self, browser):
-        browser.login().open(view='@@manage-upgrades')
-        statusmessages.assert_message('There are cyclic dependencies.'
-                                      ' The profiles could not be sorted'
-                                      ' by dependencies!')
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .named('foo')
+                                  .with_dependencies('the.package:bar'))
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .named('bar')
+                                  .with_dependencies('the.package:foo'))
 
-        possibibilites = (
-            ['ftw.upgrade.tests.profiles:first ; ftw.upgrade.tests.profiles:second'],
-            ['ftw.upgrade.tests.profiles:second ; ftw.upgrade.tests.profiles:first'])
+        with self.package_created():
+            self.install_profile('the.package:foo')
+            self.install_profile('the.package:bar')
+            transaction.commit()
 
-        self.assertIn(browser.css('.cyclic-dependencies li').text, possibibilites)
+            browser.login(SITE_OWNER_NAME).open(view='@@manage-upgrades')
+            statusmessages.assert_message('There are cyclic dependencies.'
+                                          ' The profiles could not be sorted'
+                                          ' by dependencies!')
+
+            possibilities = (
+                ['the.package:foo ; the.package:bar'],
+                ['the.package:bar ; the.package:foo'])
+
+            self.assertIn(browser.css('.cyclic-dependencies li').text, possibilities)

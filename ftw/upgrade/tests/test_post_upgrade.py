@@ -32,7 +32,7 @@ class TestPostUpgrade(UpgradeTestCase):
                  'request_argument': self.portal.REQUEST},
                 execution_info)
 
-    def test_post_upgrade_adapters_are_executed_in_order_of_name(self):
+    def test_post_upgrade_adapters_are_executed_in_order_of_dependencies(self):
         self.package.with_profile(Builder('genericsetup profile')
                                   .with_upgrade(self.default_upgrade()))
         self.package.with_profile(Builder('genericsetup profile')
@@ -67,9 +67,7 @@ class TestPostUpgrade(UpgradeTestCase):
             self.assertEquals([], execution_order)
             self.install_profile_upgrades('the.package:default')
 
-            # XXX the order should actually be reversed.
-            # See https://github.com/4teamwork/ftw.upgrade/issues/59
-            self.assertEquals(['the.package:default',
+            self.assertEquals(['the.package:bar',
                                'the.package:foo',
-                               'the.package:bar'],
+                               'the.package:default'],
                               execution_order)

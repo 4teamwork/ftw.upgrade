@@ -5,6 +5,10 @@ Changelog
 1.11.0 (unreleased)
 -------------------
 
+- Reverse post upgrade adapter ordering.
+  The order was reversed, it should execute dependencies first.
+  [jone]
+
 - create-upgrade: Make sure to quote argument passed to bin/upgrade.
   [lgraf]
 

@@ -25,6 +25,15 @@ class PloneSiteAPI(BrowserView):
                 self._get_profile_info(profileid)))
 
     @requestmethod('GET')
+    def list_profiles(self, REQUEST=None):
+        """Returns a list of all installed profiles and their upgrade steps.
+        """
+
+        return self._pretty_json(
+            map(self._refine_profile_info,
+                self.gatherer.get_upgrades()))
+
+    @requestmethod('GET')
     def list_profiles_proposing_upgrades(self, REQUEST=None):
         """Returns a list of profiles with proposed upgrade steps, only
         containing the proposed upgrade steps for each profile.

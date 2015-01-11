@@ -31,6 +31,7 @@
         class=".jsonapi.PloneSiteAPI"
         permission="cmf.ManagePortal"
         allowed_attributes="get_profile
+                            list_profiles
                             list_profiles_proposing_upgrades"
         />
 

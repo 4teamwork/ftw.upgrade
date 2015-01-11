@@ -64,6 +64,59 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
                       str(cm.exception))
 
     @browsing
+    def test_list_profiles(self, browser):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))))
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .named('foo')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            self.install_profile('the.package:default')
+            self.install_profile('the.package:foo')
+
+            self.api_request('GET', 'list_profiles')
+            self.assert_json_contains_profile(
+                {'id': 'the.package:default',
+                 'title': 'the.package',
+                 'product': 'the.package',
+                 'db_version': '20110101000000',
+                 'fs_version': '20110101000000',
+                 'outdated_fs_version': False,
+                 'upgrades': [
+                        {'id': '20110101000000@the.package:default',
+                         'title': 'Upgrade.',
+                         'source': '10000000000000',
+                         'dest': '20110101000000',
+                         'proposed': False,
+                         'done': True,
+                         'orphan': False,
+                         'outdated_fs_version': False},
+                        ]},
+                browser.json)
+
+            self.assert_json_contains_profile(
+                {'id': 'the.package:foo',
+                 'title': 'the.package',
+                 'product': 'the.package',
+                 'db_version': '20110101000000',
+                 'fs_version': '20110101000000',
+                 'outdated_fs_version': False,
+                 'upgrades': [
+                        {'id': '20110101000000@the.package:foo',
+                         'title': 'Upgrade.',
+                         'source': '10000000000000',
+                         'dest': '20110101000000',
+                         'proposed': False,
+                         'done': True,
+                         'orphan': False,
+                         'outdated_fs_version': False},
+                        ]},
+                browser.json)
+
+    @browsing
     def test_list_profiles_proposing_upgrades(self, browser):
         self.package.with_profile(
             Builder('genericsetup profile')

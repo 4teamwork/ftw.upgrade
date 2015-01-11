@@ -5,39 +5,12 @@ from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from StringIO import StringIO
-from zope.component import getAdapter
 from zope.publisher.browser import BrowserView
 import json
 import logging
 
 
 REQUIRED = object()
-
-
-class UpgradeNotFound(Exception):
-    def __init__(self, api_upgrade_id):
-        super(UpgradeNotFound, self).__init__(api_upgrade_id)
-        self.api_upgrade_id = api_upgrade_id
-
-
-@contextmanager
-def capture_log():
-    stream = StringIO()
-    handler = logging.StreamHandler(stream)
-    formatter = logging.root.handlers[-1].formatter
-    handler.setFormatter(formatter)
-    handler.setLevel(logging.INFO)
-
-    original_level = logging.root.getEffectiveLevel()
-    logging.root.addHandler(handler)
-    logging.root.setLevel(logging.INFO)
-    try:
-        yield stream
-
-    finally:
-        stream.seek(0)
-        logging.root.removeHandler(handler)
-        logging.root.setLevel(original_level)
 
 
 class PloneSiteAPI(BrowserView):
@@ -52,35 +25,30 @@ class PloneSiteAPI(BrowserView):
         """Returns a JSON-encoded dict representation of the Generic Setup
         profile with the given ``id``.
         """
-        if profileid is REQUIRED:
-            return self._error(
-                400, 'Missing "profileid" param in request.',
-                'The "profileid" param is required for this action.'
-                ' The value is expected to be a profile ID,'
-                ' e.g. "my.package:default".')
-
-        return self._json_for_response(
-            self._refine_profile_info(
-                self._get_profile_info(profileid)))
+        with ErrorHandling(self.request.response):
+            self._require_params(profileid=profileid)
+            return self._json_for_response(
+                self._refine_profile_info(
+                    self._get_profile_info(profileid)))
 
     @requestmethod('GET')
     def list_profiles(self, REQUEST=None):
         """Returns a list of all installed profiles and their upgrade steps.
         """
-
-        return self._json_for_response(
-            map(self._refine_profile_info,
-                self.gatherer.get_upgrades()))
+        with ErrorHandling(self.request.response):
+            return self._json_for_response(
+                map(self._refine_profile_info,
+                    self.gatherer.get_upgrades()))
 
     @requestmethod('GET')
     def list_profiles_proposing_upgrades(self, REQUEST=None):
         """Returns a list of profiles with proposed upgrade steps, only
         containing the proposed upgrade steps for each profile.
         """
-
-        return self._json_for_response(
-            map(self._refine_profile_info,
-                self._get_profiles_proposing_upgrades()))
+        with ErrorHandling(self.request.response):
+            return self._json_for_response(
+                map(self._refine_profile_info,
+                    self._get_profiles_proposing_upgrades()))
 
     @requestmethod('POST')
     def execute_upgrades(self, upgrades=REQUIRED, REQUEST=None):
@@ -88,34 +56,11 @@ class PloneSiteAPI(BrowserView):
         returned by the profile listing actions
         (``[dest-version]@[profile ID]``).
         """
-        portal_migration = getToolByName(self.context, 'portal_migration')
-        if portal_migration.needUpgrading():
-            return self._error(
-                400, 'Plone site outdated',
-                'The Plone site is outdated and needs to be upgraded'
-                ' first using the regular Plone upgrading tools.')
-
-        if upgrades is REQUIRED:
-            return self._error(
-                400, 'Missing "upgrades:list" param in request.',
-                'The "upgrades:list" param is required for this action.'
-                ' It should be used once for each upgrade to execute and'
-                ' contain the upgrade ID returned by the API,'
-                ' e.g. "4023@my.package:default".')
-
-        try:
-            data = self._prepare_executioner_data_by_upgrade_ids(upgrades)
-        except UpgradeNotFound, exc:
-            return self._error(
-                400, 'Upgrade ID not found',
-                'The upgrade ID "{0}" could not be found.'.format(
-                    exc.api_upgrade_id))
-
-        executioner = IExecutioner(self.portal_setup)
-        with capture_log() as stream:
-            executioner.install(data)
-
-        return stream.getvalue()
+        with ErrorHandling(self.request.response):
+            self._require_up_to_date_plone_site()
+            self._require_params(**{'upgrades:list': upgrades})
+            upgrade_infos = self._get_upgrades_by_api_ids(upgrades)
+            return self._install_upgrades(upgrade_infos)
 
     def _refine_profile_info(self, profile):
         return {'id': profile['id'],
@@ -155,12 +100,22 @@ class PloneSiteAPI(BrowserView):
                                          profileinfo['upgrades'])
         return profileinfo
 
-    def _prepare_executioner_data_by_upgrade_ids(self, api_upgrade_ids):
-        gathered_profiles = self.gatherer.get_upgrades()
+    def _install_upgrades(self, upgrades):
+        data = [(upgrade['profile'], [upgrade['id']]) for upgrade in upgrades]
+        executioner = IExecutioner(self.portal_setup)
+        with capture_log() as stream:
+            executioner.install(data)
+        return stream.getvalue()
 
-        # order api_upgrade_ids by gathered_profiles order
+    def _get_upgrades_by_api_ids(self, api_upgrade_ids):
+        profiles = self.gatherer.get_upgrades()
+        upgrades = [self._get_upgrades_by_api_id(api_id, profiles)
+                    for api_id in self._order_upgrade_ids(api_upgrade_ids)]
+        return reduce(list.__add__, upgrades)
+
+    def _order_upgrade_ids(self, api_upgrade_ids):
         ordered_upgrade_ids = []
-        for profile in gathered_profiles:
+        for profile in self.gatherer.get_upgrades():
             for upgrade in profile['upgrades']:
                 ordered_upgrade_ids.append('{0}@{1}'.format(upgrade['sdest'],
                                                             profile['id']))
@@ -169,16 +124,7 @@ class PloneSiteAPI(BrowserView):
         if not_found:
             raise UpgradeNotFound(tuple(not_found)[0])
 
-        api_upgrade_ids.sort(key=ordered_upgrade_ids.index)
-
-        # prepare data as accepted by executioner
-        executioner_data = []
-        for api_id in api_upgrade_ids:
-            for upgrade in self._get_upgrades_by_api_id(api_id,
-                                                        gathered_profiles):
-                executioner_data.append((upgrade['profile'], [upgrade['id']]))
-
-        return executioner_data
+        return list(sorted(api_upgrade_ids, key=ordered_upgrade_ids.index))
 
     def _get_upgrades_by_api_id(self, api_upgrade_id, profiles=None):
         if not profiles:
@@ -203,6 +149,82 @@ class PloneSiteAPI(BrowserView):
         response.setHeader('Content-Type', 'application/json; charset=utf-8')
         return json.dumps(data, indent=4, encoding='utf-8')
 
-    def _error(self, status, message, details=''):
-        self.request.response.setStatus(status, message)
-        return json.dumps(['ERROR', message, details])
+    def _require_params(self, **params):
+        for name, value in params.items():
+            if value is REQUIRED:
+                raise MissingParam(name)
+
+    def _require_up_to_date_plone_site(self):
+        portal_migration = getToolByName(self.context, 'portal_migration')
+        if portal_migration.needUpgrading():
+            raise PloneSiteOutdated()
+
+
+@contextmanager
+def capture_log():
+    stream = StringIO()
+    handler = logging.StreamHandler(stream)
+    formatter = logging.root.handlers[-1].formatter
+    handler.setFormatter(formatter)
+    handler.setLevel(logging.INFO)
+
+    original_level = logging.root.getEffectiveLevel()
+    logging.root.addHandler(handler)
+    logging.root.setLevel(logging.INFO)
+    try:
+        yield stream
+
+    finally:
+        stream.seek(0)
+        logging.root.removeHandler(handler)
+        logging.root.setLevel(original_level)
+
+
+class ErrorHandling(object):
+    def __init__(self, response):
+        self.response = response
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc, traceback):
+        if not isinstance(exc, APIError):
+            return
+
+        self.response.setStatus(exc.response_code, exc.message)
+        self.response.setHeader('Content-Type',
+                                'application/json; charset=utf-8')
+        self.response.setBody(json.dumps(['ERROR', exc.message, exc.details]))
+        self.response.flush()
+        return True
+
+
+class APIError(Exception):
+    def __init__(self, message, details='', response_code=400):
+        super(APIError, self).__init__(message)
+        self.message = message
+        self.details = details
+        self.response_code = response_code
+
+
+class MissingParam(APIError):
+    def __init__(self, param_name):
+        super(MissingParam, self).__init__(
+            'Param missing',
+            'The param "{0}" is required for this API action.'.format(
+                param_name))
+
+
+class PloneSiteOutdated(APIError):
+    def __init__(self):
+        super(PloneSiteOutdated, self).__init__(
+            'Plone site outdated',
+            'The Plone site is outdated and needs to be upgraded'
+            ' first using the regular Plone upgrading tools.')
+
+
+class UpgradeNotFound(APIError):
+    def __init__(self, api_upgrade_id):
+        super(UpgradeNotFound, self).__init__(
+            'Upgrade not found',
+            'The upgrade "{0}" is unkown.'.format(api_upgrade_id))

@@ -66,7 +66,9 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
     @browsing
     def test_get_profile_requires_profileid(self, browser):
         with self.expect_api_error(status=400,
-                                   message='Missing "profileid" param in request.'):
+                                   message='Param missing',
+                                   details='The param "profileid" is required'
+                                   ' for this API action.'):
             self.api_request('GET', 'get_profile')
 
     @browsing
@@ -187,15 +189,16 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
     @browsing
     def test_execute_upgrades_requires_upgrades_param(self, browser):
         with self.expect_api_error(status=400,
-                                   message='Missing "upgrades:list" param in request.'):
+                                   message='Param missing',
+                                   details='The param "upgrades:list" is required for'
+                                   ' this API action.'):
             self.api_request('POST', 'execute_upgrades', {'enforce': 'post'})
 
     @browsing
     def test_execute_upgrades_validates_upgrade_ids(self, browser):
         with self.expect_api_error(status=400,
-                                   message='Upgrade ID not found',
-                                   details='The upgrade ID \"foo@bar:default\"'
-                                   ' could not be found.'):
+                                   message='Upgrade not found',
+                                   details='The upgrade "foo@bar:default" is unkown.'):
             self.api_request('POST', 'execute_upgrades', {'upgrades:list': 'foo@bar:default'})
 
     @browsing

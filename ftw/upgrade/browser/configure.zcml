@@ -30,7 +30,8 @@
         for="Products.CMFPlone.interfaces.IPloneSiteRoot"
         class=".jsonapi.PloneSiteAPI"
         permission="cmf.ManagePortal"
-        allowed_attributes="get_profile"
+        allowed_attributes="get_profile
+                            list_profiles_proposing_upgrades"
         />
 
 </configure>

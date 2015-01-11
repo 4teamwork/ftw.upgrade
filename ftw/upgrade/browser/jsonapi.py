@@ -1,5 +1,6 @@
 from AccessControl.requestmethod import requestmethod
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from zope.component import getAdapter
 from zope.publisher.browser import BrowserView
@@ -22,6 +23,16 @@ class PloneSiteAPI(BrowserView):
         return self._pretty_json(
             self._refine_profile_info(
                 self._get_profile_info(profileid)))
+
+    @requestmethod('GET')
+    def list_profiles_proposing_upgrades(self, REQUEST=None):
+        """Returns a list of profiles with proposed upgrade steps, only
+        containing the proposed upgrade steps for each profile.
+        """
+
+        return self._pretty_json(
+            map(self._refine_profile_info,
+                self._get_profiles_proposing_upgrades()))
 
     def _refine_profile_info(self, profile):
         return {'id': profile['id'],
@@ -50,6 +61,16 @@ class PloneSiteAPI(BrowserView):
             return {}
         else:
             return profiles[0]
+
+    def _get_profiles_proposing_upgrades(self):
+        profiles = map(self._filter_proposed_upgrades_in_profile,
+                       self.gatherer.get_upgrades())
+        return filter(itemgetter('upgrades'), profiles)
+
+    def _filter_proposed_upgrades_in_profile(self, profileinfo):
+        profileinfo['upgrades'] = filter(itemgetter('proposed'),
+                                         profileinfo['upgrades'])
+        return profileinfo
 
     def _pretty_json(self, data):
         return json.dumps(data, indent=4)

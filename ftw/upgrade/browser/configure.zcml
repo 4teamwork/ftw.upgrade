@@ -32,7 +32,8 @@
         permission="cmf.ManagePortal"
         allowed_attributes="get_profile
                             list_profiles
-                            list_profiles_proposing_upgrades"
+                            list_profiles_proposing_upgrades
+                            execute_upgrades"
         />
 
 </configure>

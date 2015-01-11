@@ -3,6 +3,7 @@ from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.testing import COMMAND_LAYER
 from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
 from operator import itemgetter
@@ -11,7 +12,10 @@ from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
+from zope.component import getMultiAdapter
 from zope.component import queryAdapter
+import re
+import transaction
 
 
 class UpgradeTestCase(TestCase):
@@ -37,6 +41,7 @@ class UpgradeTestCase(TestCase):
         self.portal_setup.runAllImportStepsFromProfile('profile-{0}'.format(profileid))
         if version is not None:
             self.portal_setup.setLastVersionForProfile(profileid, (unicode(version),))
+        transaction.commit()
 
     def install_profile_upgrades(self, *profileids):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
@@ -45,6 +50,19 @@ class UpgradeTestCase(TestCase):
                         if profile['id'] in profileids]
         executioner = queryAdapter(self.portal_setup, IExecutioner)
         executioner.install(upgrade_info)
+
+    def record_installed_upgrades(self, profile, *destinations):
+        profile = re.sub('^profile-', '', profile)
+        recorder = getMultiAdapter((self.portal, profile), IUpgradeStepRecorder)
+        recorder.storage.clear()
+        map(recorder.mark_as_installed, destinations)
+        transaction.commit()
+
+    def clear_recorded_upgrades(self, profile):
+        profile = re.sub('^profile-', '', profile)
+        recorder = getMultiAdapter((self.portal, profile), IUpgradeStepRecorder)
+        recorder.storage.clear()
+        transaction.commit()
 
     def asset(self, filename):
         return Path(__file__).dirname().joinpath('assets', filename).text()

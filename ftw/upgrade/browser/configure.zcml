@@ -25,4 +25,12 @@
         permission="cmf.ManagePortal"
         />
 
+    <browser:page
+        name="upgrades.json"
+        for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+        class=".jsonapi.PloneSiteAPI"
+        permission="cmf.ManagePortal"
+        allowed_attributes="get_profile"
+        />
+
 </configure>

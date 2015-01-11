@@ -4,14 +4,10 @@ from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.gatherer import extend_auto_upgrades_with_human_formatted_date_version
 from ftw.upgrade.gatherer import UpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
-from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.tests.base import UpgradeTestCase
 from unittest2 import TestCase
-from zope.component import getMultiAdapter
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
-import re
-
 
 
 class TestUpgradeInformationGatherer(UpgradeTestCase):
@@ -290,12 +286,6 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
                  'sdest': '20141230104550',
                  'fdest': '2014/12/30 10:45'},
                 upgrade_info)
-
-    def record_installed_upgrades(self, profile, *destinations):
-        profile = re.sub('^profile-', '', profile)
-        recorder = getMultiAdapter((self.layer['portal'], profile), IUpgradeStepRecorder)
-        recorder.storage.clear()
-        map(recorder.mark_as_installed, destinations)
 
     def get_listed_profiles(self, filter_package='the.package'):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)

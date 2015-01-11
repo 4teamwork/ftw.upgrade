@@ -30,6 +30,8 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
             self.clear_recorded_upgrades('the.package:default')
 
             self.api_request('GET', 'get_profile', dict(profileid='the.package:default'))
+            self.assertEqual('application/json; charset=utf-8',
+                             browser.headers.get('content-type'))
 
             self.assert_json_equal(
                 {'id': 'the.package:default',
@@ -82,6 +84,9 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
             self.install_profile('the.package:foo')
 
             self.api_request('GET', 'list_profiles')
+            self.assertEqual('application/json; charset=utf-8',
+                             browser.headers.get('content-type'))
+
             self.assert_json_contains_profile(
                 {'id': 'the.package:default',
                  'title': 'the.package',
@@ -132,6 +137,9 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
             self.clear_recorded_upgrades('the.package:default')
 
             self.api_request('GET', 'list_profiles_proposing_upgrades')
+            self.assertEqual('application/json; charset=utf-8',
+                             browser.headers.get('content-type'))
+
             self.assert_json_contains_profile(
                 {'id': 'the.package:default',
                  'title': 'the.package',

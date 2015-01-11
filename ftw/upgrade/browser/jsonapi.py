@@ -59,7 +59,7 @@ class PloneSiteAPI(BrowserView):
                 ' The value is expected to be a profile ID,'
                 ' e.g. "my.package:default".')
 
-        return self._pretty_json(
+        return self._json_for_response(
             self._refine_profile_info(
                 self._get_profile_info(profileid)))
 
@@ -68,7 +68,7 @@ class PloneSiteAPI(BrowserView):
         """Returns a list of all installed profiles and their upgrade steps.
         """
 
-        return self._pretty_json(
+        return self._json_for_response(
             map(self._refine_profile_info,
                 self.gatherer.get_upgrades()))
 
@@ -78,7 +78,7 @@ class PloneSiteAPI(BrowserView):
         containing the proposed upgrade steps for each profile.
         """
 
-        return self._pretty_json(
+        return self._json_for_response(
             map(self._refine_profile_info,
                 self._get_profiles_proposing_upgrades()))
 
@@ -198,8 +198,10 @@ class PloneSiteAPI(BrowserView):
             upgrade['profile'] = profile_id
         return upgrades
 
-    def _pretty_json(self, data):
-        return json.dumps(data, indent=4)
+    def _json_for_response(self, data):
+        response = self.request.response
+        response.setHeader('Content-Type', 'application/json; charset=utf-8')
+        return json.dumps(data, indent=4, encoding='utf-8')
 
     def _error(self, status, message, details=''):
         self.request.response.setStatus(status, message)

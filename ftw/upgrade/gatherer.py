@@ -178,6 +178,7 @@ class UpgradeInformationGatherer(object):
                 del upgrade['step']
 
             upgrade['profile'] = profileid
+            upgrade['api_id'] = '@'.join((upgrade['sdest'], profileid))
             upgrades.append(upgrade)
 
         return upgrades

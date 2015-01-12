@@ -99,7 +99,7 @@ class PloneSiteAPI(BrowserView):
         keys = ('title', 'proposed', 'done', 'orphan', 'outdated_fs_version')
         values = dict((key, value) for (key, value) in upgrade.items()
                       if key in keys)
-        values.update({'id': '{0}@{1}'.format(upgrade['sdest'], profile['id']),
+        values.update({'id': upgrade['api_id'],
                        'title': upgrade['title'],
                        'source': upgrade['ssource'],
                        'dest': upgrade['sdest']})
@@ -140,8 +140,7 @@ class PloneSiteAPI(BrowserView):
         ordered_upgrade_ids = []
         for profile in self.gatherer.get_upgrades():
             for upgrade in profile['upgrades']:
-                ordered_upgrade_ids.append('{0}@{1}'.format(upgrade['sdest'],
-                                                            profile['id']))
+                ordered_upgrade_ids.append(upgrade['api_id'])
 
         not_found = set(api_upgrade_ids) - set(ordered_upgrade_ids)
         if not_found:

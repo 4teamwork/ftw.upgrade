@@ -225,6 +225,7 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
                 {'title': u'Add action',
                  'description': u'Some details...',
                  'profile': 'the.package:default',
+                 'api_id': '1001@the.package:default',
                  'ssource': '1000',
                  'source': ('1000',),
                  'sdest': '1001',

@@ -224,6 +224,7 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
             self.assertDictContainsSubset(
                 {'title': u'Add action',
                  'description': u'Some details...',
+                 'profile': 'the.package:default',
                  'ssource': '1000',
                  'source': ('1000',),
                  'sdest': '1001',

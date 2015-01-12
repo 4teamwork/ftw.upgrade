@@ -80,12 +80,9 @@ class PloneSiteAPI(BrowserView):
         """Execute all proposed upgrades on this Plone site.
         """
         self._require_up_to_date_plone_site()
-        profiles = self._get_profiles_proposing_upgrades()
-        upgrades = []
-        for profile in profiles:
-            for upgrade in profile['upgrades']:
-                upgrade['profile'] = profile['id']
-            upgrades.extend(profile['upgrades'])
+        upgrades = reduce(list.__add__,
+                          map(itemgetter('upgrades'),
+                              self._get_profiles_proposing_upgrades()))
         return self._install_upgrades(upgrades)
 
     def _refine_profile_info(self, profile):
@@ -165,9 +162,6 @@ class PloneSiteAPI(BrowserView):
                     if upgrade['sdest'] == upgrade_sdest]
         if len(upgrades) == 0:
             raise UpgradeNotFound(api_upgrade_id)
-
-        for upgrade in upgrades:
-            upgrade['profile'] = profile_id
         return upgrades
 
     def _json_for_response(self, data):

@@ -176,6 +176,8 @@ class UpgradeInformationGatherer(object):
 
             if 'step' in upgrade:
                 del upgrade['step']
+
+            upgrade['profile'] = profileid
             upgrades.append(upgrade)
 
         return upgrades

@@ -80,6 +80,28 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
         self.assertEquals('GET', cm['headers'].get('allow'))
 
     @browsing
+    def test_cyclic_dependency_errors_are_handled(self, browser):
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .named('foo')
+                                  .with_upgrade(self.default_upgrade())
+                                  .with_dependencies('the.package:bar'))
+
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .named('bar')
+                                  .with_upgrade(self.default_upgrade())
+                                  .with_dependencies('the.package:foo'))
+
+        with self.package_created():
+            self.install_profile('the.package:foo')
+            self.install_profile('the.package:bar')
+
+            with self.expect_api_error(status=500,
+                                       message='Cyclic dependencies',
+                                       details='There are cyclic Generic Setup profile'
+                                       ' dependencies.'):
+                self.api_request('GET', 'get_profile', {'profileid': 'the.package:foo'})
+
+    @browsing
     def test_list_profiles(self, browser):
         self.package.with_profile(
             Builder('genericsetup profile')

@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from operator import itemgetter
@@ -221,6 +222,8 @@ class ErrorHandling(object):
         pass
 
     def __exit__(self, exc_type, exc, traceback):
+        if isinstance(exc, CyclicDependencies):
+            exc = CyclicDependenciesWrapper(exc)
         if not isinstance(exc, APIError):
             return
 
@@ -285,3 +288,11 @@ class UpgradeNotFound(APIError):
         super(UpgradeNotFound, self).__init__(
             'Upgrade not found',
             'The upgrade "{0}" is unkown.'.format(api_upgrade_id))
+
+
+class CyclicDependenciesWrapper(APIError):
+    def __init__(self, original_exception):
+        super(CyclicDependenciesWrapper, self).__init__(
+            'Cyclic dependencies',
+            'There are cyclic Generic Setup profile dependencies.',
+            response_code=500)

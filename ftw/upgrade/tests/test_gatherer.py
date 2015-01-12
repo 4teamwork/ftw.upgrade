@@ -1,6 +1,7 @@
 from datetime import datetime
 from ftw.builder import Builder
 from ftw.upgrade.exceptions import CyclicDependencies
+from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.gatherer import extend_auto_upgrades_with_human_formatted_date_version
 from ftw.upgrade.gatherer import UpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
@@ -288,6 +289,46 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
                  'sdest': '20141230104550',
                  'fdest': '2014/12/30 10:45'},
                 upgrade_info)
+
+    def test_get_upgrades_by_api_ids(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            self.install_profile('the.package:default')
+
+            gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
+            upgrade_info, = gatherer.get_upgrades_by_api_ids(
+                '20110101000000@the.package:default')
+            self.assertDictContainsSubset(
+                {'api_id': u'20110101000000@the.package:default',
+                 'sdest': u'20110101000000'},
+                upgrade_info)
+
+    def test_get_upgrades_by_api_ids_orders_upgrades(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1)))
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2012, 2, 2))))
+
+        with self.package_created():
+            self.install_profile('the.package:default')
+
+            gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
+            self.assertEquals(
+                gatherer.get_upgrades_by_api_ids('20110101000000@the.package:default',
+                                                 '20120202000000@the.package:default'),
+                gatherer.get_upgrades_by_api_ids('20120202000000@the.package:default',
+                                                 '20110101000000@the.package:default'))
+
+    def test_get_upgrades_by_api_ids_raises_upgrade_not_found(self):
+        gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
+        with self.assertRaises(UpgradeNotFound) as cm:
+            gatherer.get_upgrades_by_api_ids('foo@bar:default')
+        self.assertEquals('foo@bar:default', cm.exception.api_id)
+        self.assertEquals('The upgrade "foo@bar:default" could not be found.',
+                          str(cm.exception))
 
     def get_listed_profiles(self, filter_package='the.package'):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)

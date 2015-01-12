@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 from ftw.upgrade.exceptions import CyclicDependencies
+from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from operator import itemgetter
@@ -72,7 +73,7 @@ class PloneSiteAPI(BrowserView):
         (``[dest-version]@[profile ID]``).
         """
         self._require_up_to_date_plone_site()
-        upgrade_infos = self._get_upgrades_by_api_ids(upgrades)
+        upgrade_infos = self.gatherer.get_upgrades_by_api_ids(*upgrades)
         return self._install_upgrades(upgrade_infos)
 
     @action('POST')
@@ -130,39 +131,6 @@ class PloneSiteAPI(BrowserView):
             executioner.install(data)
         return stream.getvalue()
 
-    def _get_upgrades_by_api_ids(self, api_upgrade_ids):
-        profiles = self.gatherer.get_profiles()
-        upgrades = [self._get_upgrades_by_api_id(api_id, profiles)
-                    for api_id in self._order_upgrade_ids(api_upgrade_ids)]
-        return reduce(list.__add__, upgrades)
-
-    def _order_upgrade_ids(self, api_upgrade_ids):
-        ordered_upgrade_ids = []
-        for profile in self.gatherer.get_profiles():
-            for upgrade in profile['upgrades']:
-                ordered_upgrade_ids.append(upgrade['api_id'])
-
-        not_found = set(api_upgrade_ids) - set(ordered_upgrade_ids)
-        if not_found:
-            raise UpgradeNotFound(tuple(not_found)[0])
-
-        return list(sorted(api_upgrade_ids, key=ordered_upgrade_ids.index))
-
-    def _get_upgrades_by_api_id(self, api_upgrade_id, profiles=None):
-        if not profiles:
-            profiles = self.gatherer.get_profiles()
-        profiles_map = dict([(profile['id'], profile) for profile in profiles])
-
-        upgrade_sdest, profile_id = api_upgrade_id.split('@')
-        if profile_id not in profiles_map:
-            raise UpgradeNotFound(api_upgrade_id)
-
-        upgrades = [upgrade for upgrade in profiles_map[profile_id]['upgrades']
-                    if upgrade['sdest'] == upgrade_sdest]
-        if len(upgrades) == 0:
-            raise UpgradeNotFound(api_upgrade_id)
-        return upgrades
-
     def _json_for_response(self, data):
         response = self.request.response
         response.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -205,28 +173,6 @@ def extract_action_params(func, request, rename_params=None):
             raise MissingParam(rename_params.get(arg_name, arg_name))
 
     return dict([(name, form[name]) for name in form if name in argspec.args])
-
-
-class ErrorHandling(object):
-    def __init__(self, response):
-        self.response = response
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc, traceback):
-        if isinstance(exc, CyclicDependencies):
-            exc = CyclicDependenciesWrapper(exc)
-        if not isinstance(exc, APIError):
-            return
-
-        self.response.setStatus(exc.response_code, exc.message)
-        self.response.setHeader('Content-Type',
-                                'application/json; charset=utf-8')
-        exc.process_error(self.response)
-        self.response.setBody(json.dumps(['ERROR', exc.message, exc.details]))
-        self.response.flush()
-        return True
 
 
 class APIError(Exception):
@@ -276,16 +222,48 @@ class PloneSiteOutdated(APIError):
             ' first using the regular Plone upgrading tools.')
 
 
-class UpgradeNotFound(APIError):
-    def __init__(self, api_upgrade_id):
-        super(UpgradeNotFound, self).__init__(
-            'Upgrade not found',
-            'The upgrade "{0}" is unkown.'.format(api_upgrade_id))
-
-
 class CyclicDependenciesWrapper(APIError):
     def __init__(self, original_exception):
         super(CyclicDependenciesWrapper, self).__init__(
             'Cyclic dependencies',
             'There are cyclic Generic Setup profile dependencies.',
             response_code=500)
+
+
+class UpgradeNotFoundWrapper(APIError):
+    def __init__(self, original_exception):
+        api_upgrade_id = original_exception.api_id
+        super(UpgradeNotFoundWrapper, self).__init__(
+            'Upgrade not found',
+            'The upgrade "{0}" is unkown.'.format(api_upgrade_id))
+
+
+class ErrorHandling(object):
+    exception_wrappers = {
+        CyclicDependencies: CyclicDependenciesWrapper,
+        UpgradeNotFound: UpgradeNotFoundWrapper}
+
+    def __init__(self, response):
+        self.response = response
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc, traceback):
+        exc = self.wrap_exception(exc)
+        if not isinstance(exc, APIError):
+            return
+
+        self.response.setStatus(exc.response_code, exc.message)
+        self.response.setHeader('Content-Type',
+                                'application/json; charset=utf-8')
+        exc.process_error(self.response)
+        self.response.setBody(json.dumps(['ERROR', exc.message, exc.details]))
+        self.response.flush()
+        return True
+
+    def wrap_exception(self, original_exception):
+        for original_type, wrapper_type in self.exception_wrappers.items():
+            if isinstance(original_exception, original_type):
+                return wrapper_type(original_exception)
+        return original_exception

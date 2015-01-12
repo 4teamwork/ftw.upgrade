@@ -55,6 +55,12 @@ class IUpgradeInformationGatherer(Interface):
         ...   'id': u'Products.CMFEditions:CMFEditions'}]
         """
 
+    def get_upgrades_by_api_ids(*api_ids):
+        """Returns a list of ugprade information dicts for each upgrade which
+        is selected with a positional argument.
+        The upgrades are ordered in the proposed installation order.
+        """
+
 
 class IExecutioner(Interface):
     """Executes multiple upgrade steps of multiple packages.

@@ -1,9 +1,11 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from datetime import datetime
+from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.interfaces import IRecordableHandler
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.utils import get_sorted_profile_ids
+from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import normalize_version
@@ -112,6 +114,18 @@ class UpgradeInformationGatherer(object):
     security.declarePrivate('get_upgrades')
     get_upgrades = deprecated(get_profiles,
                               'get_upgrades was renamed to get_profiles')
+
+    security.declarePrivate('get_upgrades_by_api_ids')
+    def get_upgrades_by_api_ids(self, *api_ids):
+        upgrades = filter(lambda upgrade: upgrade['api_id'] in api_ids,
+                          reduce(list.__add__,
+                                 map(itemgetter('upgrades'),
+                                     self.get_profiles())))
+        missing_api_ids = (set(api_ids)
+                           - set(map(itemgetter('api_id'), upgrades)))
+        if missing_api_ids:
+            raise UpgradeNotFound(tuple(missing_api_ids)[0])
+        return upgrades
 
     security.declarePrivate('_get_profiles')
     def _get_profiles(self):

@@ -25,16 +25,4 @@
         permission="cmf.ManagePortal"
         />
 
-    <browser:page
-        name="upgrades.json"
-        for="Products.CMFPlone.interfaces.IPloneSiteRoot"
-        class=".jsonapi.PloneSiteAPI"
-        permission="zope.Public"
-        allowed_attributes="get_profile
-                            list_profiles
-                            list_profiles_proposing_upgrades
-                            execute_upgrades
-                            execute_proposed_upgrades"
-        />
-
 </configure>

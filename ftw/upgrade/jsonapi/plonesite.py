@@ -1,36 +1,14 @@
 from contextlib import contextmanager
-from ftw.upgrade.exceptions import CyclicDependencies
-from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.jsonapi.exceptions import PloneSiteOutdated
+from ftw.upgrade.jsonapi.utils import action
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from StringIO import StringIO
 from zope.publisher.browser import BrowserView
-from zope.security import checkPermission
-import inspect
 import json
 import logging
-
-
-def action(method, rename_params={}):
-    def wrap_action(func):
-        def action_wrapper(self):
-            with ErrorHandling(self.request.RESPONSE):
-                if self.request.method != method:
-                    raise MethodNotAllowed(method)
-
-                if not checkPermission('cmf.ManagePortal', self.context):
-                    raise Unauthorized()
-
-                params = extract_action_params(
-                    func, self.request, rename_params)
-                return func(self, **params)
-
-        action_wrapper.__doc__ = func.__doc__
-        action_wrapper.__name__ = func.__name__
-        return action_wrapper
-    return wrap_action
 
 
 class PloneSiteAPI(BrowserView):
@@ -160,110 +138,3 @@ def capture_log():
         stream.seek(0)
         logging.root.removeHandler(handler)
         logging.root.setLevel(original_level)
-
-
-def extract_action_params(func, request, rename_params=None):
-    rename_params = rename_params or {}
-    form = request.form
-    argspec = inspect.getargspec(func)
-    required_params = argspec.args[len(argspec.defaults or []) + 1:]
-
-    for arg_name in required_params:
-        if not form.get(arg_name, None):
-            raise MissingParam(rename_params.get(arg_name, arg_name))
-
-    return dict([(name, form[name]) for name in form if name in argspec.args])
-
-
-class APIError(Exception):
-    def __init__(self, message, details='', response_code=400):
-        super(APIError, self).__init__(message)
-        self.message = message
-        self.details = details
-        self.response_code = response_code
-
-    def process_error(self, response):
-        return
-
-
-class Unauthorized(APIError):
-    def __init__(self):
-        super(Unauthorized, self).__init__(
-            'Unauthorized',
-            'Admin authorization required.',
-            response_code=401)
-
-
-class MethodNotAllowed(APIError):
-    def __init__(self, required_method):
-        self.required_method = required_method.upper()
-        super(MethodNotAllowed, self).__init__(
-            'Method Not Allowed',
-            'Action requires {0}'.format(self.required_method),
-            response_code=405)
-
-    def process_error(self, response):
-        response.setHeader('Allow', self.required_method)
-
-
-class MissingParam(APIError):
-    def __init__(self, param_name):
-        super(MissingParam, self).__init__(
-            'Param missing',
-            'The param "{0}" is required for this API action.'.format(
-                param_name))
-
-
-class PloneSiteOutdated(APIError):
-    def __init__(self):
-        super(PloneSiteOutdated, self).__init__(
-            'Plone site outdated',
-            'The Plone site is outdated and needs to be upgraded'
-            ' first using the regular Plone upgrading tools.')
-
-
-class CyclicDependenciesWrapper(APIError):
-    def __init__(self, original_exception):
-        super(CyclicDependenciesWrapper, self).__init__(
-            'Cyclic dependencies',
-            'There are cyclic Generic Setup profile dependencies.',
-            response_code=500)
-
-
-class UpgradeNotFoundWrapper(APIError):
-    def __init__(self, original_exception):
-        api_upgrade_id = original_exception.api_id
-        super(UpgradeNotFoundWrapper, self).__init__(
-            'Upgrade not found',
-            'The upgrade "{0}" is unkown.'.format(api_upgrade_id))
-
-
-class ErrorHandling(object):
-    exception_wrappers = {
-        CyclicDependencies: CyclicDependenciesWrapper,
-        UpgradeNotFound: UpgradeNotFoundWrapper}
-
-    def __init__(self, response):
-        self.response = response
-
-    def __enter__(self):
-        pass
-
-    def __exit__(self, exc_type, exc, traceback):
-        exc = self.wrap_exception(exc)
-        if not isinstance(exc, APIError):
-            return
-
-        self.response.setStatus(exc.response_code, exc.message)
-        self.response.setHeader('Content-Type',
-                                'application/json; charset=utf-8')
-        exc.process_error(self.response)
-        self.response.setBody(json.dumps(['ERROR', exc.message, exc.details]))
-        self.response.flush()
-        return True
-
-    def wrap_exception(self, original_exception):
-        for original_type, wrapper_type in self.exception_wrappers.items():
-            if isinstance(original_exception, original_type):
-                return wrapper_type(original_exception)
-        return original_exception

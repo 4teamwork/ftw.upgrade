@@ -1,0 +1,17 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser">
+
+    <browser:page
+        name="upgrades.json"
+        for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+        class=".plonesite.PloneSiteAPI"
+        permission="zope.Public"
+        allowed_attributes="get_profile
+                            list_profiles
+                            list_profiles_proposing_upgrades
+                            execute_upgrades
+                            execute_proposed_upgrades"
+        />
+
+</configure>

@@ -54,7 +54,7 @@ class PloneSiteAPI(BrowserView):
         """
         return self._json_for_response(
             map(self._refine_profile_info,
-                self.gatherer.get_upgrades()))
+                self.gatherer.get_profiles()))
 
     @action('GET')
     def list_profiles_proposing_upgrades(self):
@@ -107,7 +107,7 @@ class PloneSiteAPI(BrowserView):
 
     def _get_profile_info(self, profileid):
         profiles = filter(lambda profile: profile['id'] == profileid,
-                          self.gatherer.get_upgrades())
+                          self.gatherer.get_profiles())
         if len(profiles) == 0:
             return {}
         else:
@@ -115,7 +115,7 @@ class PloneSiteAPI(BrowserView):
 
     def _get_profiles_proposing_upgrades(self):
         profiles = map(self._filter_proposed_upgrades_in_profile,
-                       self.gatherer.get_upgrades())
+                       self.gatherer.get_profiles())
         return filter(itemgetter('upgrades'), profiles)
 
     def _filter_proposed_upgrades_in_profile(self, profileinfo):
@@ -131,14 +131,14 @@ class PloneSiteAPI(BrowserView):
         return stream.getvalue()
 
     def _get_upgrades_by_api_ids(self, api_upgrade_ids):
-        profiles = self.gatherer.get_upgrades()
+        profiles = self.gatherer.get_profiles()
         upgrades = [self._get_upgrades_by_api_id(api_id, profiles)
                     for api_id in self._order_upgrade_ids(api_upgrade_ids)]
         return reduce(list.__add__, upgrades)
 
     def _order_upgrade_ids(self, api_upgrade_ids):
         ordered_upgrade_ids = []
-        for profile in self.gatherer.get_upgrades():
+        for profile in self.gatherer.get_profiles():
             for upgrade in profile['upgrades']:
                 ordered_upgrade_ids.append(upgrade['api_id'])
 
@@ -150,7 +150,7 @@ class PloneSiteAPI(BrowserView):
 
     def _get_upgrades_by_api_id(self, api_upgrade_id, profiles=None):
         if not profiles:
-            profiles = self.gatherer.get_upgrades()
+            profiles = self.gatherer.get_profiles()
         profiles_map = dict([(profile['id'], profile) for profile in profiles])
 
         upgrade_sdest, profile_id = api_upgrade_id.split('@')

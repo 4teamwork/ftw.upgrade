@@ -10,6 +10,7 @@ from Products.GenericSetup.upgrade import normalize_version
 from Products.GenericSetup.upgrade import UpgradeStep
 from zope.component import adapts
 from zope.component import getMultiAdapter
+from zope.deprecation import deprecated
 from zope.interface import implements
 
 
@@ -100,13 +101,17 @@ class UpgradeInformationGatherer(object):
             portal_setup, 'portal_url').getPortalObject()
         self.cyclic_dependencies = False
 
-    security.declarePrivate('get_upgrades')
-    def get_upgrades(self):
+    security.declarePrivate('get_profiles')
+    def get_profiles(self):
         profiles = self._sort_profiles_by_dependencies(self._get_profiles())
         profiles = flag_profiles_with_outdated_fs_version(profiles)
         profiles = extend_auto_upgrades_with_human_formatted_date_version(
             profiles)
         return profiles
+
+    security.declarePrivate('get_upgrades')
+    get_upgrades = deprecated(get_profiles,
+                              'get_upgrades was renamed to get_profiles')
 
     security.declarePrivate('_get_profiles')
     def _get_profiles(self):

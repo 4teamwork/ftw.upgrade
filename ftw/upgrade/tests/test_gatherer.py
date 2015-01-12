@@ -148,7 +148,7 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
 
             gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
             with self.assertRaises(CyclicDependencies) as cm:
-                gatherer.get_upgrades()
+                gatherer.get_profiles()
 
             self.assertIn(('the.package:bar', 'the.package:foo'),
                           cm.exception.dependencies)
@@ -291,7 +291,7 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
 
     def get_listed_profiles(self, filter_package='the.package'):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        result = gatherer.get_upgrades()
+        result = gatherer.get_profiles()
         profiles = [profile['id'] for profile in result]
         if filter_package:
             profiles = filter(lambda profile: profile.startswith(filter_package),
@@ -300,12 +300,12 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
 
     def get_profiles_by_ids(self):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        result = gatherer.get_upgrades()
+        result = gatherer.get_profiles()
         return dict([(profile['id'], profile) for profile in result])
 
     def assert_gathered_upgrades(self, expected):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        result = gatherer.get_upgrades()
+        result = gatherer.get_profiles()
         got = {}
         for profile in result:
             if profile['id'] not in expected:
@@ -327,7 +327,7 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
 
     def assert_outdated_profiles(self, expected_profiles, ignore=()):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        result = gatherer.get_upgrades()
+        result = gatherer.get_profiles()
         got_profiles = [profile['id'] for profile in result
                         if profile['outdated_fs_version'] and profile['id'] not in ignore]
         self.assertEquals(expected_profiles, got_profiles,

@@ -113,7 +113,7 @@ class ManageUpgrades(BrowserView):
         gstool = getToolByName(self.context, 'portal_setup')
         gatherer = getAdapter(gstool, IUpgradeInformationGatherer)
         try:
-            return gatherer.get_upgrades()
+            return gatherer.get_profiles()
         except CyclicDependencies, exc:
             self.cyclic_dependencies = exc.cyclic_dependencies
             return []

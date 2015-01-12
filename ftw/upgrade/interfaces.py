@@ -25,7 +25,7 @@ class IUpgradeInformationGatherer(Interface):
         """Adapts portal_setup.
         """
 
-    def get_upgrades():
+    def get_profiles():
         """Returns upgrades grouped by done / proposed and assigned profile.
 
         Example output:

@@ -237,6 +237,25 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
                                    ' upgrading tools.'):
             self.api_request('POST', 'execute_upgrades', {'upgrades:list': 'foo@bar:default'})
 
+    @browsing
+    def test_execute_proposed_upgrades(self, browser):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))
+                          .named('The upgrade')))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='2')
+            self.clear_recorded_upgrades('the.package:default')
+
+            self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+            self.api_request('POST', 'execute_proposed_upgrades')
+            self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+
+            self.assertEqual(
+                ['UPGRADE STEP the.package:default: The upgrade.'],
+                re.findall(r'UPGRADE STEP.*', browser.contents))
+
     def assert_json_equal(self, expected, got, msg=None):
         expected = json.dumps(expected, sort_keys=True, indent=4)
         got = json.dumps(got, sort_keys=True, indent=4)

@@ -74,6 +74,19 @@ class PloneSiteAPI(BrowserView):
         upgrade_infos = self._get_upgrades_by_api_ids(upgrades)
         return self._install_upgrades(upgrade_infos)
 
+    @action('POST')
+    def execute_proposed_upgrades(self):
+        """Execute all proposed upgrades on this Plone site.
+        """
+        self._require_up_to_date_plone_site()
+        profiles = self._get_profiles_proposing_upgrades()
+        upgrades = []
+        for profile in profiles:
+            for upgrade in profile['upgrades']:
+                upgrade['profile'] = profile['id']
+            upgrades.extend(profile['upgrades'])
+        return self._install_upgrades(upgrades)
+
     def _refine_profile_info(self, profile):
         return {'id': profile['id'],
                 'title': profile['title'],

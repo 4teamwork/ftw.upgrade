@@ -72,6 +72,14 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
             self.api_request('GET', 'get_profile')
 
     @browsing
+    def test_get_profile_requires_GET(self, browser):
+        with self.expect_api_error(status=405,
+                                   message='Method Not Allowed',
+                                   details='Action requires GET') as cm:
+            self.api_request('POST', 'get_profile', {'profileid': 'the.package:default'})
+        self.assertEquals('GET', cm['headers'].get('allow'))
+
+    @browsing
     def test_list_profiles(self, browser):
         self.package.with_profile(
             Builder('genericsetup profile')
@@ -126,6 +134,13 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
                          'outdated_fs_version': False},
                         ]},
                 browser.json)
+
+    @browsing
+    def test_list_profiles_requires_authentication(self, browser):
+        with self.expect_api_error(status=401,
+                                   message='Unauthorized',
+                                   details='Admin authorization required.'):
+            self.api_request('GET', 'list_profiles', authenticate=False)
 
     @browsing
     def test_list_profiles_proposing_upgrades(self, browser):
@@ -192,7 +207,7 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
                                    message='Param missing',
                                    details='The param "upgrades:list" is required for'
                                    ' this API action.'):
-            self.api_request('POST', 'execute_upgrades', {'enforce': 'post'})
+            self.api_request('POST', 'execute_upgrades')
 
     @browsing
     def test_execute_upgrades_validates_upgrade_ids(self, browser):
@@ -200,6 +215,14 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
                                    message='Upgrade not found',
                                    details='The upgrade "foo@bar:default" is unkown.'):
             self.api_request('POST', 'execute_upgrades', {'upgrades:list': 'foo@bar:default'})
+
+    @browsing
+    def test_execute_upgrades_requires_POST(self, browser):
+        with self.expect_api_error(status=405,
+                                   message='Method Not Allowed',
+                                   details='Action requires POST') as cm:
+            self.api_request('GET', 'execute_upgrades', {'upgrades:list': 'foo@bar:default'})
+        self.assertEquals('POST', cm['headers'].get('allow'))
 
     @browsing
     def test_execute_upgrades_not_allowed_when_plone_outdated(self, browser):
@@ -212,7 +235,7 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
                                    details='The Plone site is outdated and needs to'
                                    ' be upgraded first using the regular Plone'
                                    ' upgrading tools.'):
-            self.api_request('POST', 'execute_upgrades', {'enforce': 'post'})
+            self.api_request('POST', 'execute_upgrades', {'upgrades:list': 'foo@bar:default'})
 
     def assert_json_equal(self, expected, got, msg=None):
         expected = json.dumps(expected, sort_keys=True, indent=4)
@@ -231,8 +254,11 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
         recorder = getMultiAdapter((self.portal, profileid), IUpgradeStepRecorder)
         return recorder.is_installed(dest_time.strftime(scaffold.DATETIME_FORMAT))
 
-    def api_request(self, method, action, data=()):
-        browser.login(SITE_OWNER_NAME)
+    def api_request(self, method, action, data=(), authenticate=True):
+        if authenticate:
+            browser.login(SITE_OWNER_NAME)
+        else:
+            browser.logout()
 
         if method.lower() == 'get':
             browser.visit(view='upgrades.json/{0}?{1}'.format(
@@ -240,6 +266,8 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
                     urllib.urlencode(data)))
 
         elif method.lower() == 'post':
+            if not data:
+                data = {'enforce': 'post'}
             browser.visit(view='upgrades.json/{0}'.format(action),
                           data=data)
 
@@ -253,8 +281,12 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
             yield api_error_info
 
         api_error_info.update(response_info)
-        del api_error_info['headers']  # not serializable
+        # del api_error_info['headers']  # not serializable
         api_error_info['response_message'] = response_info['message']
+
+        # Make headers serializable
+        api_error_info['headers'] = dict(api_error_info['headers'])
+
         try:
             body_json = json.loads(response_info['body'])
             assert len(body_json) == 3

@@ -1,4 +1,3 @@
-from AccessControl.requestmethod import requestmethod
 from contextlib import contextmanager
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
@@ -6,11 +5,30 @@ from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from StringIO import StringIO
 from zope.publisher.browser import BrowserView
+from zope.security import checkPermission
+import inspect
 import json
 import logging
 
 
-REQUIRED = object()
+def action(method, rename_params={}):
+    def wrap_action(func):
+        def action_wrapper(self):
+            with ErrorHandling(self.request.RESPONSE):
+                if self.request.method != method:
+                    raise MethodNotAllowed(method)
+
+                if not checkPermission('cmf.ManagePortal', self.context):
+                    raise Unauthorized()
+
+                params = extract_action_params(
+                    func, self.request, rename_params)
+                return func(self, **params)
+
+        action_wrapper.__doc__ = func.__doc__
+        action_wrapper.__name__ = func.__name__
+        return action_wrapper
+    return wrap_action
 
 
 class PloneSiteAPI(BrowserView):
@@ -20,47 +38,41 @@ class PloneSiteAPI(BrowserView):
         self.portal_setup = getToolByName(self.context, 'portal_setup')
         self.gatherer = IUpgradeInformationGatherer(self.portal_setup)
 
-    @requestmethod('GET')
-    def get_profile(self, profileid=REQUIRED, REQUEST=None):
+    @action('GET')
+    def get_profile(self, profileid):
         """Returns a JSON-encoded dict representation of the Generic Setup
         profile with the given ``id``.
         """
-        with ErrorHandling(self.request.response):
-            self._require_params(profileid=profileid)
-            return self._json_for_response(
-                self._refine_profile_info(
-                    self._get_profile_info(profileid)))
+        return self._json_for_response(
+            self._refine_profile_info(
+                self._get_profile_info(profileid)))
 
-    @requestmethod('GET')
-    def list_profiles(self, REQUEST=None):
+    @action('GET')
+    def list_profiles(self):
         """Returns a list of all installed profiles and their upgrade steps.
         """
-        with ErrorHandling(self.request.response):
-            return self._json_for_response(
-                map(self._refine_profile_info,
-                    self.gatherer.get_upgrades()))
+        return self._json_for_response(
+            map(self._refine_profile_info,
+                self.gatherer.get_upgrades()))
 
-    @requestmethod('GET')
-    def list_profiles_proposing_upgrades(self, REQUEST=None):
+    @action('GET')
+    def list_profiles_proposing_upgrades(self):
         """Returns a list of profiles with proposed upgrade steps, only
         containing the proposed upgrade steps for each profile.
         """
-        with ErrorHandling(self.request.response):
-            return self._json_for_response(
-                map(self._refine_profile_info,
-                    self._get_profiles_proposing_upgrades()))
+        return self._json_for_response(
+            map(self._refine_profile_info,
+                self._get_profiles_proposing_upgrades()))
 
-    @requestmethod('POST')
-    def execute_upgrades(self, upgrades=REQUIRED, REQUEST=None):
+    @action('POST', rename_params={'upgrades': 'upgrades:list'})
+    def execute_upgrades(self, upgrades):
         """Execute a list of upgrades, each identified by the upgrade ID
         returned by the profile listing actions
         (``[dest-version]@[profile ID]``).
         """
-        with ErrorHandling(self.request.response):
-            self._require_up_to_date_plone_site()
-            self._require_params(**{'upgrades:list': upgrades})
-            upgrade_infos = self._get_upgrades_by_api_ids(upgrades)
-            return self._install_upgrades(upgrade_infos)
+        self._require_up_to_date_plone_site()
+        upgrade_infos = self._get_upgrades_by_api_ids(upgrades)
+        return self._install_upgrades(upgrade_infos)
 
     def _refine_profile_info(self, profile):
         return {'id': profile['id'],
@@ -149,11 +161,6 @@ class PloneSiteAPI(BrowserView):
         response.setHeader('Content-Type', 'application/json; charset=utf-8')
         return json.dumps(data, indent=4, encoding='utf-8')
 
-    def _require_params(self, **params):
-        for name, value in params.items():
-            if value is REQUIRED:
-                raise MissingParam(name)
-
     def _require_up_to_date_plone_site(self):
         portal_migration = getToolByName(self.context, 'portal_migration')
         if portal_migration.needUpgrading():
@@ -180,6 +187,19 @@ def capture_log():
         logging.root.setLevel(original_level)
 
 
+def extract_action_params(func, request, rename_params=None):
+    rename_params = rename_params or {}
+    form = request.form
+    argspec = inspect.getargspec(func)
+    required_params = argspec.args[len(argspec.defaults or []) + 1:]
+
+    for arg_name in required_params:
+        if not form.get(arg_name, None):
+            raise MissingParam(rename_params.get(arg_name, arg_name))
+
+    return dict([(name, form[name]) for name in form if name in argspec.args])
+
+
 class ErrorHandling(object):
     def __init__(self, response):
         self.response = response
@@ -194,6 +214,7 @@ class ErrorHandling(object):
         self.response.setStatus(exc.response_code, exc.message)
         self.response.setHeader('Content-Type',
                                 'application/json; charset=utf-8')
+        exc.process_error(self.response)
         self.response.setBody(json.dumps(['ERROR', exc.message, exc.details]))
         self.response.flush()
         return True
@@ -205,6 +226,29 @@ class APIError(Exception):
         self.message = message
         self.details = details
         self.response_code = response_code
+
+    def process_error(self, response):
+        return
+
+
+class Unauthorized(APIError):
+    def __init__(self):
+        super(Unauthorized, self).__init__(
+            'Unauthorized',
+            'Admin authorization required.',
+            response_code=401)
+
+
+class MethodNotAllowed(APIError):
+    def __init__(self, required_method):
+        self.required_method = required_method.upper()
+        super(MethodNotAllowed, self).__init__(
+            'Method Not Allowed',
+            'Action requires {0}'.format(self.required_method),
+            response_code=405)
+
+    def process_error(self, response):
+        response.setHeader('Allow', self.required_method)
 
 
 class MissingParam(APIError):

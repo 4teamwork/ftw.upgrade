@@ -39,7 +39,8 @@ class PloneSiteAPI(BrowserView):
         """Returns a list of profiles with proposed upgrade steps, only
         containing the proposed upgrade steps for each profile.
         """
-        return map(self._refine_profile_info, self._get_profiles_proposing_upgrades())
+        return map(self._refine_profile_info,
+                   self._get_profiles_proposing_upgrades())
 
     @action('POST', rename_params={'upgrades': 'upgrades:list'})
     def execute_upgrades(self, upgrades):

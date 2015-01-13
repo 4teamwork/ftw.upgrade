@@ -9,6 +9,7 @@ class APIError(Exception):
     def process_error(self, response):
         return
 
+
 class UnauthorizedWrapper(APIError):
     def __init__(self, original_exception):
         super(UnauthorizedWrapper, self).__init__(

@@ -14,4 +14,12 @@
                             execute_proposed_upgrades"
         />
 
+    <browser:page
+        name="upgrades.json"
+        for="OFS.interfaces.IApplication"
+        class=".zopeapp.ZopeAppAPI"
+        permission="zope.Public"
+        allowed_attributes="list_plone_sites"
+        />
+
 </configure>

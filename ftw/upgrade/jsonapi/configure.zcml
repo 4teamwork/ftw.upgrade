@@ -10,6 +10,7 @@
         allowed_attributes="get_profile
                             list_profiles
                             list_profiles_proposing_upgrades
+                            list_proposed_upgrades
                             execute_upgrades
                             execute_proposed_upgrades"
         />

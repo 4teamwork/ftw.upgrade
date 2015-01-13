@@ -42,6 +42,13 @@ class PloneSiteAPI(BrowserView):
         return map(self._refine_profile_info,
                    self._get_profiles_proposing_upgrades())
 
+    @jsonify
+    @action('GET')
+    def list_proposed_upgrades(self):
+        """Returns a list of proposed upgrades.
+        """
+        return map(self._refine_upgrade_info, self._get_proposed_upgrades())
+
     @action('POST', rename_params={'upgrades': 'upgrades:list'})
     def execute_upgrades(self, upgrades):
         """Execute a list of upgrades, each identified by the upgrade ID
@@ -69,10 +76,9 @@ class PloneSiteAPI(BrowserView):
                 'db_version': profile['db_version'],
                 'fs_version': profile['version'],
                 'outdated_fs_version': False,
-                'upgrades': [self._refine_upgrade_info(profile, upgrade)
-                             for upgrade in profile['upgrades']]}
+                'upgrades': map(self._refine_upgrade_info, profile['upgrades'])}
 
-    def _refine_upgrade_info(self, profile, upgrade):
+    def _refine_upgrade_info(self, upgrade):
         keys = ('title', 'proposed', 'done', 'orphan', 'outdated_fs_version')
         values = dict((key, value) for (key, value) in upgrade.items()
                       if key in keys)
@@ -94,6 +100,11 @@ class PloneSiteAPI(BrowserView):
         profiles = map(self._filter_proposed_upgrades_in_profile,
                        self.gatherer.get_profiles())
         return filter(itemgetter('upgrades'), profiles)
+
+    def _get_proposed_upgrades(self):
+        return reduce(list.__add__,
+                      map(itemgetter('upgrades'),
+                          self._get_profiles_proposing_upgrades()))
 
     def _filter_proposed_upgrades_in_profile(self, profileinfo):
         profileinfo['upgrades'] = filter(itemgetter('proposed'),

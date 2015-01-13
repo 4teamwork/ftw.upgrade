@@ -190,6 +190,46 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                 browser.json)
 
     @browsing
+    def test_list_proposed_upgrdes(self, browser):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('plone upgrade step').upgrading('1', to='2')))
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .named('foo')
+            .with_upgrade(Builder('plone upgrade step').upgrading('2', to='3')))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.install_profile('the.package:foo', version='1')
+
+            self.api_request('GET', 'list_proposed_upgrades')
+            self.assertEqual('application/json; charset=utf-8',
+                             browser.headers.get('content-type'))
+
+            self.assert_json_equal(
+                [{'id': '2@the.package:default',
+                  'title': '',
+                  'source': '1',
+                  'dest': '2',
+                  'proposed': True,
+                  'done': False,
+                  'orphan': False,
+                  'outdated_fs_version': False},
+
+                 {'id': '3@the.package:foo',
+                  'title': '',
+                  'source': '2',
+                  'dest': '3',
+                  'proposed': True,
+                  'done': False,
+                  'orphan': False,
+                  'outdated_fs_version': False},
+                 ],
+                browser.json)
+
+    @browsing
     def test_execute_upgrades_installs_upgrades_in_gatherer_order(self, browser):
         self.package.with_profile(
             Builder('genericsetup profile')

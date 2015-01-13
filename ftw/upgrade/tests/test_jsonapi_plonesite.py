@@ -1,22 +1,13 @@
-from contextlib import contextmanager
 from datetime import datetime
 from ftw.builder import Builder
-from ftw.testbrowser import browser
 from ftw.testbrowser import browsing
-from ftw.upgrade.directory import scaffold
-from ftw.upgrade.interfaces import IUpgradeStepRecorder
-from ftw.upgrade.tests.base import UpgradeTestCase
-from plone.app.testing import SITE_OWNER_NAME
+from ftw.upgrade.tests.base import JsonApiTestCase
 from Products.CMFCore.utils import getToolByName
-from urllib2 import HTTPError
-from zope.component import getMultiAdapter
-import json
 import re
 import transaction
-import urllib
 
 
-class TestPloneSiteJsonApi(UpgradeTestCase):
+class TestPloneSiteJsonApi(JsonApiTestCase):
 
     @browsing
     def test_get_profile(self, browser):
@@ -277,86 +268,3 @@ class TestPloneSiteJsonApi(UpgradeTestCase):
             self.assertEqual(
                 ['UPGRADE STEP the.package:default: The upgrade.'],
                 re.findall(r'UPGRADE STEP.*', browser.contents))
-
-    def assert_json_equal(self, expected, got, msg=None):
-        expected = json.dumps(expected, sort_keys=True, indent=4)
-        got = json.dumps(got, sort_keys=True, indent=4)
-        self.maxDiff = None
-        self.assertMultiLineEqual(expected, got, msg)
-
-    def assert_json_contains_profile(self, expected_profileinfo, got, msg=None):
-        profileid = expected_profileinfo['id']
-        got_profiles = dict([(profile['id'], profile) for profile in got])
-        self.assertIn(profileid, got_profiles,
-                      'assert_json_contains_profile: expected profile not in JSON')
-        self.assert_json_equal(expected_profileinfo, got_profiles[profileid], msg)
-
-    def is_installed(self, profileid, dest_time):
-        recorder = getMultiAdapter((self.portal, profileid), IUpgradeStepRecorder)
-        return recorder.is_installed(dest_time.strftime(scaffold.DATETIME_FORMAT))
-
-    def api_request(self, method, action, data=(), authenticate=True):
-        if authenticate:
-            browser.login(SITE_OWNER_NAME)
-        else:
-            browser.logout()
-
-        if method.lower() == 'get':
-            browser.visit(view='upgrades.json/{0}?{1}'.format(
-                    action,
-                    urllib.urlencode(data)))
-
-        elif method.lower() == 'post':
-            if not data:
-                data = {'enforce': 'post'}
-            browser.visit(view='upgrades.json/{0}'.format(action),
-                          data=data)
-
-        else:
-            raise Exception('Unsupported request method {0}'.format(method))
-
-    @contextmanager
-    def expect_api_error(self, **expectations):
-        api_error_info = {}
-        with self.expect_request_error() as response_info:
-            yield api_error_info
-
-        api_error_info.update(response_info)
-        # del api_error_info['headers']  # not serializable
-        api_error_info['response_message'] = response_info['message']
-
-        # Make headers serializable
-        api_error_info['headers'] = dict(api_error_info['headers'])
-
-        try:
-            body_json = json.loads(response_info['body'])
-            assert len(body_json) == 3
-            assert body_json[0] == 'ERROR'
-            api_error_info['message'] = body_json[1]
-            api_error_info['details'] = body_json[2]
-        except:
-            raise AssertionError(
-                'Unexpected error response body. A three item list is expected,'
-                ' consisting of "ERROR", the error message (short) and the error details.\n'
-                'Response body: {0}'.format(response_info['body']))
-
-        self.assertDictContainsSubset(
-            expectations, api_error_info,
-            'Unexpected error response details.\n\n'
-            'Expected:' +
-            json.dumps(expectations, sort_keys=True, indent=4) +
-            '\nto be included in:\n' +
-            json.dumps(api_error_info, sort_keys=True, indent=4))
-
-    @contextmanager
-    def expect_request_error(self):
-        response_info = {}
-        with self.assertRaises(HTTPError) as cm:
-            yield response_info
-
-        exc = cm.exception
-        response_info['status'] = exc.wrapped.code
-        response_info['message'] = exc.wrapped.msg
-        response_info['url'] = exc.wrapped._url
-        response_info['headers'] = exc.hdrs
-        response_info['body'] = exc.wrapped.read()

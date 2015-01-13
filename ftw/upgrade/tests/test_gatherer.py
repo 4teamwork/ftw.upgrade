@@ -29,6 +29,20 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
                     'the.package:default': {'proposed': ['1002'],
                                             'done': ['1001']}})
 
+    def test_filtering_proposed_upgrades(self):
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_upgrade(Builder('plone upgrade step')
+                                                .upgrading('1000', to='1001'))
+                                  .with_upgrade(Builder('plone upgrade step')
+                                                .upgrading('1001', to='1002')))
+
+        with self.package_created():
+            self.install_profile('the.package:default', '1001')
+            self.assert_gathered_upgrades(
+                {'the.package:default': {'proposed': ['1002'],
+                                         'done': []}},
+                proposed_only=True)
+
     def test_profile_with_outdated_fs_version_is_flagged(self):
         self.package.with_profile(Builder('genericsetup profile')
                                   .named('outdated')
@@ -344,9 +358,9 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
         result = gatherer.get_profiles()
         return dict([(profile['id'], profile) for profile in result])
 
-    def assert_gathered_upgrades(self, expected):
+    def assert_gathered_upgrades(self, expected, *args, **kwargs):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        result = gatherer.get_profiles()
+        result = gatherer.get_profiles(*args, **kwargs)
         got = {}
         for profile in result:
             if profile['id'] not in expected:

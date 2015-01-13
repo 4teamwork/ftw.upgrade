@@ -104,8 +104,9 @@ class UpgradeInformationGatherer(object):
         self.cyclic_dependencies = False
 
     security.declarePrivate('get_profiles')
-    def get_profiles(self):
-        profiles = self._sort_profiles_by_dependencies(self._get_profiles())
+    def get_profiles(self, proposed_only=False):
+        profiles = self._sort_profiles_by_dependencies(
+            self._get_profiles(proposed_only=proposed_only))
         profiles = flag_profiles_with_outdated_fs_version(profiles)
         profiles = extend_auto_upgrades_with_human_formatted_date_version(
             profiles)
@@ -128,12 +129,12 @@ class UpgradeInformationGatherer(object):
         return upgrades
 
     security.declarePrivate('_get_profiles')
-    def _get_profiles(self):
+    def _get_profiles(self, proposed_only=False):
         for profileid in self.portal_setup.listProfilesWithUpgrades():
             if not self._is_profile_installed(profileid):
                 continue
 
-            data = self._get_profile_data(profileid)
+            data = self._get_profile_data(profileid, proposed_only=proposed_only)
             if len(data['upgrades']) == 0:
                 continue
 
@@ -145,12 +146,13 @@ class UpgradeInformationGatherer(object):
             yield data
 
     security.declarePrivate('_get_profile_data')
-    def _get_profile_data(self, profileid):
+    def _get_profile_data(self, profileid, proposed_only=False):
         db_version = self.portal_setup.getLastVersionForProfile(profileid)
         if isinstance(db_version, (tuple, list)):
             db_version = '.'.join(db_version)
 
-        data = {'upgrades': self._get_profile_upgrades(profileid),
+        data = {'upgrades': self._get_profile_upgrades(profileid,
+                                                       proposed_only=proposed_only),
                 'db_version': db_version}
 
         try:
@@ -170,7 +172,7 @@ class UpgradeInformationGatherer(object):
         return data
 
     security.declarePrivate('_get_profile_upgrades')
-    def _get_profile_upgrades(self, profileid):
+    def _get_profile_upgrades(self, profileid, proposed_only=False):
         proposed_ids = set()
         upgrades = []
 
@@ -198,6 +200,10 @@ class UpgradeInformationGatherer(object):
 
             upgrade['profile'] = profileid
             upgrade['api_id'] = '@'.join((upgrade['sdest'], profileid))
+
+            if proposed_only and not upgrade['proposed']:
+                continue
+
             upgrades.append(upgrade)
 
         return upgrades

@@ -3,6 +3,7 @@ from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.jsonapi.exceptions import PloneSiteOutdated
 from ftw.upgrade.jsonapi.utils import action
+from ftw.upgrade.jsonapi.utils import get_action_discovery_information
 from ftw.upgrade.jsonapi.utils import jsonify
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
@@ -20,24 +21,28 @@ class PloneSiteAPI(BrowserView):
 
     @jsonify
     @action('GET')
+    def __call__(self):
+        return {'actions': get_action_discovery_information(self)}
+
+    @jsonify
+    @action('GET')
     def get_profile(self, profileid):
-        """Returns a JSON-encoded dict representation of the Generic Setup
-        profile with the given ``id``.
+        """Returns the profile with the id "profileid" as hash.
         """
         return self._refine_profile_info(self._get_profile_info(profileid))
 
     @jsonify
     @action('GET')
     def list_profiles(self):
-        """Returns a list of all installed profiles and their upgrade steps.
+        """Returns a list of all installed profiles.
         """
         return map(self._refine_profile_info, self.gatherer.get_profiles())
 
     @jsonify
     @action('GET')
     def list_profiles_proposing_upgrades(self):
-        """Returns a list of profiles with proposed upgrade steps, only
-        containing the proposed upgrade steps for each profile.
+        """Returns a list of profiles with proposed upgrade steps.
+        The upgrade steps of each profile only include proposed upgrades.
         """
         return map(self._refine_profile_info,
                    self.gatherer.get_profiles(proposed_only=True))
@@ -51,16 +56,15 @@ class PloneSiteAPI(BrowserView):
 
     @action('POST', rename_params={'upgrades': 'upgrades:list'})
     def execute_upgrades(self, upgrades):
-        """Execute a list of upgrades, each identified by the upgrade ID
-        returned by the profile listing actions
-        (``[dest-version]@[profile ID]``).
+        """Executes a list of upgrades, each identified by the upgrade ID
+        in the form "[dest-version]@[profile ID]".
         """
         self._require_up_to_date_plone_site()
         return self._install_upgrades(*upgrades)
 
     @action('POST')
     def execute_proposed_upgrades(self):
-        """Execute all proposed upgrades on this Plone site.
+        """Executes all proposed upgrades.
         """
         self._require_up_to_date_plone_site()
         api_ids = map(itemgetter('api_id'), self._get_proposed_upgrades())

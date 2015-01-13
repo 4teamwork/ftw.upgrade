@@ -10,6 +10,46 @@ import transaction
 class TestPloneSiteJsonApi(JsonApiTestCase):
 
     @browsing
+    def test_api_discovery(self, browser):
+        self.api_request('GET', '')
+
+        self.assert_json_equal(
+            {'actions':
+                 [{'name': 'execute_proposed_upgrades',
+                   'required_params': [],
+                   'description': 'Executes all proposed upgrades.',
+                   'request_method': 'POST'},
+
+                  {'name': 'execute_upgrades',
+                   'required_params': ['upgrades:list'],
+                   'description': 'Executes a list of upgrades, each identified by'
+                   ' the upgrade ID in the form "[dest-version]@[profile ID]".',
+                   'request_method': 'POST'},
+
+                  {'name': 'get_profile',
+                   'required_params': ['profileid'],
+                   'description': 'Returns the profile with the id "profileid" as hash.',
+                   'request_method': 'GET'},
+
+                  {'name': 'list_profiles',
+                   'required_params': [],
+                   'description': 'Returns a list of all installed profiles.',
+                   'request_method': 'GET'},
+
+                  {'name': 'list_profiles_proposing_upgrades',
+                   'required_params': [],
+                   'description': 'Returns a list of profiles with proposed upgrade steps.'
+                   ' The upgrade steps of each profile only include proposed upgrades.',
+                   'request_method': 'GET'},
+
+                  {'name': 'list_proposed_upgrades',
+                   'required_params': [],
+                   'description': 'Returns a list of proposed upgrades.',
+                   'request_method': 'GET'}]},
+
+            browser.json)
+
+    @browsing
     def test_get_profile(self, browser):
         self.package.with_profile(
             Builder('genericsetup profile')

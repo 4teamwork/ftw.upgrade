@@ -10,6 +10,7 @@ from zExceptions import Unauthorized
 from zope.security import checkPermission
 import inspect
 import json
+import re
 
 
 class ErrorHandling(object):
@@ -68,6 +69,12 @@ def action(method, rename_params={}):
 
         action_wrapper.__doc__ = func.__doc__
         action_wrapper.__name__ = func.__name__
+        action_wrapper.action_info = {
+            'method': method,
+            'rename_params': rename_params,
+            'name': func.__name__,
+            'doc': func.__doc__,
+            'argspec': inspect.getargspec(func)}
         return action_wrapper
     return wrap_action
 
@@ -88,6 +95,7 @@ def jsonify(func):
 
     json_wrapper.__doc__ = func.__doc__
     json_wrapper.__name__ = func.__name__
+    json_wrapper.action_info = getattr(func, 'action_info', None)
     return json_wrapper
 
 
@@ -102,3 +110,31 @@ def extract_action_params(func, request, rename_params=None):
             raise MissingParam(rename_params.get(arg_name, arg_name))
 
     return dict([(name, form[name]) for name in form if name in argspec.args])
+
+
+def get_action_discovery_information(view):
+    result = []
+    for name in sorted(dir(view)):
+        if name == '__call__':
+            continue
+
+        func = getattr(view, name, None)
+        if not func:
+            continue
+
+        action_info = getattr(func, 'action_info', None)
+        if not action_info:
+            continue
+
+        argspec = action_info['argspec']
+        required_params = sorted(argspec.args[len(argspec.defaults or []) + 1:])
+        rename_params = action_info['rename_params']
+        required_params = [rename_params.get(name, name) for name in required_params]
+
+        result.append({
+                'name': action_info['name'],
+                'description': re.sub(r'\s+', ' ', action_info['doc']).strip(),
+                'required_params': required_params,
+                'request_method': action_info['method'].upper()})
+
+    return result

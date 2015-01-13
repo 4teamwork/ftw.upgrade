@@ -35,6 +35,24 @@ class TestExecutioner(UpgradeTestCase):
             self.install_profile_upgrades('the.package:default')
             self.assertTrue(self.portal.upgrade_step_executed)
 
+    def test_install_upgrades_by_api_ids(self):
+        def upgrade(setup_context):
+            portal = setup_context.portal_url.getPortalObject()
+            portal.upgrade_step_executed = True
+
+        self.package.with_profile(Builder('genericsetup profile')
+                                   .with_upgrade(Builder('plone upgrade step')
+                                                 .upgrading('1000', to='1002')
+                                                 .calling(upgrade)))
+
+        self.portal.upgrade_step_executed = False
+        with self.package_created():
+            self.install_profile('the.package:default', version='1000')
+            self.assertFalse(self.portal.upgrade_step_executed)
+            executioner = queryAdapter(self.portal_setup, IExecutioner)
+            executioner.install_upgrades_by_api_ids('1002@the.package:default')
+            self.assertTrue(self.portal.upgrade_step_executed)
+
     def test_transaction_note(self):
         self.package.with_profile(
             Builder('genericsetup profile')

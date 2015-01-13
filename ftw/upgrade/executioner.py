@@ -1,6 +1,7 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IPostUpgrade
+from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.transactionnote import TransactionNote
 from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
@@ -35,6 +36,13 @@ class Executioner(object):
             adapter()
 
         TransactionNote().set_transaction_note()
+
+    security.declarePrivate('install_upgrades_by_api_ids')
+    def install_upgrades_by_api_ids(self, *upgrade_api_ids):
+        gatherer = IUpgradeInformationGatherer(self.portal_setup)
+        upgrades = gatherer.get_upgrades_by_api_ids(*upgrade_api_ids)
+        data = [(upgrade['profile'], [upgrade['id']]) for upgrade in upgrades]
+        return self.install(data)
 
     security.declarePrivate('_upgrade_profile')
     def _upgrade_profile(self, profileid, upgradeids):

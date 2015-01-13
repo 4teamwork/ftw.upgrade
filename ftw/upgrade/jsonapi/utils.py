@@ -72,6 +72,25 @@ def action(method, rename_params={}):
     return wrap_action
 
 
+def jsonify(func):
+    """Action decorator for converting response data to JSON.
+    """
+
+    def json_wrapper(self, *args, **kwargs):
+        result = func(self, *args, **kwargs)
+        response = self.request.RESPONSE
+        if 'json' in (response.getHeader('Content-Type') or ''):
+            # already converted to json, e.g. on error.
+            return result
+
+        response.setHeader('Content-Type', 'application/json; charset=utf-8')
+        return json.dumps(result, indent=4, encoding='utf-8')
+
+    json_wrapper.__doc__ = func.__doc__
+    json_wrapper.__name__ = func.__name__
+    return json_wrapper
+
+
 def extract_action_params(func, request, rename_params=None):
     rename_params = rename_params or {}
     form = request.form

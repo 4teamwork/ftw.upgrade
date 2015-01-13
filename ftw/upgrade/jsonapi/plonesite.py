@@ -3,11 +3,11 @@ from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.jsonapi.exceptions import PloneSiteOutdated
 from ftw.upgrade.jsonapi.utils import action
+from ftw.upgrade.jsonapi.utils import jsonify
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from StringIO import StringIO
 from zope.publisher.browser import BrowserView
-import json
 import logging
 
 
@@ -18,31 +18,28 @@ class PloneSiteAPI(BrowserView):
         self.portal_setup = getToolByName(self.context, 'portal_setup')
         self.gatherer = IUpgradeInformationGatherer(self.portal_setup)
 
+    @jsonify
     @action('GET')
     def get_profile(self, profileid):
         """Returns a JSON-encoded dict representation of the Generic Setup
         profile with the given ``id``.
         """
-        return self._json_for_response(
-            self._refine_profile_info(
-                self._get_profile_info(profileid)))
+        return self._refine_profile_info(self._get_profile_info(profileid))
 
+    @jsonify
     @action('GET')
     def list_profiles(self):
         """Returns a list of all installed profiles and their upgrade steps.
         """
-        return self._json_for_response(
-            map(self._refine_profile_info,
-                self.gatherer.get_profiles()))
+        return map(self._refine_profile_info, self.gatherer.get_profiles())
 
+    @jsonify
     @action('GET')
     def list_profiles_proposing_upgrades(self):
         """Returns a list of profiles with proposed upgrade steps, only
         containing the proposed upgrade steps for each profile.
         """
-        return self._json_for_response(
-            map(self._refine_profile_info,
-                self._get_profiles_proposing_upgrades()))
+        return map(self._refine_profile_info, self._get_profiles_proposing_upgrades())
 
     @action('POST', rename_params={'upgrades': 'upgrades:list'})
     def execute_upgrades(self, upgrades):
@@ -108,11 +105,6 @@ class PloneSiteAPI(BrowserView):
         with capture_log() as stream:
             executioner.install(data)
         return stream.getvalue()
-
-    def _json_for_response(self, data):
-        response = self.request.response
-        response.setHeader('Content-Type', 'application/json; charset=utf-8')
-        return json.dumps(data, indent=4, encoding='utf-8')
 
     def _require_up_to_date_plone_site(self):
         portal_migration = getToolByName(self.context, 'portal_migration')

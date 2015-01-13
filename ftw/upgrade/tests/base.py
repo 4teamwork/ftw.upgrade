@@ -8,6 +8,7 @@ from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.testing import COMMAND_LAYER
 from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
+from ftw.upgrade.tests.helpers import verbose_logging
 from operator import itemgetter
 from path import Path
 from plone.app.testing import setRoles
@@ -187,19 +188,20 @@ class JsonApiTestCase(UpgradeTestCase):
         else:
             browser.logout()
 
-        if method.lower() == 'get':
-            browser.visit(context, view='upgrades.json/{0}?{1}'.format(
-                    action,
-                    urllib.urlencode(data)))
+        with verbose_logging():
+            if method.lower() == 'get':
+                browser.visit(context, view='upgrades.json/{0}?{1}'.format(
+                        action,
+                        urllib.urlencode(data)))
 
-        elif method.lower() == 'post':
-            if not data:
-                data = {'enforce': 'post'}
-            browser.visit(context, view='upgrades.json/{0}'.format(action),
-                          data=data)
+            elif method.lower() == 'post':
+                if not data:
+                    data = {'enforce': 'post'}
+                browser.visit(context, view='upgrades.json/{0}'.format(action),
+                              data=data)
 
-        else:
-            raise Exception('Unsupported request method {0}'.format(method))
+            else:
+                raise Exception('Unsupported request method {0}'.format(method))
 
     @contextmanager
     def expect_api_error(self, **expectations):

@@ -36,6 +36,13 @@ class ResponseLogger(object):
 
         logging.root.removeHandler(self.handler)
 
+        # Plone testing does not collect data written to the response stream
+        # but only data set directly as body.
+        # Since we want to test the response body, we need to re-set the
+        # stream data as body for testing..
+        if self.response.__class__.__name__ == 'TestResponse':
+            self.response.setBody(self.response.stdout.getvalue())
+
     security.declarePrivate('write')
     def write(self, line):
         if isinstance(line, unicode):

@@ -1,4 +1,4 @@
-from contextlib import contextmanager
+from ftw.upgrade.browser.manage import ResponseLogger
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.jsonapi.exceptions import PloneSiteOutdated
@@ -7,9 +7,7 @@ from ftw.upgrade.jsonapi.utils import get_action_discovery_information
 from ftw.upgrade.jsonapi.utils import jsonify
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
-from StringIO import StringIO
 from zope.publisher.browser import BrowserView
-import logging
 
 
 class PloneSiteAPI(BrowserView):
@@ -104,31 +102,10 @@ class PloneSiteAPI(BrowserView):
 
     def _install_upgrades(self, *api_ids):
         executioner = IExecutioner(self.portal_setup)
-        with capture_log() as stream:
+        with ResponseLogger(self.request.RESPONSE):
             executioner.install_upgrades_by_api_ids(*api_ids)
-        return stream.getvalue()
 
     def _require_up_to_date_plone_site(self):
         portal_migration = getToolByName(self.context, 'portal_migration')
         if portal_migration.needUpgrading():
             raise PloneSiteOutdated()
-
-
-@contextmanager
-def capture_log():
-    stream = StringIO()
-    handler = logging.StreamHandler(stream)
-    formatter = logging.root.handlers[-1].formatter
-    handler.setFormatter(formatter)
-    handler.setLevel(logging.INFO)
-
-    original_level = logging.root.getEffectiveLevel()
-    logging.root.addHandler(handler)
-    logging.root.setLevel(logging.INFO)
-    try:
-        yield stream
-
-    finally:
-        stream.seek(0)
-        logging.root.removeHandler(handler)
-        logging.root.setLevel(original_level)

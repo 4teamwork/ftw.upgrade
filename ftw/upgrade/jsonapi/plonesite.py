@@ -56,18 +56,15 @@ class PloneSiteAPI(BrowserView):
         (``[dest-version]@[profile ID]``).
         """
         self._require_up_to_date_plone_site()
-        upgrade_infos = self.gatherer.get_upgrades_by_api_ids(*upgrades)
-        return self._install_upgrades(upgrade_infos)
+        return self._install_upgrades(*upgrades)
 
     @action('POST')
     def execute_proposed_upgrades(self):
         """Execute all proposed upgrades on this Plone site.
         """
         self._require_up_to_date_plone_site()
-        upgrades = reduce(list.__add__,
-                          map(itemgetter('upgrades'),
-                              self.gatherer.get_profiles(proposed_only=True)))
-        return self._install_upgrades(upgrades)
+        api_ids = map(itemgetter('api_id'), self._get_proposed_upgrades())
+        return self._install_upgrades(*api_ids)
 
     def _refine_profile_info(self, profile):
         return {'id': profile['id'],
@@ -101,11 +98,10 @@ class PloneSiteAPI(BrowserView):
                       map(itemgetter('upgrades'),
                           self.gatherer.get_profiles(proposed_only=True)))
 
-    def _install_upgrades(self, upgrades):
-        data = [(upgrade['profile'], [upgrade['id']]) for upgrade in upgrades]
+    def _install_upgrades(self, *api_ids):
         executioner = IExecutioner(self.portal_setup)
         with capture_log() as stream:
-            executioner.install(data)
+            executioner.install_upgrades_by_api_ids(*api_ids)
         return stream.getvalue()
 
     def _require_up_to_date_plone_site(self):

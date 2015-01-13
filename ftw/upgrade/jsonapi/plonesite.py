@@ -40,7 +40,7 @@ class PloneSiteAPI(BrowserView):
         containing the proposed upgrade steps for each profile.
         """
         return map(self._refine_profile_info,
-                   self._get_profiles_proposing_upgrades())
+                   self.gatherer.get_profiles(proposed_only=True))
 
     @jsonify
     @action('GET')
@@ -66,7 +66,7 @@ class PloneSiteAPI(BrowserView):
         self._require_up_to_date_plone_site()
         upgrades = reduce(list.__add__,
                           map(itemgetter('upgrades'),
-                              self._get_profiles_proposing_upgrades()))
+                              self.gatherer.get_profiles(proposed_only=True)))
         return self._install_upgrades(upgrades)
 
     def _refine_profile_info(self, profile):
@@ -96,20 +96,10 @@ class PloneSiteAPI(BrowserView):
         else:
             return profiles[0]
 
-    def _get_profiles_proposing_upgrades(self):
-        profiles = map(self._filter_proposed_upgrades_in_profile,
-                       self.gatherer.get_profiles())
-        return filter(itemgetter('upgrades'), profiles)
-
     def _get_proposed_upgrades(self):
         return reduce(list.__add__,
                       map(itemgetter('upgrades'),
-                          self._get_profiles_proposing_upgrades()))
-
-    def _filter_proposed_upgrades_in_profile(self, profileinfo):
-        profileinfo['upgrades'] = filter(itemgetter('proposed'),
-                                         profileinfo['upgrades'])
-        return profileinfo
+                          self.gatherer.get_profiles(proposed_only=True)))
 
     def _install_upgrades(self, upgrades):
         data = [(upgrade['profile'], [upgrade['id']]) for upgrade in upgrades]

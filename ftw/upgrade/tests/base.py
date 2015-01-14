@@ -190,14 +190,14 @@ class JsonApiTestCase(UpgradeTestCase):
 
         with verbose_logging():
             if method.lower() == 'get':
-                browser.visit(context, view='upgrades.json/{0}?{1}'.format(
+                browser.visit(context, view='upgrades-api/{0}?{1}'.format(
                         action,
                         urllib.urlencode(data)))
 
             elif method.lower() == 'post':
                 if not data:
                     data = {'enforce': 'post'}
-                browser.visit(context, view='upgrades.json/{0}'.format(action),
+                browser.visit(context, view='upgrades-api/{0}'.format(action),
                               data=data)
 
             else:

@@ -3,7 +3,7 @@
     xmlns:browser="http://namespaces.zope.org/browser">
 
     <browser:page
-        name="upgrades.json"
+        name="upgrades-api"
         for="Products.CMFPlone.interfaces.IPloneSiteRoot"
         class=".plonesite.PloneSiteAPI"
         permission="zope.Public"
@@ -16,7 +16,7 @@
         />
 
     <browser:page
-        name="upgrades.json"
+        name="upgrades-api"
         for="OFS.interfaces.IApplication"
         class=".zopeapp.ZopeAppAPI"
         permission="zope.Public"

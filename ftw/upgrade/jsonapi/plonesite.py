@@ -76,7 +76,8 @@ class PloneSiteAPI(BrowserView):
                 'db_version': profile['db_version'],
                 'fs_version': profile['version'],
                 'outdated_fs_version': False,
-                'upgrades': map(self._refine_upgrade_info, profile['upgrades'])}
+                'upgrades': map(self._refine_upgrade_info,
+                                profile['upgrades'])}
 
     def _refine_upgrade_info(self, upgrade):
         keys = ('title', 'proposed', 'done', 'orphan', 'outdated_fs_version')

@@ -32,7 +32,8 @@ class ErrorHandling(object):
 
     def __exit__(self, _type, exc, _traceback):
         if isinstance(exc, AbortTransactionWithStreamedResponse):
-            if isinstance(self.wrap_exception(exc.original_exception), APIError):
+            if isinstance(self.wrap_exception(exc.original_exception),
+                          APIError):
                 exc = exc.original_exception
             else:
                 transaction.abort()
@@ -136,9 +137,11 @@ def get_action_discovery_information(view):
             continue
 
         argspec = action_info['argspec']
-        required_params = sorted(argspec.args[len(argspec.defaults or []) + 1:])
+        required_params = sorted(
+            argspec.args[len(argspec.defaults or []) + 1:])
         rename_params = action_info['rename_params']
-        required_params = [rename_params.get(name, name) for name in required_params]
+        required_params = [rename_params.get(name, name)
+                           for name in required_params]
 
         result.append({
                 'name': action_info['name'],

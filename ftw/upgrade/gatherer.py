@@ -134,7 +134,8 @@ class UpgradeInformationGatherer(object):
             if not self._is_profile_installed(profileid):
                 continue
 
-            data = self._get_profile_data(profileid, proposed_only=proposed_only)
+            data = self._get_profile_data(
+                profileid, proposed_only=proposed_only)
             if len(data['upgrades']) == 0:
                 continue
 
@@ -151,9 +152,10 @@ class UpgradeInformationGatherer(object):
         if isinstance(db_version, (tuple, list)):
             db_version = '.'.join(db_version)
 
-        data = {'upgrades': self._get_profile_upgrades(profileid,
-                                                       proposed_only=proposed_only),
-                'db_version': db_version}
+        data = {
+            'upgrades': self._get_profile_upgrades(
+                profileid, proposed_only=proposed_only),
+            'db_version': db_version}
 
         try:
             profile_info = self.portal_setup.getProfileInfo(profileid).copy()

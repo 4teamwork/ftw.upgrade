@@ -43,4 +43,5 @@ class APIView(BrowserView):
     @jsonify
     @action('GET')
     def __call__(self):
-        return {'actions': get_action_discovery_information(self)}
+        return {'actions': get_action_discovery_information(self),
+                'api_version': self.api_version}

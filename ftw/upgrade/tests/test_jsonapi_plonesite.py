@@ -14,7 +14,8 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
         self.api_request('GET', '')
 
         self.assert_json_equal(
-            {'actions':
+            {'api_version': 'v1',
+             'actions':
                  [{'name': 'execute_proposed_upgrades',
                    'required_params': [],
                    'description': 'Executes all proposed upgrades.',

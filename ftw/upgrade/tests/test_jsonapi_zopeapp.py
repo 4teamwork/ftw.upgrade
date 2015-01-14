@@ -12,7 +12,8 @@ class TestZopeAppJsonApi(JsonApiTestCase):
         self.api_request('GET', '', context=self.app)
 
         self.assert_json_equal(
-            {'actions':
+            {'api_version': 'v1',
+             'actions':
                  [{'name': 'list_plone_sites',
                    'required_params': [],
                    'description': 'Returns a list of Plone sites.',

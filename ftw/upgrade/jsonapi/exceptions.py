@@ -60,3 +60,15 @@ class UpgradeNotFoundWrapper(APIError):
         super(UpgradeNotFoundWrapper, self).__init__(
             'Upgrade not found',
             'The upgrade "{0}" is unkown.'.format(api_upgrade_id))
+
+
+class AbortTransactionWithStreamedResponse(Exception):
+    """This exception wraps another exception and is used to indicate that
+    the original exception should cause the transaction to be aborted but
+    not cause 500 since we are streaming a response.
+    It is expected that the exception information (e.g. the traceback) is
+    already written to the response and streamed to the browser.
+    """
+
+    def __init__(self, original_exception):
+        self.original_exception = original_exception

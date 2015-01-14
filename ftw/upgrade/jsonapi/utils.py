@@ -1,5 +1,6 @@
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.exceptions import UpgradeNotFound
+from ftw.upgrade.jsonapi.exceptions import AbortTransactionWithStreamedResponse
 from ftw.upgrade.jsonapi.exceptions import APIError
 from ftw.upgrade.jsonapi.exceptions import CyclicDependenciesWrapper
 from ftw.upgrade.jsonapi.exceptions import MethodNotAllowed
@@ -11,6 +12,7 @@ from zope.security import checkPermission
 import inspect
 import json
 import re
+import transaction
 
 
 class ErrorHandling(object):
@@ -28,7 +30,14 @@ class ErrorHandling(object):
     def __enter__(self):
         pass
 
-    def __exit__(self, exc_type, exc, traceback):
+    def __exit__(self, _type, exc, _traceback):
+        if isinstance(exc, AbortTransactionWithStreamedResponse):
+            if isinstance(self.wrap_exception(exc.original_exception), APIError):
+                exc = exc.original_exception
+            else:
+                transaction.abort()
+                return True
+
         exc = self.wrap_exception(exc)
         if not isinstance(exc, APIError):
             return

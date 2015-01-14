@@ -294,6 +294,8 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                  'UPGRADE STEP the.package:default: The second upgrade step.'],
                 re.findall(r'UPGRADE STEP.*', browser.contents))
 
+            self.assertIn('Result: SUCCESS', browser.contents)
+
     @browsing
     def test_execute_upgrades_requires_upgrades_param(self, browser):
         with self.expect_api_error(status=400,
@@ -348,3 +350,21 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
             self.assertEqual(
                 ['UPGRADE STEP the.package:default: The upgrade.'],
                 re.findall(r'UPGRADE STEP.*', browser.contents))
+
+            self.assertIn('Result: SUCCESS', browser.contents)
+
+    @browsing
+    def test_executing_upgrades_with_failure_results_in_error_result(self, browser):
+        def failing_upgrade(setup_context):
+            raise KeyError('foo')
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('plone upgrade step')
+                          .upgrading('1', to='2')
+                          .calling(failing_upgrade)))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.api_request('POST', 'execute_proposed_upgrades')
+            self.assertIn('Result: FAILURE', browser.contents)

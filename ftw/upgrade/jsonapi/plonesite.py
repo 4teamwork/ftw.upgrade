@@ -1,6 +1,7 @@
 from ftw.upgrade.browser.manage import ResponseLogger
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.jsonapi.exceptions import AbortTransactionWithStreamedResponse
 from ftw.upgrade.jsonapi.exceptions import PloneSiteOutdated
 from ftw.upgrade.jsonapi.utils import action
 from ftw.upgrade.jsonapi.utils import get_action_discovery_information
@@ -102,8 +103,11 @@ class PloneSiteAPI(BrowserView):
 
     def _install_upgrades(self, *api_ids):
         executioner = IExecutioner(self.portal_setup)
-        with ResponseLogger(self.request.RESPONSE):
-            executioner.install_upgrades_by_api_ids(*api_ids)
+        try:
+            with ResponseLogger(self.request.RESPONSE, annotate_result=True):
+                executioner.install_upgrades_by_api_ids(*api_ids)
+        except Exception, exc:
+            raise AbortTransactionWithStreamedResponse(exc)
 
     def _require_up_to_date_plone_site(self):
         portal_migration = getToolByName(self.context, 'portal_migration')

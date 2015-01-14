@@ -231,6 +231,12 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                 browser.json)
 
     @browsing
+    def test_list_proposed_upgrades_when_empty(self, browser):
+        self.api_request('GET', 'list_proposed_upgrades')
+        self.assertEqual('application/json; charset=utf-8',
+                         browser.headers.get('content-type'))
+
+    @browsing
     def test_list_proposed_upgrdes(self, browser):
         self.package.with_profile(
             Builder('genericsetup profile')

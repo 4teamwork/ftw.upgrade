@@ -92,9 +92,10 @@ class PloneSiteAPI(APIView):
             return profiles[0]
 
     def _get_proposed_upgrades(self):
-        return reduce(list.__add__,
-                      map(itemgetter('upgrades'),
-                          self.gatherer.get_profiles(proposed_only=True)))
+        profiles = self.gatherer.get_profiles(proposed_only=True)
+        if not profiles:
+            return []
+        return reduce(list.__add__, map(itemgetter('upgrades'), profiles))
 
     def _install_upgrades(self, *api_ids):
         executioner = IExecutioner(self.portal_setup)

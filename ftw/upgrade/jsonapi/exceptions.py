@@ -10,6 +10,14 @@ class APIError(Exception):
         return
 
 
+class WrongAPIVersion(APIError):
+    def __init__(self, requested_version):
+        super(WrongAPIVersion, self).__init__(
+            'Wrong API version',
+            'The API version "{0}" is not available.'.format(requested_version),
+            response_code=404)
+
+
 class UnauthorizedWrapper(APIError):
     def __init__(self, original_exception):
         super(UnauthorizedWrapper, self).__init__(

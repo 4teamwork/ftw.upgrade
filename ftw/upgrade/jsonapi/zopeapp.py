@@ -1,15 +1,9 @@
+from ftw.upgrade.jsonapi.base import APIView
 from ftw.upgrade.jsonapi.utils import action
-from ftw.upgrade.jsonapi.utils import get_action_discovery_information
 from ftw.upgrade.jsonapi.utils import jsonify
-from zope.publisher.browser import BrowserView
 
 
-class ZopeAppAPI(BrowserView):
-
-    @jsonify
-    @action('GET')
-    def __call__(self):
-        return {'actions': get_action_discovery_information(self)}
+class ZopeAppAPI(APIView):
 
     @jsonify
     @action('GET')

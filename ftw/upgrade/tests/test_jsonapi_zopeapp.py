@@ -29,3 +29,19 @@ class TestZopeAppJsonApi(JsonApiTestCase):
               'path': '/plone',
               'title': 'Plone site'}],
             browser.json)
+
+    @browsing
+    def test_requiring_available_api_version_by_url(self, browser):
+        self.api_request('GET', 'v1/list_plone_sites', context=self.app)
+        self.assert_json_equal(
+            [{'id': 'plone',
+              'path': '/plone',
+              'title': 'Plone site'}],
+            browser.json)
+
+    @browsing
+    def test_requiring_wrong_api_version_by_url(self, browser):
+        with self.expect_api_error(status=404,
+                                   message='Wrong API version',
+                                   details='The API version "v100" is not available.'):
+            self.api_request('GET', 'v100/list_plone_sites', context=self.app)

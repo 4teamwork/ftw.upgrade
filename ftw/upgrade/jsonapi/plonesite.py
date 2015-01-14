@@ -1,27 +1,21 @@
 from ftw.upgrade.browser.manage import ResponseLogger
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.jsonapi.base import APIView
 from ftw.upgrade.jsonapi.exceptions import AbortTransactionWithStreamedResponse
 from ftw.upgrade.jsonapi.exceptions import PloneSiteOutdated
 from ftw.upgrade.jsonapi.utils import action
-from ftw.upgrade.jsonapi.utils import get_action_discovery_information
 from ftw.upgrade.jsonapi.utils import jsonify
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
-from zope.publisher.browser import BrowserView
 
 
-class PloneSiteAPI(BrowserView):
+class PloneSiteAPI(APIView):
 
     def __init__(self, *args, **kwargs):
         super(PloneSiteAPI, self).__init__(*args, **kwargs)
         self.portal_setup = getToolByName(self.context, 'portal_setup')
         self.gatherer = IUpgradeInformationGatherer(self.portal_setup)
-
-    @jsonify
-    @action('GET')
-    def __call__(self):
-        return {'actions': get_action_discovery_information(self)}
 
     @jsonify
     @action('GET')

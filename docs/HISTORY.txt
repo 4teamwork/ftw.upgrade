@@ -5,7 +5,20 @@ Changelog
 1.11.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- New JSON API implemented, accessible with `/upgrades-api`.
+  [jone]
+
+- Executioner: `install_upgrades_by_api_ids` was added, allowing to install
+  a selection of upgrades identified by API ugprade ids.
+  [jone]
+
+- Gatherer: `get_upgrades_by_api_ids` was added, returning upgrade infos
+  for a selection of API upgrade ids.
+  [jone]
+
+- Gatherer: `get_upgrades` is deprecated and replaced by `get_profiles`.
+  `get_profiles` now has a `proposed_only` flag.
+  [jone]
 
 
 1.11.0 (2015-01-08)

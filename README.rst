@@ -630,7 +630,7 @@ The JSON API allows to get profiles and upgrades for a Plone site and execute up
 Authentication and authorization
 --------------------------------
 
-The API is available for users the "cmf.ManagePortal" permission, usually the "Manager"
+The API is available for users with the "cmf.ManagePortal" permission, usually the "Manager"
 role is required.
 
 
@@ -647,7 +647,8 @@ A specific API version can be requested by adding the version to the URL. Exampl
 API Discovery
 -------------
 
-The API is discoverable and self descriptive. Just dont request an API action for the description:
+The API is discoverable and self descriptive.
+The API description is returned when the API action is omitted:
 
 
 .. code:: sh

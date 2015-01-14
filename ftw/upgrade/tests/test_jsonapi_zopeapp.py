@@ -20,6 +20,9 @@ class TestZopeAppJsonApi(JsonApiTestCase):
 
             browser.json)
 
+        self.assertTrue(browser.contents.endswith('\n'),
+                        'There should always be a trailing newline.')
+
     @browsing
     def test_list_plone_sites(self, browser):
         self.api_request('GET', 'list_plone_sites', context=self.app)
@@ -43,8 +46,11 @@ class TestZopeAppJsonApi(JsonApiTestCase):
     def test_requiring_wrong_api_version_by_url(self, browser):
         with self.expect_api_error(status=404,
                                    message='Wrong API version',
-                                   details='The API version "v100" is not available.'):
+                                   details='The API version "v100" is not available.') as cm:
             self.api_request('GET', 'v100/list_plone_sites', context=self.app)
+
+        self.assertTrue(cm['body'].endswith('\n'),
+                        'There should always be a trailing newline.')
 
     @browsing
     def test_requesting_unkown_action(self, browser):

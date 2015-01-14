@@ -18,6 +18,14 @@ class WrongAPIVersion(APIError):
             response_code=404)
 
 
+class UnkownAPIAction(APIError):
+    def __init__(self, action_name):
+        super(UnkownAPIAction, self).__init__(
+            'Unkown API action',
+            'There is no API action "{0}".'.format(action_name),
+            response_code=404)
+
+
 class UnauthorizedWrapper(APIError):
     def __init__(self, original_exception):
         super(UnauthorizedWrapper, self).__init__(

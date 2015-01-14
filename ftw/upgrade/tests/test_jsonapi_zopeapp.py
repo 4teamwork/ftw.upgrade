@@ -45,3 +45,10 @@ class TestZopeAppJsonApi(JsonApiTestCase):
                                    message='Wrong API version',
                                    details='The API version "v100" is not available.'):
             self.api_request('GET', 'v100/list_plone_sites', context=self.app)
+
+    @browsing
+    def test_requesting_unkown_action(self, browser):
+        with self.expect_api_error(status=404,
+                                   message='Unkown API action',
+                                   details='There is no API action "something".'):
+            self.api_request('GET', 'something', context=self.app)

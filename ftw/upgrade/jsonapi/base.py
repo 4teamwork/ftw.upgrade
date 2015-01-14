@@ -1,3 +1,4 @@
+from ftw.upgrade.jsonapi.exceptions import UnkownAPIAction
 from ftw.upgrade.jsonapi.exceptions import WrongAPIVersion
 from ftw.upgrade.jsonapi.utils import action
 from ftw.upgrade.jsonapi.utils import ErrorHandling
@@ -29,8 +30,15 @@ class APIView(BrowserView):
                 raise WrongAPIVersion(requested_api_version)
             request['TraversalRequestNameStack'] = []
             return ''
-        else:
-            return getattr(self, name, None)
+
+        action = getattr(self, name, None)
+        if action and getattr(action, 'action_info', None):
+            return action
+
+        with ErrorHandling(self.request.RESPONSE):
+            raise UnkownAPIAction(name)
+        request['TraversalRequestNameStack'] = []
+        return ''
 
     @jsonify
     @action('GET')

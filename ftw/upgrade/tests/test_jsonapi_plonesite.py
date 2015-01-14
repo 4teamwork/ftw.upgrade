@@ -249,25 +249,26 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
             self.assertEqual('application/json; charset=utf-8',
                              browser.headers.get('content-type'))
 
-            self.assert_json_equal(
-                [{'id': '2@the.package:default',
-                  'title': '',
-                  'source': '1',
-                  'dest': '2',
-                  'proposed': True,
-                  'done': False,
-                  'orphan': False,
-                  'outdated_fs_version': False},
+            self.assert_json_contains(
+                {'id': '2@the.package:default',
+                 'title': '',
+                 'source': '1',
+                 'dest': '2',
+                 'proposed': True,
+                 'done': False,
+                 'orphan': False,
+                 'outdated_fs_version': False},
+                browser.json)
 
-                 {'id': '3@the.package:foo',
-                  'title': '',
-                  'source': '2',
-                  'dest': '3',
-                  'proposed': True,
-                  'done': False,
-                  'orphan': False,
-                  'outdated_fs_version': False},
-                 ],
+            self.assert_json_contains(
+                {'id': '3@the.package:foo',
+                 'title': '',
+                 'source': '2',
+                 'dest': '3',
+                 'proposed': True,
+                 'done': False,
+                 'orphan': False,
+                 'outdated_fs_version': False},
                 browser.json)
 
     @browsing
@@ -348,10 +349,8 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
             self.api_request('POST', 'execute_proposed_upgrades')
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
 
-            self.assertEqual(
-                ['UPGRADE STEP the.package:default: The upgrade.'],
-                re.findall(r'UPGRADE STEP.*', browser.contents))
-
+            self.assertIn('UPGRADE STEP the.package:default: The upgrade.',
+                          browser.contents)
             self.assertIn('Result: SUCCESS', browser.contents)
 
     @browsing

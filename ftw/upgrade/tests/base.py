@@ -175,6 +175,12 @@ class JsonApiTestCase(UpgradeTestCase):
                       'assert_json_contains_profile: expected profile not in JSON')
         self.assert_json_equal(expected_profileinfo, got_profiles[profileid], msg)
 
+    def assert_json_contains(self, expected_element, got_elements):
+        message = 'Could not find:\n\n{0}\n\nin list:\n\n{0}'.format(
+            json.dumps(expected_element, sort_keys=True, indent=4),
+            json.dumps(got_elements, sort_keys=True, indent=4))
+        self.assertTrue(expected_element in got_elements, message)
+
     def is_installed(self, profileid, dest_time):
         recorder = getMultiAdapter((self.portal, profileid), IUpgradeStepRecorder)
         return recorder.is_installed(dest_time.strftime(scaffold.DATETIME_FORMAT))

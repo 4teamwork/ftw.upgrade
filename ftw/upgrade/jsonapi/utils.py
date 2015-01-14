@@ -47,7 +47,8 @@ class ErrorHandling(object):
         self.response.setHeader('Content-Type',
                                 'application/json; charset=utf-8')
         exc.process_error(self.response)
-        self.response.setBody(json.dumps(['ERROR', exc.message, exc.details]) + '\n')
+        self.response.setBody(
+            json.dumps(['ERROR', exc.message, exc.details]) + '\n')
         self.response.flush()
         return True
 

@@ -114,7 +114,7 @@ def extract_action_params(func, request, rename_params=None):
     rename_params = rename_params or {}
     form = request.form
     argspec = inspect.getargspec(func)
-    required_params = argspec.args[len(argspec.defaults or []) + 1:]
+    required_params = get_required_args(argspec)
 
     for arg_name in required_params:
         if not form.get(arg_name, None):
@@ -138,8 +138,7 @@ def get_action_discovery_information(view):
             continue
 
         argspec = action_info['argspec']
-        required_params = sorted(
-            argspec.args[len(argspec.defaults or []) + 1:])
+        required_params = sorted(get_required_args(argspec))
         rename_params = action_info['rename_params']
         required_params = [rename_params.get(name, name)
                            for name in required_params]
@@ -151,3 +150,10 @@ def get_action_discovery_information(view):
                 'request_method': action_info['method'].upper()})
 
     return result
+
+
+def get_required_args(argspec):
+    if not argspec.defaults:
+        return argspec.args[1:]
+    else:
+        return argspec.args[1:-len(argspec.defaults)]

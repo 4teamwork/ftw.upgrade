@@ -71,6 +71,14 @@ class CyclicDependenciesWrapper(APIError):
             response_code=500)
 
 
+class ProfileNotFound(APIError):
+    def __init__(self, profileid):
+        super(ProfileNotFound, self).__init__(
+            'Profile not found',
+            'The profile "{0}" is wrong or not installed'
+            ' on this Plone site.'.format(profileid))
+
+
 class UpgradeNotFoundWrapper(APIError):
     def __init__(self, original_exception):
         api_upgrade_id = original_exception.api_id

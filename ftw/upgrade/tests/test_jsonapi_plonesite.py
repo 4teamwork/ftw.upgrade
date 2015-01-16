@@ -112,6 +112,14 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
         self.assertEquals('GET', cm['headers'].get('allow'))
 
     @browsing
+    def test_get_unkown_profile_returns_error(self, browser):
+        with self.expect_api_error(status=400,
+                                   message='Profile not found',
+                                   details='The profile "something:default" is wrong'
+                                   ' or not installed on this Plone site.'):
+            self.api_request('GET', 'get_profile', {'profileid': 'something:default'})
+
+    @browsing
     def test_cyclic_dependency_errors_are_handled(self, browser):
         self.package.with_profile(Builder('genericsetup profile')
                                   .named('foo')

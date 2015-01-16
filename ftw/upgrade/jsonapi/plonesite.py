@@ -4,6 +4,7 @@ from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.jsonapi.base import APIView
 from ftw.upgrade.jsonapi.exceptions import AbortTransactionWithStreamedResponse
 from ftw.upgrade.jsonapi.exceptions import PloneSiteOutdated
+from ftw.upgrade.jsonapi.exceptions import ProfileNotFound
 from ftw.upgrade.jsonapi.utils import action
 from ftw.upgrade.jsonapi.utils import jsonify
 from operator import itemgetter
@@ -87,7 +88,7 @@ class PloneSiteAPI(APIView):
         profiles = filter(lambda profile: profile['id'] == profileid,
                           self.gatherer.get_profiles())
         if len(profiles) == 0:
-            return {}
+            raise ProfileNotFound(profileid)
         else:
             return profiles[0]
 

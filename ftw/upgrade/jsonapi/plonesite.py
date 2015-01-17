@@ -54,6 +54,7 @@ class PloneSiteAPI(APIView):
         in the form "[dest-version]@[profile ID]".
         """
         self._require_up_to_date_plone_site()
+        self._validate_upgrade_ids(*upgrades)
         return self._install_upgrades(*upgrades)
 
     @action('POST')
@@ -97,6 +98,10 @@ class PloneSiteAPI(APIView):
         if not profiles:
             return []
         return reduce(list.__add__, map(itemgetter('upgrades'), profiles))
+
+
+    def _validate_upgrade_ids(self, *api_ids):
+        self.gatherer.get_upgrades_by_api_ids(*api_ids)
 
     def _install_upgrades(self, *api_ids):
         executioner = IExecutioner(self.portal_setup)

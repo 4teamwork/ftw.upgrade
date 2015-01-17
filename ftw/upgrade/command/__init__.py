@@ -1,4 +1,5 @@
 from ftw.upgrade.command import create
+from ftw.upgrade.command import sites
 from ftw.upgrade.command import touch
 from pkg_resources import get_distribution
 import argcomplete
@@ -22,6 +23,7 @@ class UpgradeCommand(object):
         commands = self.parser.add_subparsers(help='Command', dest='command')
         create.setup_argparser(commands)
         touch.setup_argparser(commands)
+        sites.setup_argparser(commands)
 
     def __call__(self):
         args = self.parser.parse_args()

@@ -56,6 +56,7 @@ setup(name='ftw.upgrade',
         'setuptools',
         'tarjan',
         'path.py >= 6.2',
+        'requests',
 
         # Zope
         'AccessControl',

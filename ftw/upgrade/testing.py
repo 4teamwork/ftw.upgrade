@@ -6,6 +6,7 @@ from ftw.testing.layer import ConsoleScriptLayer
 from ftw.testing.layer import TEMP_DIRECTORY
 from plone.app.testing import applyProfile
 from plone.app.testing import FunctionalTesting
+from plone.app.testing import PLONE_ZSERVER
 from plone.app.testing import PloneSandboxLayer
 from plone.testing import z2
 from zope.configuration import xmlconfig
@@ -44,3 +45,10 @@ UPGRADE_FUNCTIONAL_TESTING = FunctionalTesting(
     bases=(UPGRADE_LAYER,
            set_builder_session_factory(functional_session_factory)),
     name="ftw.upgrade:functional")
+
+COMMAND_AND_UPGRADE_FUNCTIONAL_TESTING = FunctionalTesting(
+    bases=(PLONE_ZSERVER,
+           UPGRADE_LAYER,
+           set_builder_session_factory(functional_session_factory),
+           COMMAND_LAYER),
+    name="ftw.upgrade:command_and_functional")

@@ -99,7 +99,6 @@ class PloneSiteAPI(APIView):
             return []
         return reduce(list.__add__, map(itemgetter('upgrades'), profiles))
 
-
     def _validate_upgrade_ids(self, *api_ids):
         self.gatherer.get_upgrades_by_api_ids(*api_ids)
 

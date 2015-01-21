@@ -52,11 +52,12 @@ setup(name='ftw.upgrade',
       install_requires=[
         'argcomplete',
         'argparse',
+        'blessed',
         'inflection',
-        'setuptools',
-        'tarjan',
         'path.py >= 6.2',
         'requests',
+        'setuptools',
+        'tarjan',
 
         # Zope
         'AccessControl',

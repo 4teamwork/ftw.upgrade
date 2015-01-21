@@ -1,3 +1,4 @@
+from ftw.upgrade.command.jsonapi import add_json_argument
 from ftw.upgrade.command.jsonapi import add_requestor_authentication_argument
 from ftw.upgrade.command.jsonapi import error_handling
 from ftw.upgrade.command.jsonapi import with_api_requestor
@@ -10,10 +11,7 @@ def setup_argparser(commands):
         description=sites_command.__doc__)
     command.set_defaults(func=sites_command)
     add_requestor_authentication_argument(command)
-
-    command.add_argument('--json',
-                         action='store_true',
-                         help='Print result as JSON.')
+    add_json_argument(command)
 
 
 @with_api_requestor

@@ -1,4 +1,5 @@
 from ftw.upgrade.command import create
+from ftw.upgrade.command import list_proposed
 from ftw.upgrade.command import sites
 from ftw.upgrade.command import touch
 from pkg_resources import get_distribution
@@ -20,10 +21,16 @@ class UpgradeCommand(object):
 
         argcomplete.autocomplete(self.parser)
 
-        commands = self.parser.add_subparsers(help='Command', dest='command')
+        commands = self.parser.add_subparsers(help='Command')
         create.setup_argparser(commands)
-        touch.setup_argparser(commands)
         sites.setup_argparser(commands)
+        touch.setup_argparser(commands)
+
+        list_command = commands.add_parser(
+            'list',
+            help='List upgrades or profiles.')
+        list_commands = list_command.add_subparsers()
+        list_proposed.setup_argparser(list_commands)
 
     def __call__(self):
         args = self.parser.parse_args()

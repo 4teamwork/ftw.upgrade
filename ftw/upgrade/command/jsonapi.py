@@ -1,4 +1,5 @@
 from path import Path
+from requests.exceptions import HTTPError
 import os
 import re
 import requests
@@ -12,15 +13,16 @@ class NoRunningInstanceFound(Exception):
 
 class APIRequestor(object):
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, site=None):
         self.session = requests.Session()
         self.session.auth = (username, password)
+        self.site = site
 
     def GET(self, action, site=None, **kwargs):
         return self._make_request('GET', action, site=site, **kwargs)
 
     def _make_request(self, method, action, site=None, **kwargs):
-        url = get_api_url(action, site=site)
+        url = get_api_url(action, site=site or self.site)
         response = self.session.request(method.upper(), url, **kwargs)
         response.raise_for_status()
         return response
@@ -30,6 +32,19 @@ def add_requestor_authentication_argument(argparse_command):
     argparse_command.add_argument(
         '--auth',
         help='Authentication information: "<username>:<password>"')
+
+
+def add_site_path_argument(argparse_command):
+    argparse_command.add_argument(
+        '--site', '-s',
+        help='Path to the Plone site.',
+        required=True)
+
+
+def add_json_argument(argparse_command):
+    argparse_command.add_argument('--json',
+                                  action='store_true',
+                                  help='Print result as JSON.')
 
 
 def with_api_requestor(func):
@@ -49,7 +64,8 @@ def with_api_requestor(func):
             print 'A string of form "<username>:<password>" is required.'
             sys.exit(1)
 
-        requestor = APIRequestor(*auth_value.split(':'))
+        requestor = APIRequestor(*auth_value.split(':'),
+                                  site=getattr(args, 'site', None))
         return func(args, requestor)
     func_wrapper.__name__ = func.__name__
     func_wrapper.__doc__ = func.__doc__
@@ -63,6 +79,22 @@ def error_handling(func):
         except NoRunningInstanceFound:
             print 'ERROR: No running Plone instance detected.'
             sys.exit(1)
+        except HTTPError, exc:
+            try:
+                response = exc.response
+                mimetype = (response.headers.get('Content-Type')
+                            .split(';', 1)[0])
+                if mimetype == 'application/json':
+                    print ': '.join(response.json())
+                    print '>', exc.request.url
+                    print '<', response.status_code, response.reason
+                    sys.exit(1)
+
+                raise
+
+            except Exception, subexc:
+                print 'Exception while rendering error:', subexc
+                raise exc
 
     func_wrapper.__name__ = func.__name__
     func_wrapper.__doc__ = func.__doc__

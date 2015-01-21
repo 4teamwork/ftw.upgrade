@@ -87,7 +87,14 @@ class CommandTestCase(TestCase):
 
     def upgrade_script(self, args, assert_exitcode=True):
         command = ' '.join(('upgrade', args))
-        return self.layer['execute_script'](command, assert_exitcode=assert_exitcode)
+        exitcode, output = self.layer['execute_script'](
+            command, assert_exitcode=assert_exitcode)
+
+        output = re.sub(r'/[^\n]*Terminal kind \'dumb\'[^\n]*\n', '', output,
+                        flags=re.M)
+        output = re.sub(r'^[^\n]*_BINTERM_UNSUPPORTED[^\n]*\n', '', output,
+                        flags=re.M)
+        return exitcode, output
 
 
 class WorkflowTestCase(TestCase):

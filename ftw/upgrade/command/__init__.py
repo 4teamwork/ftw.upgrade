@@ -1,4 +1,5 @@
 from ftw.upgrade.command import create
+from ftw.upgrade.command import list_profiles
 from ftw.upgrade.command import list_proposed
 from ftw.upgrade.command import sites
 from ftw.upgrade.command import touch
@@ -30,6 +31,7 @@ class UpgradeCommand(object):
             'list',
             help='List upgrades or profiles.')
         list_commands = list_command.add_subparsers()
+        list_profiles.setup_argparser(list_commands)
         list_proposed.setup_argparser(list_commands)
 
     def __call__(self):

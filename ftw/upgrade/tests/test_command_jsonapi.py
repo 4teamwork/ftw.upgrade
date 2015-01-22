@@ -1,5 +1,3 @@
-from datetime import datetime
-from ftw.builder import Builder
 from ftw.upgrade.command.jsonapi import APIRequestor
 from ftw.upgrade.command.jsonapi import get_api_url
 from ftw.upgrade.command.jsonapi import get_running_instance
@@ -10,7 +8,6 @@ from plone.app.testing import SITE_OWNER_NAME
 from plone.app.testing import TEST_USER_PASSWORD
 from requests.exceptions import HTTPError
 import os
-import transaction
 
 
 class TestAPIRequestor(CommandAndInstanceTestCase):

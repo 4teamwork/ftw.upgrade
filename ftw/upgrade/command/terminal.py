@@ -1,4 +1,5 @@
 from blessed import Terminal
+from operator import itemgetter
 
 
 TERMINAL = Terminal()
@@ -36,3 +37,27 @@ def colorize_api_id(api_id):
 
 def colorize_profile_id(profile_id):
     return TERMINAL.green(profile_id)
+
+
+def colorized_profile_versions(profile):
+    db_version = profile['db_version']
+    fs_version = profile['fs_version']
+    if db_version != fs_version:
+        db_version = TERMINAL.red(db_version)
+    return TERMINAL.bright_black(' / '.join((db_version, fs_version)))
+
+
+def colorized_profile_flags(profile):
+    flags = []
+    if profile['outdated_fs_version']:
+        flags.append(FLAGS['outdated_fs_version'])
+
+    proposed = len(filter(itemgetter('proposed'), profile['upgrades']))
+    if proposed:
+        flags.append(TERMINAL.blue('{0} proposed'.format(proposed)))
+
+    orphans = len(filter(itemgetter('orphan'), profile['upgrades']))
+    if orphans:
+        flags.append(TERMINAL.standout_red('{0} orphan'.format(orphans)))
+
+    return ' '.join(flags)

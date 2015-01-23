@@ -21,6 +21,9 @@ class APIRequestor(object):
     def GET(self, action, site=None, **kwargs):
         return self._make_request('GET', action, site=site, **kwargs)
 
+    def POST(self, action, site=None, **kwargs):
+        return self._make_request('POST', action, site=site, **kwargs)
+
     def _make_request(self, method, action, site=None, **kwargs):
         url = get_api_url(action, site=site or self.site)
         response = self.session.request(method.upper(), url, **kwargs)

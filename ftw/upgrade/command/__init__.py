@@ -1,4 +1,5 @@
 from ftw.upgrade.command import create
+from ftw.upgrade.command import install
 from ftw.upgrade.command import list_profiles
 from ftw.upgrade.command import list_proposed
 from ftw.upgrade.command import sites
@@ -24,6 +25,7 @@ class UpgradeCommand(object):
 
         commands = self.parser.add_subparsers(help='Command')
         create.setup_argparser(commands)
+        install.setup_argparser(commands)
         sites.setup_argparser(commands)
         touch.setup_argparser(commands)
 

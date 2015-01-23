@@ -42,3 +42,25 @@ def verbose_logging():
 
     finally:
         logging.root.setLevel(original_level)
+
+
+@contextmanager
+def no_logging_threads():
+    """In testing, when a request is executed (e.g. from requests) to the ZSERVER
+    layer and errors are logged, the logging module might write to the logging
+    handler in a thread after the request is finished.
+    Since the testrunner tracks left over threads the logging thread is detected
+    as leftover thread. Since this thread is a dummy thread it cannot be joined,
+    which results in a error in the threading module (python 2.7 bug).
+    The result is that from this test on the test log is spammed with threading
+    errors for each following test.
+    In order to mitigate this issue this context manager temporarily disables
+    threading of logging in general so that logs are processed synchronously and
+    no left over threads are created.
+    """
+    original_log_threads = logging.logThreads
+    logging.logThreads = 0
+    try:
+        yield
+    finally:
+        logging.logThreads = original_log_threads

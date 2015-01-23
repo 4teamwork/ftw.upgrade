@@ -1,8 +1,7 @@
 from ftw.upgrade.command import create
 from ftw.upgrade.command import help
 from ftw.upgrade.command import install
-from ftw.upgrade.command import list_profiles
-from ftw.upgrade.command import list_proposed
+from ftw.upgrade.command import list_cmd
 from ftw.upgrade.command import sites
 from ftw.upgrade.command import touch
 from ftw.upgrade.command.formatter import FlexiFormatter
@@ -82,13 +81,7 @@ class UpgradeCommand(object):
         install.setup_argparser(commands)
         sites.setup_argparser(commands)
         touch.setup_argparser(commands)
-
-        list_command = commands.add_parser(
-            'list',
-            help='List upgrades or profiles.')
-        list_commands = list_command.add_subparsers()
-        list_profiles.setup_argparser(list_commands)
-        list_proposed.setup_argparser(list_commands)
+        list_cmd.setup_argparser(commands)
 
         # Register as last.
         help.setup_argparser(commands)

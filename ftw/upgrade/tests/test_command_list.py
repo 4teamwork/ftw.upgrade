@@ -128,3 +128,27 @@ class TestListCommand(CommandAndInstanceTestCase):
                         "title": "Upgrade."
                         }],
                 json.loads(output))
+
+    def test_pick_site_argument(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='20110101000000')
+            self.clear_recorded_upgrades('the.package:default')
+
+            exitcode, output = self.upgrade_script('list --proposed --json --pick-site')
+            self.assertEqual(1, len(json.loads(output)))
+
+    def test_last_site_argument(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='20110101000000')
+            self.clear_recorded_upgrades('the.package:default')
+
+            exitcode, output = self.upgrade_script('list --proposed --json --pick-site')
+            self.assertEqual(1, len(json.loads(output)))

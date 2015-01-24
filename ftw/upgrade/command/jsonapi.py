@@ -38,10 +38,16 @@ def add_requestor_authentication_argument(argparse_command):
 
 
 def add_site_path_argument(argparse_command):
-    argparse_command.add_argument(
+    group = argparse_command.add_mutually_exclusive_group(required=True)
+    group.add_argument(
         '--site', '-s',
-        help='Path to the Plone site.',
-        required=True)
+        help='Path to the Plone site.')
+    group.add_argument(
+        '--pick-site', '-S', action='store_true',
+        help='Automatically pick the Plone site, when there is exactly one.')
+    group.add_argument(
+        '--last-site', '-L', action='store_true',
+        help='Automatically pick the last Plone site ordered by path.')
 
 
 def add_json_argument(argparse_command):
@@ -67,8 +73,8 @@ def with_api_requestor(func):
             print 'A string of form "<username>:<password>" is required.'
             sys.exit(1)
 
-        requestor = APIRequestor(*auth_value.split(':'),
-                                  site=getattr(args, 'site', None))
+        site = get_plone_site_by_args(args, auth_value)
+        requestor = APIRequestor(*auth_value.split(':'), site=site)
         return func(args, requestor)
     func_wrapper.__name__ = func.__name__
     func_wrapper.__doc__ = func.__doc__
@@ -146,3 +152,28 @@ def is_port_open(port):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex(('127.0.0.1', port))
     return result == 0
+
+
+def get_plone_site_by_args(args, auth_value):
+    if getattr(args, 'site', None):
+        return args.site
+    if getattr(args, 'pick_site', False):
+        sites = get_sites(auth_value)
+        if len(sites) != 1:
+            print 'ERROR: --pick-site is ambiguous:'
+            print 'Expected exactly one site, found', len(sites)
+            sys.exit(1)
+        return sites[0]['path']
+    if getattr(args, 'last_site', False):
+        sites = get_sites(auth_value)
+        if len(sites) == 0:
+            print 'ERROR: No Plone site found.'
+            sys.exit(1)
+        return sites[-1]['path']
+    return None
+
+
+def get_sites(auth_value):
+    requestor = APIRequestor(*auth_value.split(':'))
+    response = requestor.GET('list_plone_sites')
+    return response.json()

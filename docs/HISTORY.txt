@@ -94,7 +94,7 @@ Changelog
 ------------------
 
 - Prevent portal_quickinstaller from picking upgrade-steps instead of the
-  default-profile by prefixing the profile-id with 'upgrade_to_' (fix #45)
+  default-profile by prefixing the profile-id with ``upgrade_to_`` (fix #45)
   [pbauer]
 
 - Flag profiles whose filesystem version is outdated.

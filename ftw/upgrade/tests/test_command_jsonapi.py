@@ -69,7 +69,7 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             get_zope_url()
 
     def test_find_first_running_instance_info(self):
-        test_instance_port = os.environ.get('ZSERVER_PORT', 55001)
+        test_instance_port = int(os.environ.get('ZSERVER_PORT', 55001))
         self.write_zconf('instance1', '1000')
         part2 = self.write_zconf('instance2', test_instance_port)
         self.assertEqual(

@@ -1,17 +1,14 @@
 from datetime import datetime
 from ftw.builder import Builder
 from ftw.upgrade.exceptions import CyclicDependencies
+from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.gatherer import extend_auto_upgrades_with_human_formatted_date_version
 from ftw.upgrade.gatherer import UpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
-from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.tests.base import UpgradeTestCase
 from unittest2 import TestCase
-from zope.component import getMultiAdapter
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
-import re
-
 
 
 class TestUpgradeInformationGatherer(UpgradeTestCase):
@@ -31,6 +28,20 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
             self.assert_gathered_upgrades({
                     'the.package:default': {'proposed': ['1002'],
                                             'done': ['1001']}})
+
+    def test_filtering_proposed_upgrades(self):
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_upgrade(Builder('plone upgrade step')
+                                                .upgrading('1000', to='1001'))
+                                  .with_upgrade(Builder('plone upgrade step')
+                                                .upgrading('1001', to='1002')))
+
+        with self.package_created():
+            self.install_profile('the.package:default', '1001')
+            self.assert_gathered_upgrades(
+                {'the.package:default': {'proposed': ['1002'],
+                                         'done': []}},
+                proposed_only=True)
 
     def test_profile_with_outdated_fs_version_is_flagged(self):
         self.package.with_profile(Builder('genericsetup profile')
@@ -152,7 +163,7 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
 
             gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
             with self.assertRaises(CyclicDependencies) as cm:
-                gatherer.get_upgrades()
+                gatherer.get_profiles()
 
             self.assertIn(('the.package:bar', 'the.package:foo'),
                           cm.exception.dependencies)
@@ -228,6 +239,8 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
             self.assertDictContainsSubset(
                 {'title': u'Add action',
                  'description': u'Some details...',
+                 'profile': 'the.package:default',
+                 'api_id': '1001@the.package:default',
                  'ssource': '1000',
                  'source': ('1000',),
                  'sdest': '1001',
@@ -291,15 +304,49 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
                  'fdest': '2014/12/30 10:45'},
                 upgrade_info)
 
-    def record_installed_upgrades(self, profile, *destinations):
-        profile = re.sub('^profile-', '', profile)
-        recorder = getMultiAdapter((self.layer['portal'], profile), IUpgradeStepRecorder)
-        recorder.storage.clear()
-        map(recorder.mark_as_installed, destinations)
+    def test_get_upgrades_by_api_ids(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            self.install_profile('the.package:default')
+
+            gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
+            upgrade_info, = gatherer.get_upgrades_by_api_ids(
+                '20110101000000@the.package:default')
+            self.assertDictContainsSubset(
+                {'api_id': u'20110101000000@the.package:default',
+                 'sdest': u'20110101000000'},
+                upgrade_info)
+
+    def test_get_upgrades_by_api_ids_orders_upgrades(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1)))
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2012, 2, 2))))
+
+        with self.package_created():
+            self.install_profile('the.package:default')
+
+            gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
+            self.assertEquals(
+                gatherer.get_upgrades_by_api_ids('20110101000000@the.package:default',
+                                                 '20120202000000@the.package:default'),
+                gatherer.get_upgrades_by_api_ids('20120202000000@the.package:default',
+                                                 '20110101000000@the.package:default'))
+
+    def test_get_upgrades_by_api_ids_raises_upgrade_not_found(self):
+        gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
+        with self.assertRaises(UpgradeNotFound) as cm:
+            gatherer.get_upgrades_by_api_ids('foo@bar:default')
+        self.assertEquals('foo@bar:default', cm.exception.api_id)
+        self.assertEquals('The upgrade "foo@bar:default" could not be found.',
+                          str(cm.exception))
 
     def get_listed_profiles(self, filter_package='the.package'):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        result = gatherer.get_upgrades()
+        result = gatherer.get_profiles()
         profiles = [profile['id'] for profile in result]
         if filter_package:
             profiles = filter(lambda profile: profile.startswith(filter_package),
@@ -308,12 +355,12 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
 
     def get_profiles_by_ids(self):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        result = gatherer.get_upgrades()
+        result = gatherer.get_profiles()
         return dict([(profile['id'], profile) for profile in result])
 
-    def assert_gathered_upgrades(self, expected):
+    def assert_gathered_upgrades(self, expected, *args, **kwargs):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        result = gatherer.get_upgrades()
+        result = gatherer.get_profiles(*args, **kwargs)
         got = {}
         for profile in result:
             if profile['id'] not in expected:
@@ -335,7 +382,7 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
 
     def assert_outdated_profiles(self, expected_profiles, ignore=()):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        result = gatherer.get_upgrades()
+        result = gatherer.get_profiles()
         got_profiles = [profile['id'] for profile in result
                         if profile['outdated_fs_version'] and profile['id'] not in ignore]
         self.assertEquals(expected_profiles, got_profiles,

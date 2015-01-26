@@ -1,15 +1,18 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from datetime import datetime
+from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.interfaces import IRecordableHandler
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.utils import get_sorted_profile_ids
+from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import normalize_version
 from Products.GenericSetup.upgrade import UpgradeStep
 from zope.component import adapts
 from zope.component import getMultiAdapter
+from zope.deprecation import deprecated
 from zope.interface import implements
 
 
@@ -100,21 +103,39 @@ class UpgradeInformationGatherer(object):
             portal_setup, 'portal_url').getPortalObject()
         self.cyclic_dependencies = False
 
-    security.declarePrivate('get_upgrades')
-    def get_upgrades(self):
-        profiles = self._sort_profiles_by_dependencies(self._get_profiles())
+    security.declarePrivate('get_profiles')
+    def get_profiles(self, proposed_only=False):
+        profiles = self._sort_profiles_by_dependencies(
+            self._get_profiles(proposed_only=proposed_only))
         profiles = flag_profiles_with_outdated_fs_version(profiles)
         profiles = extend_auto_upgrades_with_human_formatted_date_version(
             profiles)
         return profiles
 
+    security.declarePrivate('get_upgrades')
+    get_upgrades = deprecated(get_profiles,
+                              'get_upgrades was renamed to get_profiles')
+
+    security.declarePrivate('get_upgrades_by_api_ids')
+    def get_upgrades_by_api_ids(self, *api_ids):
+        upgrades = filter(lambda upgrade: upgrade['api_id'] in api_ids,
+                          reduce(list.__add__,
+                                 map(itemgetter('upgrades'),
+                                     self.get_profiles())))
+        missing_api_ids = (set(api_ids)
+                           - set(map(itemgetter('api_id'), upgrades)))
+        if missing_api_ids:
+            raise UpgradeNotFound(tuple(missing_api_ids)[0])
+        return upgrades
+
     security.declarePrivate('_get_profiles')
-    def _get_profiles(self):
+    def _get_profiles(self, proposed_only=False):
         for profileid in self.portal_setup.listProfilesWithUpgrades():
             if not self._is_profile_installed(profileid):
                 continue
 
-            data = self._get_profile_data(profileid)
+            data = self._get_profile_data(
+                profileid, proposed_only=proposed_only)
             if len(data['upgrades']) == 0:
                 continue
 
@@ -126,13 +147,15 @@ class UpgradeInformationGatherer(object):
             yield data
 
     security.declarePrivate('_get_profile_data')
-    def _get_profile_data(self, profileid):
+    def _get_profile_data(self, profileid, proposed_only=False):
         db_version = self.portal_setup.getLastVersionForProfile(profileid)
         if isinstance(db_version, (tuple, list)):
             db_version = '.'.join(db_version)
 
-        data = {'upgrades': self._get_profile_upgrades(profileid),
-                'db_version': db_version}
+        data = {
+            'upgrades': self._get_profile_upgrades(
+                profileid, proposed_only=proposed_only),
+            'db_version': db_version}
 
         try:
             profile_info = self.portal_setup.getProfileInfo(profileid).copy()
@@ -151,7 +174,7 @@ class UpgradeInformationGatherer(object):
         return data
 
     security.declarePrivate('_get_profile_upgrades')
-    def _get_profile_upgrades(self, profileid):
+    def _get_profile_upgrades(self, profileid, proposed_only=False):
         proposed_ids = set()
         upgrades = []
 
@@ -176,6 +199,13 @@ class UpgradeInformationGatherer(object):
 
             if 'step' in upgrade:
                 del upgrade['step']
+
+            upgrade['profile'] = profileid
+            upgrade['api_id'] = '@'.join((upgrade['sdest'], profileid))
+
+            if proposed_only and not upgrade['proposed']:
+                continue
+
             upgrades.append(upgrade)
 
         return upgrades

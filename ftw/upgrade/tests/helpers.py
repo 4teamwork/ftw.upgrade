@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import logging
 import os
 import sys
 
@@ -30,3 +31,14 @@ def chdir(path):
         yield
     finally:
         os.chdir(before)
+
+
+@contextmanager
+def verbose_logging():
+    original_level = logging.root.getEffectiveLevel()
+    logging.root.setLevel(logging.INFO)
+    try:
+        yield
+
+    finally:
+        logging.root.setLevel(original_level)

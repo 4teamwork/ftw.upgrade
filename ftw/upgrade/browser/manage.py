@@ -18,10 +18,11 @@ class ResponseLogger(object):
 
     security = ClassSecurityInformation()
 
-    def __init__(self, response):
+    def __init__(self, response, annotate_result=False):
         self.response = response
         self.handler = None
         self.formatter = None
+        self.annotate_result = annotate_result
 
     def __enter__(self):
         self.handler = logging.StreamHandler(self)
@@ -33,8 +34,20 @@ class ResponseLogger(object):
         if exc_type is not None:
             LOG.error('FAILED')
             traceback.print_exception(exc_type, exc_value, tb, None, self)
+            if self.annotate_result:
+                self.write('Result: FAILURE\n')
+
+        elif self.annotate_result:
+            self.write('Result: SUCCESS\n')
 
         logging.root.removeHandler(self.handler)
+
+        # Plone testing does not collect data written to the response stream
+        # but only data set directly as body.
+        # Since we want to test the response body, we need to re-set the
+        # stream data as body for testing..
+        if self.response.__class__.__name__ == 'TestResponse':
+            self.response.setBody(self.response.stdout.getvalue())
 
     security.declarePrivate('write')
     def write(self, line):
@@ -113,7 +126,7 @@ class ManageUpgrades(BrowserView):
         gstool = getToolByName(self.context, 'portal_setup')
         gatherer = getAdapter(gstool, IUpgradeInformationGatherer)
         try:
-            return gatherer.get_upgrades()
+            return gatherer.get_profiles()
         except CyclicDependencies, exc:
             self.cyclic_dependencies = exc.cyclic_dependencies
             return []

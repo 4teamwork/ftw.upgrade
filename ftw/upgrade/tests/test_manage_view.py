@@ -49,6 +49,42 @@ class TestResponseLogger(TestCase):
              "KeyError: 'foo'"],
             output.split('\n'))
 
+    def test_annotate_result_on_success(self):
+        response = StringIO()
+
+        with ResponseLogger(response, annotate_result=True):
+            logging.error('foo')
+            logging.error('bar')
+
+        response.seek(0)
+        self.assertEqual(
+            ['foo', u'bar', 'Result: SUCCESS'],
+            response.read().strip().split('\n'))
+
+    def test_annotate_result_on_error(self):
+        response = StringIO()
+
+        with self.assertRaises(KeyError):
+            with ResponseLogger(response, annotate_result=True):
+                raise KeyError('foo')
+
+        response.seek(0)
+        output = response.read().strip()
+        # Dynamically replace paths so that it works on all machines
+        output = re.sub(r'(File ").*(ftw/upgrade/.*")',
+                        r'\1/.../\2', output)
+        output = re.sub(r'(line )\d*', r'line XX', output)
+
+        self.assertEqual(
+            ['FAILED',
+             'Traceback (most recent call last):',
+             '  File "/.../ftw/upgrade/tests/'
+             'test_manage_view.py", line XX, in test_annotate_result_on_error',
+             "    raise KeyError('foo')",
+             "KeyError: 'foo'",
+             'Result: FAILURE'],
+            output.split('\n'))
+
 
 class TestManageUpgrades(UpgradeTestCase):
 

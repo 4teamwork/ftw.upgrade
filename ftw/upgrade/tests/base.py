@@ -1,17 +1,28 @@
 from contextlib import contextmanager
 from ftw.builder import Builder
 from ftw.builder import create
+from ftw.testbrowser import browser
+from ftw.upgrade.directory import scaffold
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.testing import COMMAND_LAYER
 from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
+from ftw.upgrade.tests.helpers import verbose_logging
 from operator import itemgetter
 from path import Path
 from plone.app.testing import setRoles
+from plone.app.testing import SITE_OWNER_NAME
 from plone.app.testing import TEST_USER_ID
 from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
+from urllib2 import HTTPError
+from zope.component import getMultiAdapter
 from zope.component import queryAdapter
+import json
+import re
+import transaction
+import urllib
 
 
 class UpgradeTestCase(TestCase):
@@ -37,6 +48,7 @@ class UpgradeTestCase(TestCase):
         self.portal_setup.runAllImportStepsFromProfile('profile-{0}'.format(profileid))
         if version is not None:
             self.portal_setup.setLastVersionForProfile(profileid, (unicode(version),))
+        transaction.commit()
 
     def install_profile_upgrades(self, *profileids):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
@@ -45,6 +57,19 @@ class UpgradeTestCase(TestCase):
                         if profile['id'] in profileids]
         executioner = queryAdapter(self.portal_setup, IExecutioner)
         executioner.install(upgrade_info)
+
+    def record_installed_upgrades(self, profile, *destinations):
+        profile = re.sub('^profile-', '', profile)
+        recorder = getMultiAdapter((self.portal, profile), IUpgradeStepRecorder)
+        recorder.storage.clear()
+        map(recorder.mark_as_installed, destinations)
+        transaction.commit()
+
+    def clear_recorded_upgrades(self, profile):
+        profile = re.sub('^profile-', '', profile)
+        recorder = getMultiAdapter((self.portal, profile), IUpgradeStepRecorder)
+        recorder.storage.clear()
+        transaction.commit()
 
     def asset(self, filename):
         return Path(__file__).dirname().joinpath('assets', filename).text()
@@ -133,3 +158,99 @@ class WorkflowTestCase(TestCase):
             obj.permission_settings())
 
         return map(lambda item: item.get('name'), acquired_permissions)
+
+
+class JsonApiTestCase(UpgradeTestCase):
+
+    def assert_json_equal(self, expected, got, msg=None):
+        expected = json.dumps(expected, sort_keys=True, indent=4)
+        got = json.dumps(got, sort_keys=True, indent=4)
+        self.maxDiff = None
+        self.assertMultiLineEqual(expected, got, msg)
+
+    def assert_json_contains_profile(self, expected_profileinfo, got, msg=None):
+        profileid = expected_profileinfo['id']
+        got_profiles = dict([(profile['id'], profile) for profile in got])
+        self.assertIn(profileid, got_profiles,
+                      'assert_json_contains_profile: expected profile not in JSON')
+        self.assert_json_equal(expected_profileinfo, got_profiles[profileid], msg)
+
+    def assert_json_contains(self, expected_element, got_elements):
+        message = 'Could not find:\n\n{0}\n\nin list:\n\n{0}'.format(
+            json.dumps(expected_element, sort_keys=True, indent=4),
+            json.dumps(got_elements, sort_keys=True, indent=4))
+        self.assertTrue(expected_element in got_elements, message)
+
+    def is_installed(self, profileid, dest_time):
+        recorder = getMultiAdapter((self.portal, profileid), IUpgradeStepRecorder)
+        return recorder.is_installed(dest_time.strftime(scaffold.DATETIME_FORMAT))
+
+    def api_request(self, method, action, data=(), authenticate=True,
+                    context=None):
+        if context is None:
+            context = self.layer['portal']
+        if authenticate:
+            browser.login(SITE_OWNER_NAME)
+        else:
+            browser.logout()
+
+        with verbose_logging():
+            if method.lower() == 'get':
+                browser.visit(context, view='upgrades-api/{0}?{1}'.format(
+                        action,
+                        urllib.urlencode(data)))
+
+            elif method.lower() == 'post':
+                if not data:
+                    data = {'enforce': 'post'}
+                browser.visit(context, view='upgrades-api/{0}'.format(action),
+                              data=data)
+
+            else:
+                raise Exception('Unsupported request method {0}'.format(method))
+
+    @contextmanager
+    def expect_api_error(self, **expectations):
+        api_error_info = {}
+        with self.expect_request_error() as response_info:
+            yield api_error_info
+
+        api_error_info.update(response_info)
+        # del api_error_info['headers']  # not serializable
+        api_error_info['response_message'] = response_info['message']
+
+        # Make headers serializable
+        api_error_info['headers'] = dict(api_error_info['headers'])
+
+        try:
+            body_json = json.loads(response_info['body'])
+            assert len(body_json) == 3
+            assert body_json[0] == 'ERROR'
+            api_error_info['message'] = body_json[1]
+            api_error_info['details'] = body_json[2]
+        except:
+            raise AssertionError(
+                'Unexpected error response body. A three item list is expected,'
+                ' consisting of "ERROR", the error message (short) and the error details.\n'
+                'Response body: {0}'.format(response_info['body']))
+
+        self.assertDictContainsSubset(
+            expectations, api_error_info,
+            'Unexpected error response details.\n\n'
+            'Expected:' +
+            json.dumps(expectations, sort_keys=True, indent=4) +
+            '\nto be included in:\n' +
+            json.dumps(api_error_info, sort_keys=True, indent=4))
+
+    @contextmanager
+    def expect_request_error(self):
+        response_info = {}
+        with self.assertRaises(HTTPError) as cm:
+            yield response_info
+
+        exc = cm.exception
+        response_info['status'] = exc.wrapped.code
+        response_info['message'] = exc.wrapped.msg
+        response_info['url'] = exc.wrapped._url
+        response_info['headers'] = exc.hdrs
+        response_info['body'] = exc.wrapped.read()

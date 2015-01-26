@@ -25,7 +25,7 @@ class IUpgradeInformationGatherer(Interface):
         """Adapts portal_setup.
         """
 
-    def get_upgrades():
+    def get_profiles():
         """Returns upgrades grouped by done / proposed and assigned profile.
 
         Example output:
@@ -53,6 +53,12 @@ class IUpgradeInformationGatherer(Interface):
         ...   'path': u'/.../profiles/default',
         ...   'type': 2,
         ...   'id': u'Products.CMFEditions:CMFEditions'}]
+        """
+
+    def get_upgrades_by_api_ids(*api_ids):
+        """Returns a list of ugprade information dicts for each upgrade which
+        is selected with a positional argument.
+        The upgrades are ordered in the proposed installation order.
         """
 
 

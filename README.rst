@@ -621,6 +621,227 @@ The resulting directory structure should be something like this:
 
 
 
+JSON API
+========
+
+The JSON API allows to get profiles and upgrades for a Plone site and execute upgrades.
+
+
+Authentication and authorization
+--------------------------------
+
+The API is available for users with the "cmf.ManagePortal" permission, usually the "Manager"
+role is required.
+
+
+Versioning
+----------
+
+A specific API version can be requested by adding the version to the URL. Example:
+
+.. code:: sh
+
+    $ curl -uadmin:admin http://localhost:8080/upgrades-api/v1/list_plone_sites
+
+
+API Discovery
+-------------
+
+The API is discoverable and self descriptive.
+The API description is returned when the API action is omitted:
+
+
+.. code:: sh
+
+    $ curl -uadmin:admin http://localhost:8080/upgrades-api/
+    {
+        "api_version": "v1",
+        "actions": [
+            {
+                "request_method": "GET",
+                "required_params": [],
+                "name": "list_plone_sites",
+                "description": "Returns a list of Plone sites."
+            }
+        ]
+    }
+
+    $ curl -uadmin:admin http://localhost:8080/Plone/upgrades-api/
+    ...
+
+
+
+
+Listing Plone sites:
+--------------------
+
+.. code:: sh
+
+    $ curl -uadmin:admin http://localhost:8080/upgrades-api/list_plone_sites
+    [
+        {
+            "path": "/Plone",
+            "id": "Plone",
+            "title": "Website"
+        }
+    ]
+
+
+Listing profiles and upgrades
+-----------------------------
+
+List all profiles
+~~~~~~~~~~~~~~~~~
+
+Listing all installed Generic Setup profiles with upgrades for a Plone site:
+
+.. code:: sh
+
+    $ curl -uadmin:admin http://localhost:8080/Plone/upgrades-api/list_profiles
+    [
+        {
+            "id": "Products.CMFEditions:CMFEditions",
+            "db_version": "4",
+            "product": "Products.CMFEditions",
+            "title": "CMFEditions",
+            "outdated_fs_version": false,
+            "fs_version": "4",
+            "upgrades": [
+                {
+                    "proposed": false,
+                    "title": "Fix portal_historyidhandler",
+                    "outdated_fs_version": false,
+                    "orphan": false,
+                    "dest": "3",
+                    "done": true,
+                    "source": "2.0",
+                    "id": "3@Products.CMFEditions:CMFEditions"
+                },
+
+    ...
+
+Get a profile
+~~~~~~~~~~~~~
+
+Listing a single profile and its upgrades:
+
+.. code:: sh
+
+    $ curl -uadmin:admin "http://localhost:8080/Plone/upgrades-api/get_profile?profileid=Products.TinyMCE:TinyMCE"
+    {
+        "id": "Products.TinyMCE:TinyMCE",
+        "db_version": "7",
+        "product": "Products.TinyMCE",
+        "title": "TinyMCE Editor Support",
+        "outdated_fs_version": false,
+        "fs_version": "7",
+        "upgrades": [
+            {
+                "proposed": false,
+                "title": "Upgrade TinyMCE",
+                "outdated_fs_version": false,
+                "orphan": false,
+                "dest": "1.1",
+                "done": true,
+                "source": "1.0",
+                "id": "1.1@Products.TinyMCE:TinyMCE"
+            },
+    ...
+
+
+List proposed profiles
+~~~~~~~~~~~~~~~~~~~~~~
+
+Listing all profiles proposing upgrades, each profile only including upgrades which
+are propsosed:
+
+.. code:: sh
+
+    $ curl -uadmin:admin http://localhost:8080/Plone/upgrades-api/list_profiles_proposing_upgrades
+    ...
+
+
+List proposed upgrades
+~~~~~~~~~~~~~~~~~~~~~~
+
+Listing all proposed upgrades without the wrapping profile infos:
+
+.. code:: sh
+
+    $ curl -uadmin:admin http://localhost:8080/Plone/upgrades-api/list_proposed_upgrades
+    [
+        {
+            "proposed": true,
+            "title": "Foo.",
+            "outdated_fs_version": false,
+            "orphan": true,
+            "dest": "20150114104527",
+            "done": false,
+            "source": "10000000000000",
+            "id": "20150114104527@ftw.upgrade:default"
+        }
+    ]
+
+
+Executing upgrades
+------------------
+
+When executing upgrades the response is not of type JSON but a streamed upgrade log.
+If the request is correct, the response status will always be 200 OK, no matter whether
+the upgrades will install correctly or not.
+If an upgrade fails, the request and the transaction is aborted and the response content
+will end with "Result: FAILURE\n".
+If the upgrade succeeds, the response content will end with "Result: SUCCESS\n".
+
+
+Executing selected upgrades
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Selected upgrades can be executing by their API-ID (format: "<dest>@<profileid>").
+When upgrade groups are used the API-ID is kind of ambiguous and identifies / installs all
+upgrade steps of the same profile with the same target version.
+
+All upgrade steps are reordered to the installation order proposed by ftw.upgrade.
+It is not possible to change the order within one request, use multiple requests for
+unproposed installation order.
+The installation order is done by topogically ordering the profiles by their dependencies
+and ordering the upgrades within each profile by their target version.
+
+Example for executing a selected set of upgrades:
+
+.. code:: sh
+
+    $ curl -uadmin:admin -X POST "http://localhost:8080/Plone/upgrades-api/execute_upgrades?upgrades:list=7@Products.TinyMCE:TinyMCE&upgrades:list=20150114104527@ftw.upgrade:default"
+    2015-01-14 11:16:14 INFO ftw.upgrade ______________________________________________________________________
+    2015-01-14 11:16:14 INFO ftw.upgrade UPGRADE STEP Products.TinyMCE:TinyMCE: Upgrade TinyMCE 1.3.4 to 1.3.5
+    2015-01-14 11:16:14 INFO ftw.upgrade Ran upgrade step Upgrade TinyMCE 1.3.4 to 1.3.5 for profile Products.TinyMCE:TinyMCE
+    2015-01-14 11:16:14 INFO ftw.upgrade Upgrade step duration: 1 second
+    2015-01-14 11:16:14 INFO ftw.upgrade ______________________________________________________________________
+    2015-01-14 11:16:14 INFO ftw.upgrade UPGRADE STEP ftw.upgrade:default: Foo.
+    2015-01-14 11:16:14 INFO GenericSetup.rolemap Role / permission map imported.
+    2015-01-14 11:16:14 INFO GenericSetup.archetypetool Archetype tool imported.
+    2015-01-14 11:16:14 INFO ftw.upgrade Ran upgrade step Foo. for profile ftw.upgrade:default
+    2015-01-14 11:16:14 INFO ftw.upgrade Upgrade step duration: 1 second
+    Result: SUCCESS
+
+
+Execute all proposed upgrades
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Example for exeuting all proposed upgrades of a Plone site:
+
+.. code:: sh
+
+    $ curl -uadmin:admin -X POST http://localhost:8080/Plone/upgrades-api/execute_proposed_upgrades
+    2015-01-14 11:17:34 INFO ftw.upgrade ______________________________________________________________________
+    2015-01-14 11:17:34 INFO ftw.upgrade UPGRADE STEP ftw.upgrade:default: Bar.
+    2015-01-14 11:17:35 INFO GenericSetup.rolemap Role / permission map imported.
+    2015-01-14 11:17:35 INFO GenericSetup.archetypetool Archetype tool imported.
+    2015-01-14 11:17:35 INFO ftw.upgrade Ran upgrade step Bar. for profile ftw.upgrade:default
+    2015-01-14 11:17:35 INFO ftw.upgrade Upgrade step duration: 1 second
+    Result: SUCCESS
+
+
 
 Import-Profile Upgrade Steps
 ============================

@@ -4,13 +4,16 @@ from ftw.builder.testing import set_builder_session_factory
 from ftw.testing.layer import COMPONENT_REGISTRY_ISOLATION
 from ftw.testing.layer import ConsoleScriptLayer
 from ftw.testing.layer import TEMP_DIRECTORY
+from operator import itemgetter
 from plone.app.testing import applyProfile
 from plone.app.testing import FunctionalTesting
 from plone.app.testing import PLONE_ZSERVER
 from plone.app.testing import PloneSandboxLayer
 from plone.testing import z2
+from Products.CMFCore.utils import getToolByName
 from zope.configuration import xmlconfig
 import ftw.upgrade.tests.builders
+import pkg_resources
 
 
 COMMAND_LAYER = ConsoleScriptLayer('ftw.upgrade',
@@ -38,6 +41,24 @@ class UpgradeLayer(PloneSandboxLayer):
         applyProfile(
             portal, 'Products.CMFPlacefulWorkflow:CMFPlacefulWorkflow')
         applyProfile(portal, 'ftw.upgrade:default')
+
+        self.fix_plone_app_jquery_version(portal)
+
+    def fix_plone_app_jquery_version(self, portal):
+        try:
+            pkg_resources.get_distribution('plone.app.jquery')
+        except pkg_resources.DistributionNotFound:
+            return
+
+        # The plone.app.jquery version shipped with Plone 4.2 has an outdated
+        # metadata.xml version, resulting in proposed upgrades in a fresh
+        # installation.
+        # For consistent test result we fix that here.
+        portal_setup = getToolByName(portal, 'portal_setup')
+        profileid = 'plone.app.jquery:default'
+        version = max(map(itemgetter('dest'),
+                          portal_setup.listUpgrades(profileid, show_old=True)))
+        portal_setup.setLastVersionForProfile(profileid, version)
 
 
 UPGRADE_LAYER = UpgradeLayer()

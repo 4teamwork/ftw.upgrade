@@ -24,6 +24,9 @@ class TestCreateCommand(CommandTestCase):
 
         code_path = step_path.joinpath('upgrade.py')
         self.assertTrue(code_path.exists(), 'upgrade.py is missing')
+        self.assertTrue(step_path.joinpath('__init__.py').exists(),
+                        'There is no __init__.py in the upgrade directory.'
+                        ' It is important so that plone.reload works.')
         self.maxDiff = True
         self.assertIn('class AddControlpanelAction(UpgradeStep):', code_path.text())
 

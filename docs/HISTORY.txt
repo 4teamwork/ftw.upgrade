@@ -5,6 +5,10 @@ Changelog
 1.11.1 (unreleased)
 -------------------
 
+- Add ``bin/upgrade`` commands ``sites``, ``list`` and ``install``.
+  This makes it possible to install upgrades from the console.
+  [jone]
+
 - Update upgrade step scaffold to support plone.reload.
   [jone]
 

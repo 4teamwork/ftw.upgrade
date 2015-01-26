@@ -90,10 +90,10 @@ class CommandTestCase(TestCase):
         exitcode, output = self.layer['execute_script'](
             command, assert_exitcode=assert_exitcode)
 
-        output = re.sub(r'/[^\n]*Terminal kind \'dumb\'[^\n]*\n', '', output,
-                        flags=re.M)
-        output = re.sub(r'^[^\n]*_BINTERM_UNSUPPORTED[^\n]*\n', '', output,
-                        flags=re.M)
+        output = (re.compile(r'/[^\n]*Terminal kind \'dumb\'[^\n]*\n', re.M)
+                  .sub('', output))
+        output = (re.compile(r'^[^\n]*_BINTERM_UNSUPPORTED[^\n]*\n', re.M)
+                  .sub('', output))
         return exitcode, output
 
 

@@ -65,26 +65,22 @@ class FlexiFormatter(argparse.RawTextHelpFormatter):
     """
 
     def _fill_text(self, text, width, indent):
-        text = re.sub(
-            '\[quote\].*?\[\/quote\]',
-            lambda match: (
-                match.group(0)
-                .replace('\n', '[QUOTE:NEWLINE]')),
-            text,
-            flags=re.DOTALL)
+        text = (re.compile('\[quote\].*?\[\/quote\]', re.DOTALL)
+                .sub(lambda match: (
+                    match.group(0)
+                    .replace('\n', '[QUOTE:NEWLINE]')),
+                     text))
 
         text = '\n'.join([indent + line for line
                           in self._split_lines(text, width)])
 
-        text = re.sub(
-            '\[quote\](.*?)\[\/quote\]',
-            lambda match: TERMINAL.green(
-                match.group(1)
-                .replace('\n', ' ')
-                .replace('[QUOTE:NEWLINE]', '\n    ')
-                .rstrip(' ').strip('\n')),
-            text,
-            flags=re.DOTALL)
+        text = (re.compile('\[quote\](.*?)\[\/quote\]', re.DOTALL)
+                .sub(lambda match: TERMINAL.green(
+                    match.group(1)
+                    .replace('\n', ' ')
+                    .replace('[QUOTE:NEWLINE]', '\n    ')
+                    .rstrip(' ').strip('\n')),
+                     text))
         return text
 
     def _split_lines(self, text, width):

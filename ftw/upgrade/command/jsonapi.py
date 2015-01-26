@@ -1,5 +1,6 @@
 from path import Path
 from requests.exceptions import HTTPError
+from urlparse import urlparse
 import os
 import re
 import requests
@@ -112,10 +113,36 @@ def error_handling(func):
 
 def get_api_url(action, site=None):
     url = get_zope_url()
-    if site:
+    public_url = os.environ.get('UPGRADE_PUBLIC_URL', None)
+    if public_url:
+        url = extend_url_with_virtualhost_config(url, public_url, site)
+    elif site:
         url += site.rstrip('/').strip('/') + '/'
     url += 'upgrades-api/'
     url += action
+    return url
+
+
+def extend_url_with_virtualhost_config(zope_url, public_url, site):
+    urlinfo = urlparse(public_url)
+    # a port is required for the virtual host monster to work nicely.
+    if not urlinfo.port:
+        ports = {'http': 80, 'https': 443}
+        urlinfo = urlinfo._replace(netloc='{0}:{1}'.format(urlinfo.hostname,
+                                                           ports[urlinfo.scheme]))
+
+    url = zope_url.rstrip('/')
+    url += '/VirtualHostBase'
+    url += '/' + urlinfo.scheme
+    url += '/' + urlinfo.netloc
+    if site:
+        url += '/' + site.strip('/')
+    url += '/VirtualHostRoot'
+    for name in urlinfo.path.split('/'):
+        if not name:
+            continue
+        url += '/_vh_' + name
+    url += '/'
     return url
 
 

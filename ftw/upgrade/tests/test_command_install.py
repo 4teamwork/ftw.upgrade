@@ -1,7 +1,12 @@
 from datetime import datetime
 from ftw.builder import Builder
+from ftw.builder import create
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from ftw.upgrade.tests.helpers import no_logging_threads
+from persistent.list import PersistentList
+from plone.app.testing import setRoles
+from plone.app.testing import TEST_USER_ID
+import os
 import transaction
 
 
@@ -66,3 +71,28 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             transaction.begin()  # sync transaction
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             self.assertIn('Result: SUCCESS', output)
+
+    def test_virtual_host_monster_is_configured_by_environment_variable(self):
+        os.environ['UPGRADE_PUBLIC_URL'] = 'https://foo.bar.com/baz'
+        self.layer['portal'].upgrade_info = PersistentList()
+
+        setRoles(self.layer['portal'], TEST_USER_ID, ['Manager'])
+        create(Builder('folder').with_id('the-folder'))
+
+        def upgrade_step(setup_context):
+            portal = setup_context.portal_url.getPortalObject()
+            folder = portal.get('the-folder')
+            portal.upgrade_info.append(folder.absolute_url())
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('plone upgrade step').upgrading('1', to='2')
+                          .calling(upgrade_step)))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            exitcode, output = self.upgrade_script('install -s plone --proposed')
+            self.assertEquals(0, exitcode)
+            transaction.begin()  # sync transaction
+            self.assertEquals(['https://foo.bar.com/baz/the-folder'],
+                              self.layer['portal'].upgrade_info)

@@ -11,6 +11,7 @@ from plone.app.testing import PLONE_ZSERVER
 from plone.app.testing import PloneSandboxLayer
 from plone.testing import z2
 from Products.CMFCore.utils import getToolByName
+from Products.SiteAccess.VirtualHostMonster import manage_addVirtualHostMonster
 from zope.configuration import xmlconfig
 import ftw.upgrade.tests.builders
 import pkg_resources
@@ -36,6 +37,8 @@ class UpgradeLayer(PloneSandboxLayer):
                        context=configurationContext)
 
         z2.installProduct(app, 'Products.CMFPlacefulWorkflow')
+
+        manage_addVirtualHostMonster(app, 'virtual_hosting')
 
     def setUpPloneSite(self, portal):
         applyProfile(

@@ -52,6 +52,21 @@ authentication.
     Alternatively, the credentials can be set in the "UPGRADE_AUTHENTICATION" \
 environment variable which will be used as default for the "--auth" argument.
 
+{t.bold}VIRTUAL HOSTING:{t.normal}
+    For some upgrade steps it is important that "absolute_url()" returns a \
+public URL, for example when contacting external services. \
+By setting the environment variable "UPGRADE_PUBLIC_URL", "bin/upgrade" \
+automatically configures the virtual host monster. \
+Be aware that the Plone site URL part will not be part of the public URL. \
+This means the public URL must point to the Plone site which is selected \
+with the "--site" argument.
+
+    Examples:
+[quote]
+$ UPGRADE_PUBLIC_URL="https://my.site.com/" bin/upgrade
+$ UPGRADE_PUBLIC_URL="http://my.site.com/foo/bar" bin/upgrade
+[/quote]
+
 {t.bold}MORE INFORMATION:{t.normal}
     Project Homepage: https://github.com/4teamwork/ftw.upgrade
     ftw.upgrade version: {version}

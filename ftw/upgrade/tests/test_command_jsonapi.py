@@ -64,6 +64,38 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             'http://localhost:{0}/Plone/upgrades-api/baz'.format(test_instance_port),
             get_api_url('baz', site='/Plone/'))
 
+    def test_get_api_url_with_public_url(self):
+        self.write_zconf_with_test_instance()
+        test_instance_port = os.environ.get('ZSERVER_PORT', 55001)
+
+        os.environ['UPGRADE_PUBLIC_URL'] = 'http://domain.com'
+        self.assertEqual(
+            'http://localhost:{0}/'
+            'VirtualHostBase/http/domain.com:80/mount-point/platform/'
+            'VirtualHostRoot/upgrades-api/action'.format(test_instance_port),
+            get_api_url('action', site='mount-point/platform'))
+
+        os.environ['UPGRADE_PUBLIC_URL'] = 'https://domain.com'
+        self.assertEqual(
+            'http://localhost:{0}/'
+            'VirtualHostBase/https/domain.com:443/mount-point/platform/'
+            'VirtualHostRoot/upgrades-api/action'.format(test_instance_port),
+            get_api_url('action', site='mount-point/platform'))
+
+        os.environ['UPGRADE_PUBLIC_URL'] = 'https://domain.com/'
+        self.assertEqual(
+            'http://localhost:{0}/'
+            'VirtualHostBase/https/domain.com:443/mount-point/platform/'
+            'VirtualHostRoot/upgrades-api/action'.format(test_instance_port),
+            get_api_url('action', site='mount-point/platform'))
+
+        os.environ['UPGRADE_PUBLIC_URL'] = 'https://domain.com/foo'
+        self.assertEqual(
+            'http://localhost:{0}/'
+            'VirtualHostBase/https/domain.com:443/mount-point/platform/'
+            'VirtualHostRoot/_vh_foo/upgrades-api/action'.format(test_instance_port),
+            get_api_url('action', site='mount-point/platform'))
+
     def test_get_zope_url_without_zconf(self):
         with self.assertRaises(NoRunningInstanceFound):
             get_zope_url()

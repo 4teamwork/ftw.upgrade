@@ -281,6 +281,8 @@ class CommandAndInstanceTestCase(JsonApiTestCase, CommandTestCase):
     def tearDown(self):
         if 'UPGRADE_AUTHENTICATION' in os.environ:
             del os.environ['UPGRADE_AUTHENTICATION']
+        if 'UPGRADE_PUBLIC_URL' in os.environ:
+            del os.environ['UPGRADE_PUBLIC_URL']
 
     @property
     def directory(self):

@@ -78,7 +78,8 @@ class FlexiFormatter(argparse.RawTextHelpFormatter):
                 .sub(lambda match: TERMINAL.green(
                     match.group(1)
                     .replace('\n', ' ')
-                    .replace('[QUOTE:NEWLINE]', '\n    ')
+                    .replace('[QUOTE:NEWLINE]',
+                             TERMINAL.normal + '\n    ' + TERMINAL.green)
                     .rstrip(' ').strip('\n')),
                      text))
         return text

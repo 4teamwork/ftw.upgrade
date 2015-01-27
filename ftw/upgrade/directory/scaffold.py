@@ -1,4 +1,5 @@
 from datetime import datetime
+from path import Path
 import inflection
 import os
 
@@ -30,6 +31,8 @@ class UpgradeStepCreator(object):
             inflection.underscore(name))
         step_directory = os.path.join(self.upgrades_directory, step_name)
         os.mkdir(step_directory)
+
+        Path(step_directory).joinpath('__init__.py').touch()
 
         code_path = os.path.join(step_directory, 'upgrade.py')
         with open(code_path, 'w+') as code_file:

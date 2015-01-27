@@ -5,6 +5,9 @@ Changelog
 1.11.1 (unreleased)
 -------------------
 
+- Update upgrade step scaffold to support plone.reload.
+  [jone]
+
 - New JSON API implemented, accessible with `/upgrades-api`.
   [jone]
 

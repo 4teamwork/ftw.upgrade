@@ -1,11 +1,41 @@
 from datetime import datetime
 from datetime import timedelta
+from ftw.upgrade.command.terminal import TERMINAL
 from ftw.upgrade.directory.scaffold import DATETIME_FORMAT
 from ftw.upgrade.directory.scanner import UPGRADESTEP_DATETIME_REGEX
 from path import Path
 import argparse
 import re
 import sys
+
+
+DOCS = """
+{t.bold}DESCRIPTION:{t.normal}
+    Update the order of upgrades on the filesystem by changing the \
+timestamps of the upgrades. \
+This does only work with new-style upgrades created with the "create" \
+command and used with the "upgrade-step:directory" \
+directive.
+
+{t.bold}MOVE TO END:{t.normal}
+    By just touching an upgrade it moves to the end of the chain and \
+receives the current time as timestamp:
+[quote]
+$ bin/upgrade touch src/my/package/upgrades/20110101000000_foo
+[/quote]
+
+{t.bold}MOVE UPRADE BETWEEN OTHER UPGRADES:{t.normal}
+    An upgrade can be moved to a specific position other upgrades by \
+using the "--before" or "--after" optional arguments:
+[quote]
+$ bin/upgrade touch ...upgrades/20110101000000_foo --after \
+...upgrades/20120202000000_bar
+$ bin/upgrade touch ...upgrades/20110101000000_foo --before \
+...upgrades/20120202000000_bar
+[/quote]
+
+
+""".format(t=TERMINAL).strip()
 
 
 NAME_RE = re.compile(r'^.*/?\d{14}_([^/]*)$')
@@ -16,7 +46,7 @@ def setup_argparser(commands):
     command = commands.add_parser(
         'touch',
         help='Update the timestamp of an existing upgrade step.',
-        description=touch_command.__doc__)
+        description=DOCS)
     command.set_defaults(func=touch_command)
 
     command.add_argument('path',
@@ -38,9 +68,6 @@ def setup_argparser(commands):
 
 
 def touch_command(args):
-    """Updates the timestamp of an existing upgrade step.
-    This is useful for changing the order of upgrade steps.
-    """
 
     parents = set(map(Path.dirname,
                       filter(bool, (args.path,

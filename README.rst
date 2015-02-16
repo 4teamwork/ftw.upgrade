@@ -58,6 +58,8 @@ Installation
 - Go to Site Setup of your Plone site and activate the ``ftw.upgrade`` add-on.
 
 
+.. _console script installation:
+
 Installing ftw.upgrade's console script
 ---------------------------------------
 
@@ -108,6 +110,33 @@ Fallback view
 The ``@@manage-upgrades-plain`` view acts as a fallback view for ``@@manage-upgrades``.
 It does not include plone`s main template and thus might be able to render when the default
 view fails for some reason.
+
+
+The bin/upgrade script
+======================
+
+Refer to the `console script installation`_ section how to install ``bin/upgrade``.
+
+The ``bin/upgrade`` console script allows to manage upgrades on the filesystem (creating
+new upgrades, changing upgrade order) as well as interacting with an installed Plone
+site and list profiles and upgrades and install upgrades.
+
+Some examples:
+
+.. code:: sh
+
+    $ bin/upgrade create "AddCatalogIndex"
+    $ bin/upgrade touch my/package/upgrades/20110101000000_add_catalog_index
+    $ bin/upgrade sites
+    $ bin/upgrade list -s Plone --auth admin:admin --upgrades
+    $ bin/upgrade install -s Plone --auth admin:admin  --proposed
+
+The full documentation of the ``bin/upgrade`` script is available using its help system:
+
+.. code:: sh
+
+    $ bin/upgrade help
+
 
 
 Upgrade step helpers

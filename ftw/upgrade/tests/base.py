@@ -6,6 +6,7 @@ from ftw.upgrade.directory import scaffold
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
+from ftw.upgrade.testing import COMMAND_AND_UPGRADE_FUNCTIONAL_TESTING
 from ftw.upgrade.testing import COMMAND_LAYER
 from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
 from ftw.upgrade.tests.helpers import verbose_logging
@@ -14,12 +15,14 @@ from path import Path
 from plone.app.testing import setRoles
 from plone.app.testing import SITE_OWNER_NAME
 from plone.app.testing import TEST_USER_ID
+from plone.app.testing import TEST_USER_PASSWORD
 from Products.CMFCore.utils import getToolByName
 from unittest2 import TestCase
 from urllib2 import HTTPError
 from zope.component import getMultiAdapter
 from zope.component import queryAdapter
 import json
+import os
 import re
 import transaction
 import urllib
@@ -30,11 +33,15 @@ class UpgradeTestCase(TestCase):
 
     def setUp(self):
         self.package = (Builder('python package')
-                        .at_path(self.layer['temp_directory'])
+                        .at_path(self.directory)
                         .named('the.package'))
         self.portal = self.layer['portal']
         self.portal_setup = getToolByName(self.portal, 'portal_setup')
         self.portal_quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
+
+    @property
+    def directory(self):
+        return self.layer['temp_directory']
 
     @contextmanager
     def package_created(self):
@@ -80,7 +87,14 @@ class CommandTestCase(TestCase):
 
     def upgrade_script(self, args, assert_exitcode=True):
         command = ' '.join(('upgrade', args))
-        return self.layer['execute_script'](command, assert_exitcode=assert_exitcode)
+        exitcode, output = self.layer['execute_script'](
+            command, assert_exitcode=assert_exitcode)
+
+        output = (re.compile(r'/[^\n]*Terminal kind \'dumb\'[^\n]*\n', re.M)
+                  .sub('', output))
+        output = (re.compile(r'^[^\n]*_BINTERM_UNSUPPORTED[^\n]*\n', re.M)
+                  .sub('', output))
+        return exitcode, output
 
 
 class WorkflowTestCase(TestCase):
@@ -254,3 +268,35 @@ class JsonApiTestCase(UpgradeTestCase):
         response_info['url'] = exc.wrapped._url
         response_info['headers'] = exc.hdrs
         response_info['body'] = exc.wrapped.read()
+
+
+class CommandAndInstanceTestCase(JsonApiTestCase, CommandTestCase):
+    layer = COMMAND_AND_UPGRADE_FUNCTIONAL_TESTING
+
+    def setUp(self):
+        super(CommandAndInstanceTestCase, self).setUp()
+        os.environ['UPGRADE_AUTHENTICATION'] = ':'.join((SITE_OWNER_NAME,
+                                                         TEST_USER_PASSWORD))
+
+    def tearDown(self):
+        if 'UPGRADE_AUTHENTICATION' in os.environ:
+            del os.environ['UPGRADE_AUTHENTICATION']
+        if 'UPGRADE_PUBLIC_URL' in os.environ:
+            del os.environ['UPGRADE_PUBLIC_URL']
+
+    @property
+    def directory(self):
+        return self.layer['root_path']
+
+    def write_zconf(self, instance_name, port):
+        etc1 = self.layer['root_path'].joinpath('parts', instance_name, 'etc')
+        etc1.makedirs()
+        etc1.joinpath('zope.conf').write_text(
+            '\n'.join(('<http-server>',
+                       '  address {0}'.format(port),
+                       '</http-server>')))
+        return etc1.dirname()
+
+    def write_zconf_with_test_instance(self):
+        test_instance_port = os.environ.get('ZSERVER_PORT', 55001)
+        self.write_zconf('instance', test_instance_port)

@@ -56,7 +56,7 @@ def setup_argparser(commands):
                        action='store_const',
                        const='list_proposed_upgrades')
 
-    group.add_argument('--profiles', '-l',
+    group.add_argument('--profiles', '-p',
                        help='List all installed profiles.',
                        dest='action',
                        action='store_const',

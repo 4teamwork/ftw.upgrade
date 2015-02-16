@@ -128,7 +128,7 @@ Some examples:
     $ bin/upgrade create "AddCatalogIndex"
     $ bin/upgrade touch my/package/upgrades/20110101000000_add_catalog_index
     $ bin/upgrade sites
-    $ bin/upgrade list -s Plone --auth admin:admin --proposed
+    $ bin/upgrade list -s Plone --auth admin:admin --upgrades
     $ bin/upgrade install -s Plone --auth admin:admin  --proposed
 
 The full documentation of the ``bin/upgrade`` script is available using its help system:

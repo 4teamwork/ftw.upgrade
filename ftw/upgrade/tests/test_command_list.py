@@ -85,7 +85,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.install_profile('the.package:default', version='20110101000000')
             self.clear_recorded_upgrades('the.package:default')
 
-            exitcode, output = self.upgrade_script('list --proposed -s plone')
+            exitcode, output = self.upgrade_script('list --upgrades -s plone')
             self.assertEquals(0, exitcode)
             self.assertMultiLineEqual(
                 'Proposed upgrades:\n'
@@ -104,7 +104,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.install_profile('the.package:default', version='20110101000000')
             self.clear_recorded_upgrades('the.package:default')
 
-            exitcode, output = self.upgrade_script('list --proposed -s plone --json')
+            exitcode, output = self.upgrade_script('list --upgrades -s plone --json')
             self.assertEquals(0, exitcode)
             self.assert_json_equal(
                 [{
@@ -138,7 +138,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.install_profile('the.package:default', version='20110101000000')
             self.clear_recorded_upgrades('the.package:default')
 
-            exitcode, output = self.upgrade_script('list --proposed --json --pick-site')
+            exitcode, output = self.upgrade_script('list --upgrades --json --pick-site')
             self.assertEqual(1, len(json.loads(output)))
 
     def test_last_site_argument(self):
@@ -150,5 +150,5 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.install_profile('the.package:default', version='20110101000000')
             self.clear_recorded_upgrades('the.package:default')
 
-            exitcode, output = self.upgrade_script('list --proposed --json --pick-site')
+            exitcode, output = self.upgrade_script('list --upgrades --json --pick-site')
             self.assertEqual(1, len(json.loads(output)))

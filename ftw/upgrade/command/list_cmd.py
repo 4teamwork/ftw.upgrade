@@ -32,9 +32,9 @@ well as database and filesystem versions.
 Plone site. Only profiles installed on this Plone site are respected.
 
 [quote]
-    $ ./bin/upgrade list --site Plone --proposed
-    $ ./bin/upgrade list --site Plone --proposed --auth admin:admin
-    $ ./bin/upgrade list --site Plone --proposed --auth admin:admin --json
+    $ ./bin/upgrade list --site Plone --upgrades
+    $ ./bin/upgrade list --site Plone --upgrades --auth admin:admin
+    $ ./bin/upgrade list --site Plone --upgrades --auth admin:admin --json
 [/quote]
 """.format(t=TERMINAL).strip()
 
@@ -50,7 +50,7 @@ def setup_argparser(commands):
     add_json_argument(command)
 
     group = command.add_mutually_exclusive_group(required=True)
-    group.add_argument('--proposed', '-u',
+    group.add_argument('--upgrades', '-u',
                        help='List all proposed upgrades.',
                        dest='action',
                        action='store_const',

@@ -1,6 +1,7 @@
 from path import Path
 from requests.exceptions import HTTPError
 from urlparse import urlparse
+import cgi
 import os
 import re
 import requests
@@ -92,8 +93,8 @@ def error_handling(func):
         except HTTPError, exc:
             try:
                 response = exc.response
-                mimetype = (response.headers.get('Content-Type')
-                            .split(';', 1)[0])
+                mimetype = cgi.parse_header(
+                    response.headers.get('Content-Type'))[0]
                 if mimetype == 'application/json':
                     print ': '.join(response.json())
                     print '>', exc.request.url
@@ -128,8 +129,9 @@ def extend_url_with_virtualhost_config(zope_url, public_url, site):
     # a port is required for the virtual host monster to work nicely.
     if not urlinfo.port:
         ports = {'http': 80, 'https': 443}
-        urlinfo = urlinfo._replace(netloc='{0}:{1}'.format(urlinfo.hostname,
-                                                           ports[urlinfo.scheme]))
+        urlinfo = urlinfo._replace(netloc='{0}:{1}'.format(
+                urlinfo.hostname,
+                ports[urlinfo.scheme]))
 
     url = zope_url.rstrip('/')
     url += '/VirtualHostBase'

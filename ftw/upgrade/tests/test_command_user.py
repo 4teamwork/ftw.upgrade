@@ -25,12 +25,11 @@ class TestUserCommand(CommandAndInstanceTestCase):
         self.assertEquals(0, exitcode)
         self.assertEquals('Authenticated as "admin".\n', output)
 
-    def test_error_when_not_authenticated(self):
+    def test_tempfile_authentication_fallback(self):
         del os.environ['UPGRADE_AUTHENTICATION']
-        exitcode, output = self.upgrade_script('user', assert_exitcode=False)
-        self.assertEquals(1, exitcode)
-        self.assertEquals('ERROR: No authentication information provided.',
-                          output.splitlines()[0])
+        exitcode, output = self.upgrade_script('user')
+        self.assertEquals(0, exitcode)
+        self.assertEquals('Authenticated as "system-upgrade".\n', output)
 
     def test_valid_authentication_format_is_required(self):
         exitcode, output = self.upgrade_script('user --auth=john', assert_exitcode=False)

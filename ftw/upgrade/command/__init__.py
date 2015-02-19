@@ -45,13 +45,40 @@ the instance port and testing whether the port is bound on localhost.
 If multiple instances are running, the first one running is used.
 
 {t.bold}AUTHENTICATION:{t.normal}
-    The JSON API requires authentication as a "Manager" user by using basic \
-authentication. The authentication credentials can be passed with the \
-"--auth" argument in form "<username>:<password>" for all commands requiring \
-authentication.
+    There are three authentication options which are tested and used in this \
+order:
 
-    Alternatively, the credentials can be set in the "UPGRADE_AUTHENTICATION" \
-environment variable which will be used as default for the "--auth" argument.
+    - "--auth" argument for basic authentication
+    - "UPGRADE_AUTHENTICATION" environment variable for basic authentication
+    - automatic tempfile based authorization negotiation, using the \
+      automatically generated manager user "system-upgrade".
+
+    {t.bold}"--auth" argument authentication{t.normal}
+    Commands requiring authentication have a "--auth" argument which precede \
+the tempfile negotiation mechanism. \
+It uses basic authentication. \
+The value is expected to be "<username>:<password>". \
+The user should have the "Manager" role.
+
+    {t.bold}"UPGRADE_AUTHENTICATION" environment variable{t.normal}
+    When no "--auth" argument is used, the "UPGRADE_AUTHENTICATION" \
+environment variable is tested for authentication information. \
+This works exactly like the "--auth" argument.
+
+    {t.bold}Tempfile negotiation authentication{t.normal}
+    The automatic tempfile negotiation is used when neither the "--auth" \
+argument nor the "UPGRADE_AUTHENTICATION" environment variable is used. \
+It creates a tempfile, readable only for the owner user and writes a random \
+hash to the file. The filename and the hash is submitted as request header \
+and the backend reads the tempfile and verifies the content.
+    The idea is that if a user has access to the machine with the user \
+running Zope, he can easily create an emergency administator user from the \
+command line and acquire full manager access to the Zope installation. \
+By being able to write the tempfile as this user on the server machine \
+the access is verified.
+    When using this mechanism, a manager user is created at Zope app level, \
+named "system-upgrade". The user has a random password. All requests are \
+then authenticated with this user.
 
 {t.bold}VIRTUAL HOSTING:{t.normal}
     For some upgrade steps it is important that "absolute_url()" returns a \

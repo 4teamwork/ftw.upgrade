@@ -90,20 +90,15 @@ def with_api_requestor(func):
     def func_wrapper(args):
         default_auth = os.environ.get('UPGRADE_AUTHENTICATION', None)
         auth_value = args.auth or default_auth
-        if not auth_value:
-            print 'ERROR: No authentication information provided.'
-            print 'Use either the --auth param or the UPGRADE_AUTHENTICATION' + \
-                ' environment variable for providing authentication information' + \
-                ' in the form "<username>:<password>".'
-            sys.exit(1)
-
-        if len(auth_value.split(':')) != 2:
-            print 'ERROR: Invalid authentication information "{0}".'.format(
-                auth_value)
-            print 'A string of form "<username>:<password>" is required.'
-            sys.exit(1)
-
-        auth = HTTPBasicAuth(*auth_value.split(':'))
+        if auth_value:
+            if len(auth_value.split(':')) != 2:
+                print 'ERROR: Invalid authentication information "{0}".'.format(
+                    auth_value)
+                print 'A string of form "<username>:<password>" is required.'
+                sys.exit(1)
+            auth = HTTPBasicAuth(*auth_value.split(':'))
+        else:
+            auth = TempfileAuth()
 
         site = get_plone_site_by_args(args, APIRequestor(auth))
         requestor = APIRequestor(auth, site=site)

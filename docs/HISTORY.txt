@@ -5,6 +5,11 @@ Changelog
 1.12.1 (unreleased)
 -------------------
 
+- ``bin/upgrade``: automatically authenticate with a tempfile
+  negotiation mechanism when no other authentication information is
+  provided.
+  [jone]
+
 - New ``bin/upgrade user`` command for testing authentication.
   [jone]
 

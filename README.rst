@@ -689,6 +689,12 @@ The API description is returned when the API action is omitted:
             {
                 "request_method": "GET",
                 "required_params": [],
+                "name": "current_user",
+                "description": "Return the current user when authenticated properly. This can be used for testing authentication."
+            },
+            {
+                "request_method": "GET",
+                "required_params": [],
                 "name": "list_plone_sites",
                 "description": "Returns a list of Plone sites."
             }

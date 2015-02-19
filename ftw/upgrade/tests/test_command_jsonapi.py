@@ -47,6 +47,11 @@ class TestAPIRequestor(CommandAndInstanceTestCase):
         with self.assertRaises(NoRunningInstanceFound):
             requestor.GET('list_plone_sites')
 
+    def test_basic_authentication(self):
+        requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD))
+        jsondata = requestor.GET('current_user').json()
+        self.assertEqual('admin', jsondata)
+
 
 class TestJsonAPIUtils(CommandAndInstanceTestCase):
 

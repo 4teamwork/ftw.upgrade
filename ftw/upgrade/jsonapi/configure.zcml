@@ -20,7 +20,8 @@
         for="OFS.interfaces.IApplication"
         class=".zopeapp.ZopeAppAPI"
         permission="zope.Public"
-        allowed_attributes="list_plone_sites"
+        allowed_attributes="current_user
+                            list_plone_sites"
         />
 
 </configure>

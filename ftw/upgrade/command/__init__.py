@@ -4,6 +4,7 @@ from ftw.upgrade.command import install
 from ftw.upgrade.command import list_cmd
 from ftw.upgrade.command import sites
 from ftw.upgrade.command import touch
+from ftw.upgrade.command import user
 from ftw.upgrade.command.formatter import FlexiFormatter
 from ftw.upgrade.command.terminal import TERMINAL
 from pkg_resources import get_distribution
@@ -94,9 +95,10 @@ class UpgradeCommand(object):
         commands = self.parser.add_subparsers(help='Command')
         create.setup_argparser(commands)
         install.setup_argparser(commands)
+        list_cmd.setup_argparser(commands)
         sites.setup_argparser(commands)
         touch.setup_argparser(commands)
-        list_cmd.setup_argparser(commands)
+        user.setup_argparser(commands)
 
         # Register as last.
         help.setup_argparser(commands)

@@ -5,7 +5,8 @@ Changelog
 1.12.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- New ``bin/upgrade user`` command for testing authentication.
+  [jone]
 
 
 1.12.0 (2015-02-16)

@@ -14,7 +14,13 @@ class TestZopeAppJsonApi(JsonApiTestCase):
         self.assert_json_equal(
             {'api_version': 'v1',
              'actions':
-                 [{'name': 'list_plone_sites',
+                 [{'name': 'current_user',
+                   'required_params': [],
+                   'description': 'Return the current user when authenticated properly.'
+                   ' This can be used for testing authentication.',
+                   'request_method': 'GET'},
+
+                  {'name': 'list_plone_sites',
                    'required_params': [],
                    'description': 'Returns a list of Plone sites.',
                    'request_method': 'GET'}]},
@@ -33,6 +39,11 @@ class TestZopeAppJsonApi(JsonApiTestCase):
               'path': '/plone',
               'title': 'Plone site'}],
             browser.json)
+
+    @browsing
+    def test_current_user(self, browser):
+        self.api_request('GET', 'current_user', context=self.app)
+        self.assertEqual('"admin"\n', browser.contents)
 
     @browsing
     def test_requiring_available_api_version_by_url(self, browser):

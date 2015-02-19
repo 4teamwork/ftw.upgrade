@@ -76,9 +76,10 @@ def with_api_requestor(func):
             print 'A string of form "<username>:<password>" is required.'
             sys.exit(1)
 
-        site = get_plone_site_by_args(args, auth_value)
-        requestor = APIRequestor(HTTPBasicAuth(*auth_value.split(':')),
-                                 site=site)
+        auth = HTTPBasicAuth(*auth_value.split(':'))
+
+        site = get_plone_site_by_args(args, APIRequestor(auth))
+        requestor = APIRequestor(auth, site=site)
         return func(args, requestor)
     func_wrapper.__name__ = func.__name__
     func_wrapper.__doc__ = func.__doc__
@@ -185,18 +186,18 @@ def is_port_open(port):
     return result == 0
 
 
-def get_plone_site_by_args(args, auth_value):
+def get_plone_site_by_args(args, requestor):
     if getattr(args, 'site', None):
         return args.site
     if getattr(args, 'pick_site', False):
-        sites = get_sites(auth_value)
+        sites = get_sites(requestor)
         if len(sites) != 1:
             print 'ERROR: --pick-site is ambiguous:'
             print 'Expected exactly one site, found', len(sites)
             sys.exit(1)
         return sites[0]['path']
     if getattr(args, 'last_site', False):
-        sites = get_sites(auth_value)
+        sites = get_sites(requestor)
         if len(sites) == 0:
             print 'ERROR: No Plone site found.'
             sys.exit(1)
@@ -204,7 +205,6 @@ def get_plone_site_by_args(args, auth_value):
     return None
 
 
-def get_sites(auth_value):
-    requestor = APIRequestor(HTTPBasicAuth(*auth_value.split(':')))
+def get_sites(requestor):
     response = requestor.GET('list_plone_sites')
     return response.json()

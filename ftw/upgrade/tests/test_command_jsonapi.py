@@ -54,7 +54,7 @@ class TestAPIRequestor(CommandAndInstanceTestCase):
         self.assertEqual('admin', jsondata)
 
     def test_tempfile_authentication(self):
-        requestor = APIRequestor(TempfileAuth())
+        requestor = APIRequestor(TempfileAuth(relative_to=os.getcwd()))
         jsondata = requestor.GET('current_user').json()
         self.assertEqual('system-upgrade', jsondata)
 

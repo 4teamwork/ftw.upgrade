@@ -1,3 +1,4 @@
+from ftw.upgrade.command.utils import get_tempfile_authentication_directory
 from path import Path
 from requests.auth import AuthBase
 from requests.auth import HTTPBasicAuth
@@ -44,6 +45,9 @@ class TempfileAuth(AuthBase):
     machine and with the same user.
     """
 
+    def __init__(self, relative_to=None):
+        self.relative_to = relative_to
+
     def __call__(self, request):
         self._generate_tempfile()
         value = ':'.join((os.path.basename(self.authfile.name),
@@ -52,13 +56,18 @@ class TempfileAuth(AuthBase):
         return request
 
     def _generate_tempfile(self):
+        directory = self._get_temp_directory()
         self.authhash = hmac.new(os.urandom(32).encode('hex'),
                                  os.urandom(32).encode('hex'),
                                  hashlib.sha256).hexdigest()
         self.authfile = tempfile.NamedTemporaryFile(
-            prefix='ftw.upgrade-authentication')
+            dir=directory)
         self.authfile.write(self.authhash)
         self.authfile.flush()
+
+    def _get_temp_directory(self):
+        relative_to = self.relative_to or sys.argv[0]
+        return get_tempfile_authentication_directory(relative_to)
 
 
 def add_requestor_authentication_argument(argparse_command):

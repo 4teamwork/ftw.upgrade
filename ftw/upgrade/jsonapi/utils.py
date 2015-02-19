@@ -3,6 +3,7 @@ from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import SpecialUsers
 from Acquisition import aq_inner
 from Acquisition import aq_parent
+from ftw.upgrade.command.utils import get_tempfile_authentication_directory
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.jsonapi.exceptions import AbortTransactionWithStreamedResponse
@@ -19,7 +20,7 @@ import inspect
 import json
 import os
 import re
-import tempfile
+import stat
 import transaction
 
 
@@ -192,16 +193,24 @@ def perform_tempfile_authentication(context, request):
 
 def validate_tempfile_authentication_header_value(header_value):
     header_value = header_value.decode('base64')
-    if not re.match('^ftw.upgrade-authentication\w{6}:\w{64}', header_value):
+    if not re.match('^tmp\w{6}:\w{64}', header_value):
         raise ValueError(
             'tempfile auth: invalid x-ftw.upgrade-tempfile-auth header value.')
 
     filename, authhash = header_value.split(':')
-    filepath = os.path.join(tempfile.gettempdir(), filename)
-    if not os.path.exists(filepath):
+    directory = get_tempfile_authentication_directory(os.getcwd())
+    filepath = directory.joinpath(filename)
+
+    if not filepath.isfile():
         raise ValueError('tempfile auth: tempfile does not exist.')
 
-    if os.path.getsize(filepath) != 64:
+    if stat.S_IMODE(filepath.stat().st_mode) != 0600:
+        raise ValueError('tempfile auth: tempfile has invalid mode.')
+
+    if filepath.stat().st_uid != os.getuid():
+        raise ValueError('tempfile auth: tempfile has invalid owner.')
+
+    if filepath.getsize() != 64:
         raise ValueError('tempfile auth: tempfile size is invalid.')
 
     with open(filepath, 'r') as authfile:

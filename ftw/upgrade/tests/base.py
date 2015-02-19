@@ -275,6 +275,7 @@ class CommandAndInstanceTestCase(JsonApiTestCase, CommandTestCase):
 
     def setUp(self):
         super(CommandAndInstanceTestCase, self).setUp()
+        self.directory.joinpath('var').mkdir_p()
         os.environ['UPGRADE_AUTHENTICATION'] = ':'.join((SITE_OWNER_NAME,
                                                          TEST_USER_PASSWORD))
 

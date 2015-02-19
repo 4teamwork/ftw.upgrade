@@ -79,6 +79,8 @@ the access is verified.
     When using this mechanism, a manager user is created at Zope app level, \
 named "system-upgrade". The user has a random password. All requests are \
 then authenticated with this user.
+    The temporary file is written to \
+[buildout-directory]var/ftw.upgrade-authentication
 
 {t.bold}VIRTUAL HOSTING:{t.normal}
     For some upgrade steps it is important that "absolute_url()" returns a \

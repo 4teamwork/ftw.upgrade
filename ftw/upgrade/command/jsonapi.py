@@ -1,13 +1,17 @@
 from path import Path
+from requests.auth import AuthBase
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from urlparse import urlparse
 import cgi
+import hashlib
+import hmac
 import os
 import re
 import requests
 import socket
 import sys
+import tempfile
 
 
 class NoRunningInstanceFound(Exception):
@@ -32,6 +36,29 @@ class APIRequestor(object):
         response = self.session.request(method.upper(), url, **kwargs)
         response.raise_for_status()
         return response
+
+
+class TempfileAuth(AuthBase):
+    """A requests authenticator which writes a tempfile with a random
+    hash to verify that the client and the server is at the same
+    machine and with the same user.
+    """
+
+    def __call__(self, request):
+        self._generate_tempfile()
+        value = ':'.join((os.path.basename(self.authfile.name),
+                          self.authhash)).encode('base64')
+        request.headers['x-ftw.upgrade-tempfile-auth'] = value
+        return request
+
+    def _generate_tempfile(self):
+        self.authhash = hmac.new(os.urandom(32).encode('hex'),
+                                 os.urandom(32).encode('hex'),
+                                 hashlib.sha256).hexdigest()
+        self.authfile = tempfile.NamedTemporaryFile(
+            prefix='ftw.upgrade-authentication')
+        self.authfile.write(self.authhash)
+        self.authfile.flush()
 
 
 def add_requestor_authentication_argument(argparse_command):

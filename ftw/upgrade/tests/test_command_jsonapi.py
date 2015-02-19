@@ -3,6 +3,7 @@ from ftw.upgrade.command.jsonapi import get_api_url
 from ftw.upgrade.command.jsonapi import get_running_instance
 from ftw.upgrade.command.jsonapi import get_zope_url
 from ftw.upgrade.command.jsonapi import NoRunningInstanceFound
+from ftw.upgrade.command.jsonapi import TempfileAuth
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from plone.app.testing import SITE_OWNER_NAME
 from plone.app.testing import TEST_USER_PASSWORD
@@ -51,6 +52,11 @@ class TestAPIRequestor(CommandAndInstanceTestCase):
         requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD))
         jsondata = requestor.GET('current_user').json()
         self.assertEqual('admin', jsondata)
+
+    def test_tempfile_authentication(self):
+        requestor = APIRequestor(TempfileAuth())
+        jsondata = requestor.GET('current_user').json()
+        self.assertEqual('system-upgrade', jsondata)
 
 
 class TestJsonAPIUtils(CommandAndInstanceTestCase):

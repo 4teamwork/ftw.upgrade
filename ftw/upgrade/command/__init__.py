@@ -40,8 +40,8 @@ instance must be running, where "ftw.upgrade" is available and the \
 {t.bold}ZOPE INSTANCE DISCOVERY:{t.normal}
     The Zope instance is discovered automatically by searching for all \
 "zope.conf" files in "parts/instance*" of the buildout directory, looking up \
-the instance port and testing whether the port is bound on localhost. If multiple \
-instances are running, the first one running is used.
+the instance port and testing whether the port is bound on localhost.
+If multiple instances are running, the first one running is used.
 
 {t.bold}AUTHENTICATION:{t.normal}
     The JSON API requires authentication as a "Manager" user by using basic \

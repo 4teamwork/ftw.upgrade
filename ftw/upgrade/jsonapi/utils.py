@@ -1,3 +1,9 @@
+from AccessControl import getSecurityManager
+from AccessControl.SecurityManagement import newSecurityManager
+from AccessControl.SecurityManagement import SpecialUsers
+from Acquisition import aq_inner
+from Acquisition import aq_parent
+from ftw.upgrade.command.utils import get_tempfile_authentication_directory
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.jsonapi.exceptions import AbortTransactionWithStreamedResponse
@@ -7,11 +13,14 @@ from ftw.upgrade.jsonapi.exceptions import MethodNotAllowed
 from ftw.upgrade.jsonapi.exceptions import MissingParam
 from ftw.upgrade.jsonapi.exceptions import UnauthorizedWrapper
 from ftw.upgrade.jsonapi.exceptions import UpgradeNotFoundWrapper
+from OFS.interfaces import IApplication
 from zExceptions import Unauthorized
 from zope.security import checkPermission
 import inspect
 import json
+import os
 import re
+import stat
 import transaction
 
 
@@ -70,6 +79,8 @@ def action(method, rename_params={}):
             with ErrorHandling(self.request.RESPONSE):
                 if self.request.method != method:
                     raise MethodNotAllowed(method)
+
+                perform_tempfile_authentication(self.context, self.request)
 
                 if not checkPermission('cmf.ManagePortal', self.context):
                     raise Unauthorized()
@@ -157,3 +168,62 @@ def get_required_args(argspec):
         return argspec.args[1:]
     else:
         return argspec.args[1:-len(argspec.defaults)]
+
+
+def perform_tempfile_authentication(context, request):
+    """When the "x-ftw.upgrade-tempfile-auth" header is set, authentication is
+    initialized based on a tempfile value for verifying that the client and the
+    server is on the same machine with the same user.
+
+    When necessary, a system-upgrade user is created with Manager role and
+    the security is set to this user.
+    """
+    if getSecurityManager().getUser() != SpecialUsers.nobody:
+        return
+
+    auth_value = request.getHeader('x-ftw.upgrade-tempfile-auth')
+    if not auth_value:
+        return
+
+    validate_tempfile_authentication_header_value(auth_value)
+    user = get_system_upgrade_user(context)
+    newSecurityManager(request, user)
+    transaction.get().setUser(user.getId(), '')
+
+
+def validate_tempfile_authentication_header_value(header_value):
+    header_value = header_value.decode('base64')
+    if not re.match('^tmp\w{6}:\w{64}', header_value):
+        raise ValueError(
+            'tempfile auth: invalid x-ftw.upgrade-tempfile-auth header value.')
+
+    filename, authhash = header_value.split(':')
+    directory = get_tempfile_authentication_directory(os.getcwd())
+    filepath = directory.joinpath(filename)
+
+    if not filepath.isfile():
+        raise ValueError('tempfile auth: tempfile does not exist.')
+
+    if stat.S_IMODE(filepath.stat().st_mode) != 0600:
+        raise ValueError('tempfile auth: tempfile has invalid mode.')
+
+    if filepath.stat().st_uid != os.getuid():
+        raise ValueError('tempfile auth: tempfile has invalid owner.')
+
+    if filepath.getsize() != 64:
+        raise ValueError('tempfile auth: tempfile size is invalid.')
+
+    with open(filepath, 'r') as authfile:
+        if authfile.read() != authhash:
+            raise ValueError('tempfile auth: authentication failed.')
+
+
+def get_system_upgrade_user(context):
+    while not IApplication.providedBy(context):
+        context = aq_parent(aq_inner(context))
+
+    acl_users = context.acl_users
+    if not acl_users.getUserById('system-upgrade'):
+        acl_users.userFolderAddUser(
+            'system-upgrade', os.urandom(16).encode('hex'), ['Manager'], None)
+    return acl_users.getUserById('system-upgrade')

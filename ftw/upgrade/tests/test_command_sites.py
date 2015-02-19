@@ -1,8 +1,5 @@
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
-from plone.app.testing import SITE_OWNER_NAME
-from plone.app.testing import TEST_USER_PASSWORD
 import json
-import os
 
 
 class TestSitesCommand(CommandAndInstanceTestCase):
@@ -34,23 +31,3 @@ class TestSitesCommand(CommandAndInstanceTestCase):
         self.assertMultiLineEqual(
             'ERROR: No running Plone instance detected.\n',
             output)
-
-    def test_authentication_by_param(self):
-        del os.environ['UPGRADE_AUTHENTICATION']
-        exitcode, output = self.upgrade_script('sites --auth {0}:{1}'.format(
-                SITE_OWNER_NAME, TEST_USER_PASSWORD))
-        self.assertEquals(0, exitcode)
-        self.assertEquals('/plone               Plone site\n', output)
-
-    def test_authentication_is_required(self):
-        del os.environ['UPGRADE_AUTHENTICATION']
-        exitcode, output = self.upgrade_script('sites', assert_exitcode=False)
-        self.assertEquals(1, exitcode)
-        self.assertEquals('ERROR: No authentication information provided.',
-                          output.splitlines()[0])
-
-    def test_valid_authentication_format_is_required(self):
-        exitcode, output = self.upgrade_script('sites --auth=john', assert_exitcode=False)
-        self.assertEquals(1, exitcode)
-        self.assertEquals('ERROR: Invalid authentication information "john".',
-                          output.splitlines()[0])

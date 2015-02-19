@@ -1,12 +1,18 @@
+from ftw.upgrade.command.utils import get_tempfile_authentication_directory
 from path import Path
+from requests.auth import AuthBase
+from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from urlparse import urlparse
 import cgi
+import hashlib
+import hmac
 import os
 import re
 import requests
 import socket
 import sys
+import tempfile
 
 
 class NoRunningInstanceFound(Exception):
@@ -15,9 +21,9 @@ class NoRunningInstanceFound(Exception):
 
 class APIRequestor(object):
 
-    def __init__(self, username, password, site=None):
+    def __init__(self, auth, site=None):
         self.session = requests.Session()
-        self.session.auth = (username, password)
+        self.session.auth = auth
         self.site = site
 
     def GET(self, action, site=None, **kwargs):
@@ -31,6 +37,37 @@ class APIRequestor(object):
         response = self.session.request(method.upper(), url, **kwargs)
         response.raise_for_status()
         return response
+
+
+class TempfileAuth(AuthBase):
+    """A requests authenticator which writes a tempfile with a random
+    hash to verify that the client and the server is at the same
+    machine and with the same user.
+    """
+
+    def __init__(self, relative_to=None):
+        self.relative_to = relative_to
+
+    def __call__(self, request):
+        self._generate_tempfile()
+        value = ':'.join((os.path.basename(self.authfile.name),
+                          self.authhash)).encode('base64')
+        request.headers['x-ftw.upgrade-tempfile-auth'] = value
+        return request
+
+    def _generate_tempfile(self):
+        directory = self._get_temp_directory()
+        self.authhash = hmac.new(os.urandom(32).encode('hex'),
+                                 os.urandom(32).encode('hex'),
+                                 hashlib.sha256).hexdigest()
+        self.authfile = tempfile.NamedTemporaryFile(
+            dir=directory)
+        self.authfile.write(self.authhash)
+        self.authfile.flush()
+
+    def _get_temp_directory(self):
+        relative_to = self.relative_to or sys.argv[0]
+        return get_tempfile_authentication_directory(relative_to)
 
 
 def add_requestor_authentication_argument(argparse_command):
@@ -62,21 +99,18 @@ def with_api_requestor(func):
     def func_wrapper(args):
         default_auth = os.environ.get('UPGRADE_AUTHENTICATION', None)
         auth_value = args.auth or default_auth
-        if not auth_value:
-            print 'ERROR: No authentication information provided.'
-            print 'Use either the --auth param or the UPGRADE_AUTHENTICATION' + \
-                ' environment variable for providing authentication information' + \
-                ' in the form "<username>:<password>".'
-            sys.exit(1)
+        if auth_value:
+            if len(auth_value.split(':')) != 2:
+                print 'ERROR: Invalid authentication information "{0}".'.format(
+                    auth_value)
+                print 'A string of form "<username>:<password>" is required.'
+                sys.exit(1)
+            auth = HTTPBasicAuth(*auth_value.split(':'))
+        else:
+            auth = TempfileAuth()
 
-        if len(auth_value.split(':')) != 2:
-            print 'ERROR: Invalid authentication information "{0}".'.format(
-                auth_value)
-            print 'A string of form "<username>:<password>" is required.'
-            sys.exit(1)
-
-        site = get_plone_site_by_args(args, auth_value)
-        requestor = APIRequestor(*auth_value.split(':'), site=site)
+        site = get_plone_site_by_args(args, APIRequestor(auth))
+        requestor = APIRequestor(auth, site=site)
         return func(args, requestor)
     func_wrapper.__name__ = func.__name__
     func_wrapper.__doc__ = func.__doc__
@@ -183,18 +217,18 @@ def is_port_open(port):
     return result == 0
 
 
-def get_plone_site_by_args(args, auth_value):
+def get_plone_site_by_args(args, requestor):
     if getattr(args, 'site', None):
         return args.site
     if getattr(args, 'pick_site', False):
-        sites = get_sites(auth_value)
+        sites = get_sites(requestor)
         if len(sites) != 1:
             print 'ERROR: --pick-site is ambiguous:'
             print 'Expected exactly one site, found', len(sites)
             sys.exit(1)
         return sites[0]['path']
     if getattr(args, 'last_site', False):
-        sites = get_sites(auth_value)
+        sites = get_sites(requestor)
         if len(sites) == 0:
             print 'ERROR: No Plone site found.'
             sys.exit(1)
@@ -202,7 +236,6 @@ def get_plone_site_by_args(args, auth_value):
     return None
 
 
-def get_sites(auth_value):
-    requestor = APIRequestor(*auth_value.split(':'))
+def get_sites(requestor):
     response = requestor.GET('list_plone_sites')
     return response.json()

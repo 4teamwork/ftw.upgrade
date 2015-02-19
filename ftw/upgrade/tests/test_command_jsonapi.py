@@ -3,9 +3,11 @@ from ftw.upgrade.command.jsonapi import get_api_url
 from ftw.upgrade.command.jsonapi import get_running_instance
 from ftw.upgrade.command.jsonapi import get_zope_url
 from ftw.upgrade.command.jsonapi import NoRunningInstanceFound
+from ftw.upgrade.command.jsonapi import TempfileAuth
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from plone.app.testing import SITE_OWNER_NAME
 from plone.app.testing import TEST_USER_PASSWORD
+from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 import os
 
@@ -17,7 +19,7 @@ class TestAPIRequestor(CommandAndInstanceTestCase):
         self.write_zconf_with_test_instance()
 
     def test_GET(self):
-        requestor = APIRequestor(SITE_OWNER_NAME, TEST_USER_PASSWORD)
+        requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD))
         jsondata = requestor.GET('list_plone_sites').json()
         self.assertEqual([{u'id': u'plone',
                            u'path': u'/plone',
@@ -25,7 +27,7 @@ class TestAPIRequestor(CommandAndInstanceTestCase):
                          jsondata)
 
     def test_GET_raises_error(self):
-        requestor = APIRequestor(SITE_OWNER_NAME, TEST_USER_PASSWORD)
+        requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD))
         with self.assertRaises(HTTPError) as cm:
             requestor.GET('wrong_action')
 
@@ -35,15 +37,26 @@ class TestAPIRequestor(CommandAndInstanceTestCase):
             cm.exception.response.json())
 
     def test_GET_with_params(self):
-        requestor = APIRequestor(SITE_OWNER_NAME, TEST_USER_PASSWORD, site='plone')
+        requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD),
+                                 site='plone')
         requestor.GET('get_profile', site='plone',
                       params={'profileid': 'Products.TinyMCE:TinyMCE'})
 
     def test_error_when_no_running_instance_found(self):
         self.layer['root_path'].joinpath('parts/instance').rmtree()
-        requestor = APIRequestor(SITE_OWNER_NAME, TEST_USER_PASSWORD)
+        requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD))
         with self.assertRaises(NoRunningInstanceFound):
             requestor.GET('list_plone_sites')
+
+    def test_basic_authentication(self):
+        requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD))
+        jsondata = requestor.GET('current_user').json()
+        self.assertEqual('admin', jsondata)
+
+    def test_tempfile_authentication(self):
+        requestor = APIRequestor(TempfileAuth(relative_to=os.getcwd()))
+        jsondata = requestor.GET('current_user').json()
+        self.assertEqual('system-upgrade', jsondata)
 
 
 class TestJsonAPIUtils(CommandAndInstanceTestCase):

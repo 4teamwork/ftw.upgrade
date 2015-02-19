@@ -1,4 +1,5 @@
 from path import Path
+from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from urlparse import urlparse
 import cgi
@@ -15,9 +16,9 @@ class NoRunningInstanceFound(Exception):
 
 class APIRequestor(object):
 
-    def __init__(self, username, password, site=None):
+    def __init__(self, auth, site=None):
         self.session = requests.Session()
-        self.session.auth = (username, password)
+        self.session.auth = auth
         self.site = site
 
     def GET(self, action, site=None, **kwargs):
@@ -76,7 +77,8 @@ def with_api_requestor(func):
             sys.exit(1)
 
         site = get_plone_site_by_args(args, auth_value)
-        requestor = APIRequestor(*auth_value.split(':'), site=site)
+        requestor = APIRequestor(HTTPBasicAuth(*auth_value.split(':')),
+                                 site=site)
         return func(args, requestor)
     func_wrapper.__name__ = func.__name__
     func_wrapper.__doc__ = func.__doc__
@@ -203,6 +205,6 @@ def get_plone_site_by_args(args, auth_value):
 
 
 def get_sites(auth_value):
-    requestor = APIRequestor(*auth_value.split(':'))
+    requestor = APIRequestor(HTTPBasicAuth(*auth_value.split(':')))
     response = requestor.GET('list_plone_sites')
     return response.json()

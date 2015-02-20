@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.12.1 (unreleased)
+1.13.0 (2015-02-20)
 -------------------
 
 - ``bin/upgrade``: automatically authenticate with a tempfile

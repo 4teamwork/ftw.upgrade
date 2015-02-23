@@ -81,6 +81,22 @@ class UpgradeTestCase(TestCase):
     def asset(self, filename):
         return Path(__file__).dirname().joinpath('assets', filename).text()
 
+    @contextmanager
+    def assert_resources_recooked(self):
+        def get_styles():
+            return self.portal.restrictedTraverse(
+                'resourceregistries_styles_view').styles()
+
+        def get_scripts():
+            return self.portal.restrictedTraverse(
+                'resourceregistries_scripts_view').scripts()
+
+        styles = get_styles()
+        scripts = get_scripts()
+        yield
+        self.assertNotEqual(styles, get_styles(), 'Styles are not recooked.')
+        self.assertNotEqual(scripts, get_scripts(), 'Scripts are not recooked.')
+
 
 class CommandTestCase(TestCase):
     layer = COMMAND_LAYER

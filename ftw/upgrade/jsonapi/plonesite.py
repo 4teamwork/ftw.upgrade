@@ -7,6 +7,7 @@ from ftw.upgrade.jsonapi.exceptions import PloneSiteOutdated
 from ftw.upgrade.jsonapi.exceptions import ProfileNotFound
 from ftw.upgrade.jsonapi.utils import action
 from ftw.upgrade.jsonapi.utils import jsonify
+from ftw.upgrade.resource_registries import recook_resources
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 
@@ -64,6 +65,14 @@ class PloneSiteAPI(APIView):
         self._require_up_to_date_plone_site()
         api_ids = map(itemgetter('api_id'), self._get_proposed_upgrades())
         return self._install_upgrades(*api_ids)
+
+    @jsonify
+    @action('POST')
+    def recook_resources(self):
+        """Recook CSS and JavaScript resource bundles.
+        """
+        recook_resources()
+        return 'OK'
 
     def _refine_profile_info(self, profile):
         return {'id': profile['id'],

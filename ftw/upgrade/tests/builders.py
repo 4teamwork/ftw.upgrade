@@ -107,9 +107,13 @@ class UpgradeStepBuilder(object):
                     inflection.underscore(name)))
 
         self.package.with_file(
-            os.path.join(step_name, 'upgrade.py'),
-            self.code,
+            os.path.join(step_name, '__init__.py'),
+            '',
             makedirs=True)
+
+        self.package.with_file(
+            os.path.join(step_name, 'upgrade.py'),
+            self.code)
         return step_name
 
     def _register_files_and_dirs_in_package_builder(self, step_name):

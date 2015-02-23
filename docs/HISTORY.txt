@@ -5,6 +5,9 @@ Changelog
 1.13.1 (unreleased)
 -------------------
 
+- ``bin/upgrade recook`` command for recooking resources.
+  [jone]
+
 - Recook resources after installing upgrades.
   [jone]
 

@@ -1,4 +1,4 @@
-from ftw.upgrade.command.utils import get_tempfile_authentication_directory
+from ftw.upgrade.utils import get_tempfile_authentication_directory
 from path import Path
 from requests.auth import AuthBase
 from requests.auth import HTTPBasicAuth

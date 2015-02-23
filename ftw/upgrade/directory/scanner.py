@@ -46,10 +46,19 @@ class Scanner(object):
 
     def _load_upgrade_step_code(self, upgrade_path):
         path = os.path.dirname(upgrade_path)
+
+        try:
+            fp, pathname, description = imp.find_module('.', [path])
+        except ImportError:
+            pass
+        else:
+            name = '.'.join((self.dottedname, os.path.basename(path)))
+            imp.load_module(name, fp, pathname, description)
+
         fp, pathname, description = imp.find_module('upgrade', [path])
         name = '.'.join((self.dottedname,
-                         os.path.basename(self.directory),
-                         os.path.basename(path)))
+                         os.path.basename(path),
+                         'upgrade'))
 
         module = imp.load_module(name, fp, pathname, description)
         upgrade_steps = tuple(self._find_upgrade_step_classes_in_module(
@@ -86,11 +95,9 @@ class Scanner(object):
         However, it is not relevant for anything to work,
         it just makes Python happy.
         """
-        name = '.'.join((self.dottedname,
-                         os.path.basename(self.directory)))
         try:
             fp, pathname, description = imp.find_module('.', [self.directory])
         except ImportError:
             pass
         else:
-            imp.load_module(name, fp, pathname, description)
+            imp.load_module(self.dottedname, fp, pathname, description)

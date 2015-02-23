@@ -12,7 +12,8 @@
                             list_profiles_proposing_upgrades
                             list_proposed_upgrades
                             execute_upgrades
-                            execute_proposed_upgrades"
+                            execute_proposed_upgrades
+                            recook_resources"
         />
 
     <browser:page

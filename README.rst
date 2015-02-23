@@ -877,6 +877,16 @@ Example for exeuting all proposed upgrades of a Plone site:
     Result: SUCCESS
 
 
+Recook resources
+----------------
+
+CSS and JavaScript resource bundles can be recooked:
+
+.. code:: sh
+
+    $ curl -uadmin:admin -X POST http://localhost:8080/Plone/upgrades-api/recook_resources
+    "OK"
+
 
 Import-Profile Upgrade Steps
 ============================

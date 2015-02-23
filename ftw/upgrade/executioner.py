@@ -2,6 +2,7 @@ from AccessControl.SecurityInfo import ClassSecurityInformation
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IPostUpgrade
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
+from ftw.upgrade.resource_registries import recook_resources
 from ftw.upgrade.transactionnote import TransactionNote
 from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
@@ -36,6 +37,7 @@ class Executioner(object):
             adapter()
 
         TransactionNote().set_transaction_note()
+        recook_resources()
 
     security.declarePrivate('install_upgrades_by_api_ids')
     def install_upgrades_by_api_ids(self, *upgrade_api_ids):

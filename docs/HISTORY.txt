@@ -5,6 +5,9 @@ Changelog
 1.13.1 (unreleased)
 -------------------
 
+- Recook resources after installing upgrades.
+  [jone]
+
 - plone.reload support for upgrade step directory.
   [jone]
 

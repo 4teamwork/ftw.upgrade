@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.13.1 (unreleased)
+1.14.0 (2015-02-24)
 -------------------
 
 - Command: add fake terminal fallback when blessed cannot be loaded.

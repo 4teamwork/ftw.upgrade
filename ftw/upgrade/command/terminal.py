@@ -1,5 +1,30 @@
-from blessed import Terminal
+from functools import partial
 from operator import itemgetter
+
+
+class FakeTerminal(str):
+
+    def __getattr__(self, name):
+        if name == 'length':
+            return len
+        return self
+
+    def __getattribute__(self, name):
+        if name in ('center', 'ljust', 'lstrip', 'rjust', 'rstrip', 'strip'):
+            return lambda text, *a, **kw: getattr(text, name)(*a, **kw)
+        return str.__getattribute__(self, name)
+
+    def __call__(self, text):
+        return text
+
+
+try:
+    from blessed import Terminal
+except ImportError, exc:
+    import sys
+    print >>sys.stderr, 'WARNING: Terminal colorization disabled' + \
+        ' because of ImportError: {0}'.format(exc)
+    Terminal = FakeTerminal
 
 
 TERMINAL = Terminal()

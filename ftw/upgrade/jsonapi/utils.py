@@ -3,7 +3,6 @@ from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import SpecialUsers
 from Acquisition import aq_inner
 from Acquisition import aq_parent
-from ftw.upgrade.command.utils import get_tempfile_authentication_directory
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.jsonapi.exceptions import AbortTransactionWithStreamedResponse
@@ -13,6 +12,7 @@ from ftw.upgrade.jsonapi.exceptions import MethodNotAllowed
 from ftw.upgrade.jsonapi.exceptions import MissingParam
 from ftw.upgrade.jsonapi.exceptions import UnauthorizedWrapper
 from ftw.upgrade.jsonapi.exceptions import UpgradeNotFoundWrapper
+from ftw.upgrade.utils import get_tempfile_authentication_directory
 from OFS.interfaces import IApplication
 from zExceptions import Unauthorized
 from zope.security import checkPermission

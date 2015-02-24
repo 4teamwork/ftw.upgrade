@@ -1,8 +1,11 @@
 from collections import defaultdict
 from copy import deepcopy
 from ftw.upgrade.exceptions import CyclicDependencies
+from path import Path
 import logging
 import math
+import os
+import stat
 import tarjan.tc
 import transaction
 
@@ -220,3 +223,24 @@ def subject_from_docstring(docstring):
         lines = lines[:lines.index('')]
 
     return ' '.join(lines).strip()
+
+
+def get_tempfile_authentication_directory(directory=None):
+    """Finds the buildout directory and returns the absolute path to the
+    relative directory var/ftw.upgrade-authentication/.
+    If the directory does not exist it is created.
+    """
+    directory = Path(directory) or Path.getcwd()
+    if not directory.joinpath('bin', 'buildout').isfile():
+        return get_tempfile_authentication_directory(directory.parent)
+
+    auth_directory = directory.joinpath('var', 'ftw.upgrade-authentication')
+    if not auth_directory.isdir():
+        auth_directory.mkdir(mode=0700)
+
+    if stat.S_IMODE(auth_directory.stat().st_mode) != 0700:
+        raise ValueError('{0} has invalid mode.'.format(auth_directory))
+    if auth_directory.stat().st_uid != os.getuid():
+        raise ValueError('{0} has an invalid owner.'.format(auth_directory))
+
+    return auth_directory

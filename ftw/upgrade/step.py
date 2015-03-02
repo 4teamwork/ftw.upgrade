@@ -187,9 +187,9 @@ class UpgradeStep(object):
 
     security.declarePrivate('actions_add_type_action')
     def actions_add_type_action(self, portal_type, after, action_id, **kwargs):
-        """Add a ``portal_type`` action from the type identified
-        by ``portal_type``, the position could be definded by the
-        ``after`` attribute. If the after action could not be found,
+        """Add a ``portal_types`` action from the type identified
+        by ``portal_type``, the position can be defined by the
+        ``after`` attribute. If the after action can not be found,
         the action will be inserted at the end of the list."""
 
         actions = []

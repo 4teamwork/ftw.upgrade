@@ -273,6 +273,12 @@ The ``UpgradeStep`` class has various helper functions:
     since all objects should be upgraded - even if the manager
     running the upgrades has no access on the objects.
 
+``self.actions_add_type_action(self, portal_type, after, action_id, **kwargs)``
+    Add a ``portal_types`` action from the type identified
+    by ``portal_type``, the position can be defined by the
+    ``after`` attribute. If the after action can not be found,
+    the action will be inserted at the end of the list.
+
 ``self.actions_remove_type_action(portal_type, action_id)``
     Removes a ``portal_types`` action from the type identified
     by ``portal_type`` with the action id ``action_id``.

@@ -121,3 +121,13 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             {'port': test_instance_port,
              'path': str(part2)},
             get_running_instance(self.layer['root_path']))
+
+    def test_find_first_running_instance_info_with_network_interface(self):
+        test_instance_port = int(os.environ.get('ZSERVER_PORT', 55001))
+        self.write_zconf('instance1', '1000')
+        part2 = self.write_zconf('instance2',
+                                 '0.0.0.0:{0}'.format(test_instance_port))
+        self.assertEqual(
+            {'port': test_instance_port,
+             'path': str(part2)},
+            get_running_instance(self.layer['root_path']))

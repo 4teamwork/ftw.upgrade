@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.14.1 (unreleased)
+1.14.1 (2015-03-18)
 -------------------
 
 - Command: fix instance discover when bound to public interface.

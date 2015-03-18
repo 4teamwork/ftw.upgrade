@@ -205,9 +205,9 @@ def find_instance_zconfs(buildout_path):
 
 
 def get_instance_port(zconf):
-    match = re.search(r'address (\d+)', zconf.text())
+    match = re.search(r'address ([\d.]*:)?(\d+)', zconf.text())
     if match:
-        return int(match.group(1))
+        return int(match.group(2))
     return None
 
 

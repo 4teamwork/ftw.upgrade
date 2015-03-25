@@ -5,7 +5,8 @@ Changelog
 1.14.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Reduce maximum transaction note length used by ftw.upgrade.
+  [jone]
 
 
 1.14.1 (2015-03-18)

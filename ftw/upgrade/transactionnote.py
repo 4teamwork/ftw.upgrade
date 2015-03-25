@@ -1,11 +1,14 @@
 import transaction
 
 
-TRANSACTION_NOTE_MAX_LENGTH = 65533
+# The maximum of the transaction note is 65535 (in ZODB),
+# but our transaction note may not be the only one.
+# ftw.upgrade therefore should only use less than the ZODB maximum.
+TRANSACTION_NOTE_MAX_LENGTH = 60000
 
 
 class TransactionNote(object):
-    """The zope transaction note is limited to a length of 65533 characters.
+    """The zope transaction note is limited to a length of 60000 characters.
     When installing a lot of upgrades at once, this limitation may be
     exceeded.
 

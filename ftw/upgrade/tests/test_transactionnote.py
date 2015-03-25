@@ -10,8 +10,8 @@ class TestTransactionNote(TestCase):
         transaction.begin()
 
     def tearDown(self):
-        self.assertLess(len(transaction.get().description), 65533,
-                        'Transaction note should never be longer than 65533')
+        self.assertLess(len(transaction.get().description), 60000,
+                        'Transaction note should never be longer than 60000')
         transaction.abort()
 
     def test_transaction_note_is_updated(self):
@@ -26,8 +26,8 @@ class TestTransactionNote(TestCase):
             transaction.get().description)
 
     def test_description_is_removed_when_note_gets_too_long(self):
-        # Transaction note size is limited to 65533 characters
-        description = 'A' * (65533 / 2)
+        # Transaction note size is limited to 60000 characters
+        description = 'A' * (60000 / 2)
 
         note = TransactionNote()
         note.add_upgrade('my.package:default', ('1000',), description)
@@ -51,7 +51,7 @@ class TestTransactionNote(TestCase):
         transaction.get().note('Some notes..')
 
         note = TransactionNote()
-        for destination in range(1, (65533 / len(profileid)) + 2):
+        for destination in range(1, (60000 / len(profileid)) + 2):
             note.add_upgrade(profileid, (str(destination),), '')
         note.set_transaction_note()
 

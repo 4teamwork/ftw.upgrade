@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.14.2 (unreleased)
+1.14.2 (2015-03-25)
 -------------------
 
 - Reduce maximum transaction note length used by ftw.upgrade.

@@ -1,10 +1,7 @@
 import transaction
 
 
-# The maximum of the transaction note is 65535 (in ZODB),
-# but our transaction note may not be the only one.
-# ftw.upgrade therefore should only use less than the ZODB maximum.
-TRANSACTION_NOTE_MAX_LENGTH = 60000
+TRANSACTION_NOTE_MAX_LENGTH = 65533
 
 
 class TransactionNote(object):
@@ -35,7 +32,8 @@ class TransactionNote(object):
         if len(message) >= maximum_possible_length:
             message = message[:maximum_possible_length - 4] + '...'
 
-        transaction.get().note(message)
+        if len(message) <= maximum_possible_length:
+            transaction.get().note(message)
 
     def _transaction_messages(self, include_description=True):
         if include_description:

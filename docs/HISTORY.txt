@@ -5,7 +5,11 @@ Changelog
 1.14.3 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Fix issue with transaction note length when a large not already exists.
+  When the transaction note already has maximum length (e.g. with Archetypes notes),
+  nothing more should be added.
+  Also increased the threshold back (reduced in 1.14.2).
+  [jone]
 
 
 1.14.2 (2015-03-25)

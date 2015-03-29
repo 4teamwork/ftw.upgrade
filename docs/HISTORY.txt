@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.14.3 (unreleased)
+1.14.3 (2015-03-29)
 -------------------
 
 - Fix error in upgrade-step:directory directive.

@@ -12,6 +12,7 @@ from Products.GenericSetup.upgrade import _upgrade_registry
 from Products.GenericSetup.upgrade import UpgradeStep
 from zope.configuration.fields import Path
 from zope.interface import Interface
+import os
 import zope.schema
 
 
@@ -28,6 +29,12 @@ class IUpgradeStepDirectoryDirective(Interface):
 
 def upgrade_step_directory_handler(context, profile, directory):
     dottedname = context.package.__name__
+    package_dir = os.path.dirname(context.package.__file__)
+    if package_dir != os.path.abspath(directory):
+        dottedname += '.' + '.'.join(
+            os.path.relpath(os.path.abspath(directory), package_dir)
+            .split(os.sep))
+
     context.action(
         discriminator=('upgrade-step:directory', profile),
         callable=upgrade_step_directory_action,

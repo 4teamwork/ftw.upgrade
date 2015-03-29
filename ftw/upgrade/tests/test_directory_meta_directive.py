@@ -68,6 +68,35 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                  'type': EXTENSION,
                  'for': IMigratingPloneSiteRoot})
 
+    def test_package_modules_is_not_corrupted(self):
+        # Regression: when the upgrade-step:directory directive is used from
+        # the package-directory with a relative path (directory="upgrades"),
+        # it corrupted the sys.modules entry of the package.
+
+        package_builder = (
+            Builder('python package')
+            .named('other.package')
+            .at_path(self.layer['temp_directory'])
+            .with_file('__init__.py', 'PACKAGE = "package root"')
+
+            .with_directory('profiles/default')
+            .with_zcml_node('genericsetup:registerProfile',
+                            name='default',
+                            title='other.package:default',
+                            directory='profiles/default',
+                            provides='Products.GenericSetup.interfaces.EXTENSION')
+
+            .with_directory('upgrades')
+            .with_file('upgrades/__init__.py', 'PACKAGE = "upgrades package"')
+            .with_zcml_include('ftw.upgrade', file='meta.zcml')
+            .with_zcml_node('upgrade-step:directory',
+                            profile='other.package:default',
+                            directory='upgrades'))
+
+        with create(package_builder).zcml_loaded(self.layer['configurationContext']):
+            import other.package
+            self.assertEquals('package root', other.package.PACKAGE)
+
     def test_profile_must_be_registed_before_registering_upgrade_directory(self):
         package_builder = (Builder('python package')
                            .named('other.package')

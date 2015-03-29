@@ -5,6 +5,12 @@ Changelog
 1.14.3 (unreleased)
 -------------------
 
+- Fix error in upgrade-step:directory directive.
+  The error occured when the directory was a subdirectory relative to the
+  ZCML directory, causing the package module to be replaced with the
+  upgrades package directory in sys.modules.
+  [jone]
+
 - Fix issue with transaction note length when a large not already exists.
   When the transaction note already has maximum length (e.g. with Archetypes notes),
   nothing more should be added.

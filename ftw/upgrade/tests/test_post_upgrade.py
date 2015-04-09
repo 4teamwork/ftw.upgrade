@@ -35,18 +35,17 @@ class TestPostUpgrade(UpgradeTestCase):
 
     def test_post_upgrade_adapters_are_executed_in_order_of_dependencies(self):
         self.package.with_profile(Builder('genericsetup profile')
+                                  .named('addon'))
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .named('product')
+                                  .with_dependencies('the.package:addon'))
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .named('customization')
+                                  .with_dependencies('the.package:product')
                                   .with_upgrade(self.default_upgrade()))
-        self.package.with_profile(Builder('genericsetup profile')
-                                  .named('bar')
-                                  .with_dependencies('the.package:foo'))
-        self.package.with_profile(Builder('genericsetup profile')
-                                  .named('foo')
-                                  .with_dependencies('the.package:default'))
 
         with self.package_created():
-            self.install_profile('the.package:default', version='1000')
-            self.install_profile('the.package:foo')
-            self.install_profile('the.package:bar')
+            self.install_profile('the.package:customization', version='1000')
 
             site_manager = self.portal.getSiteManager()
             execution_order = []
@@ -63,12 +62,12 @@ class TestPostUpgrade(UpgradeTestCase):
                                              name=profile_id)
 
             map(register_post_component_adapter,
-                ('the.package:default', 'the.package:foo', 'the.package:bar'))
+                ('the.package:addon', 'the.package:product', 'the.package:customization'))
 
             self.assertEquals([], execution_order)
-            self.install_profile_upgrades('the.package:default')
+            self.install_profile_upgrades('the.package:customization')
 
-            self.assertEquals(['the.package:bar',
-                               'the.package:foo',
-                               'the.package:default'],
+            self.assertEquals(['the.package:addon',
+                               'the.package:product',
+                               'the.package:customization'],
                               execution_order)

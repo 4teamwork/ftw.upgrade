@@ -988,9 +988,9 @@ Registration in ZCML:
 Links
 =====
 
-- Main github project repository: https://github.com/4teamwork/ftw.upgrade
-- Issue tracker: https://github.com/4teamwork/ftw.upgrade/issues
-- Package on pypi: http://pypi.python.org/pypi/ftw.upgrade
+- Github: https://github.com/4teamwork/ftw.upgrade
+- Issues: https://github.com/4teamwork/ftw.upgrade/issues
+- Pypi: http://pypi.python.org/pypi/ftw.upgrade
 - Continuous integration: https://jenkins.4teamwork.ch/search?q=ftw.upgrade
 
 

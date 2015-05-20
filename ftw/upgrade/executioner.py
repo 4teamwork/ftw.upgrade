@@ -57,6 +57,24 @@ class Executioner(object):
         self.portal_setup.setLastVersionForProfile(
             profileid, last_dest_version)
 
+        self._set_quickinstaller_version(profileid)
+
+    security.declarePrivate('_set_quickinstaller_version')
+    def _set_quickinstaller_version(self, profileid):
+        try:
+            profileinfo = self.portal_setup.getProfileInfo(profileid)
+        except KeyError:
+            return
+
+        quickinstaller = getToolByName(self.portal_setup, 'portal_quickinstaller')
+        product = profileinfo['product']
+        if not quickinstaller.isProductInstalled(product):
+            return
+
+        version = quickinstaller.getProductVersion(product)
+        if version:
+            quickinstaller.get(product).installedversion = version
+
     security.declarePrivate('_do_upgrade')
     def _do_upgrade(self, profileid, upgradeid):
         start = time.time()

@@ -1,8 +1,10 @@
 from ftw.builder import Builder
+from ftw.builder import create
 from ftw.upgrade.executioner import Executioner
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.tests.base import UpgradeTestCase
 from Products.CMFCore.utils import getToolByName
+from Products.GenericSetup.registry import _profile_registry
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
 import transaction
@@ -83,3 +85,18 @@ class TestExecutioner(UpgradeTestCase):
             self.install_profile('the.package:default', version='1000')
             with self.assert_resources_recooked():
                 self.install_profile_upgrades('the.package:default')
+
+    def test_updates_quickinstaller_version(self):
+        quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
+
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_upgrade(Builder('plone upgrade step')
+                                                .upgrading('1000', to='1001')))
+        self.package.with_version('1.1')
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1000')
+            quickinstaller.get('the.package').installedversion = '1.0'
+            self.assertEquals('1.0', quickinstaller.get('the.package').getInstalledVersion())
+            self.install_profile_upgrades('the.package:default')
+            self.assertEquals('1.1', quickinstaller.get('the.package').getInstalledVersion())

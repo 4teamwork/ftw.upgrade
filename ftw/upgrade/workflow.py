@@ -28,6 +28,8 @@ class WorkflowChainUpdater(object):
         self.wfs_and_states_before = self.get_workflows_and_states(
             self.get_objects())
 
+        return self
+
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_type:
             return None

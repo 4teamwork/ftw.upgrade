@@ -29,6 +29,7 @@ class ResponseLogger(object):
         self.formatter = logging.root.handlers[-1].formatter
         self.handler.setFormatter(self.formatter)
         logging.root.addHandler(self.handler)
+        return self
 
     def __exit__(self, exc_type, exc_value, tb):
         if exc_type is not None:

@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.14.6'
+version = '1.14.7.dev0'
 
 tests_require = [
     'unittest2',

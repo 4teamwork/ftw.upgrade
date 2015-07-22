@@ -50,8 +50,7 @@ class TempfileAuth(AuthBase):
 
     def __call__(self, request):
         self._generate_tempfile()
-        value = ':'.join((os.path.basename(self.authfile.name),
-                          self.authhash)).encode('base64')
+        value = ':'.join((os.path.basename(self.authfile.name), self.authhash))
         request.headers['x-ftw.upgrade-tempfile-auth'] = value
         return request
 

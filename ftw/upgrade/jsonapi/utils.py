@@ -37,7 +37,7 @@ class ErrorHandling(object):
         self.response = response
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, _type, exc, _traceback):
         if isinstance(exc, AbortTransactionWithStreamedResponse):

@@ -5,7 +5,8 @@ Changelog
 1.14.6 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Return context manager to allow "as" statements.
+  [lknoepfel]
 
 
 1.14.5 (2015-05-20)

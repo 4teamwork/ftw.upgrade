@@ -5,7 +5,8 @@ Changelog
 1.14.7 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Fix authentication problem with bin/upgrade command.
+  [jone]
 
 
 1.14.6 (2015-07-22)

@@ -14,6 +14,7 @@ from zope.component import getAdapters
 from zope.interface import implements
 import logging
 import time
+import transaction
 
 
 logger = logging.getLogger('ftw.upgrade')
@@ -30,6 +31,8 @@ class Executioner(object):
 
     security.declarePrivate('install')
     def install(self, data):
+        self._register_after_commit_hook()
+
         for profileid, upgradeids in data:
             self._upgrade_profile(profileid, upgradeids)
 
@@ -45,6 +48,16 @@ class Executioner(object):
         upgrades = gatherer.get_upgrades_by_api_ids(*upgrade_api_ids)
         data = [(upgrade['profile'], [upgrade['id']]) for upgrade in upgrades]
         return self.install(data)
+
+    security.declarePrivate('_register_after_commit_hook')
+    def _register_after_commit_hook(self):
+
+        def notification_hook(success, *args, **kwargs):
+            result = success and 'committed' or 'aborted'
+            logger.info('Transaction has been %s.' % result)
+
+        txn = transaction.get()
+        txn.addAfterCommitHook(notification_hook)
 
     security.declarePrivate('_upgrade_profile')
     def _upgrade_profile(self, profileid, upgradeids):

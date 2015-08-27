@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.14.7 (unreleased)
+1.14.7 (2015-08-27)
 -------------------
 
 - Add an afterCommitHook that notifies about the transaction having been

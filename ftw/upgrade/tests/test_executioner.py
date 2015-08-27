@@ -77,6 +77,31 @@ class TestExecutioner(UpgradeTestCase):
                 u'the.package:default -> 1003 (Update email from name)',
                 transaction.get().description)
 
+    def test_after_commit_hook(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('plone upgrade step')
+                          .upgrading('1000', to='1001')
+                          .titled('Register "foo" utility')))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1000')
+            self.install_profile_upgrades('the.package:default')
+
+            hooks = list(transaction.get().getAfterCommitHooks())
+            hook_funcs = [h[0] for h in hooks]
+
+            self.assertIn(
+                'notification_hook',
+                [f.func_name for f in hook_funcs],
+                'Our notification_hook should be registered')
+
+            transaction.commit()
+            self.assertEquals(
+                [],
+                list(transaction.get().getAfterCommitHooks()),
+                'Hook registrations should not persist across transactions')
+
     def test_resources_are_recooked_after_installing_upgrades(self):
         self.package.with_profile(
             Builder('genericsetup profile')

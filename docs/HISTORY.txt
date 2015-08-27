@@ -5,6 +5,10 @@ Changelog
 1.14.7 (unreleased)
 -------------------
 
+- Add an afterCommitHook that notifies about the transaction having been
+  committed (or aborted) after installing upgrades.
+  [lgraf]
+
 - Fix authentication problem with bin/upgrade command.
   [jone]
 

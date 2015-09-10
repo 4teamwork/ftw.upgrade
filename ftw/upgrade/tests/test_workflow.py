@@ -11,27 +11,28 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
 
     def test_changing_workflow_with_mapping(self):
         self.set_workflow_chain(for_type='Folder',
-                                to_workflow='simple_publication_workflow')
+                                to_workflow='intranet_folder_workflow')
 
         private_folder = create(Builder('folder')
-                                .titled('Private Folder'))
+                                .titled('Private Folder')
+                                .in_state('private'))
         published_folder = create(Builder('folder')
                                   .titled('Published Folder')
-                                  .in_state('published'))
+                                  .in_state('internal'))
 
         objects = [private_folder, published_folder]
         mapping = {
-            ('simple_publication_workflow', 'folder_workflow'): {
-                'private': 'private',
-                'published': 'published'}}
+            ('intranet_folder_workflow', 'folder_workflow'): {
+                'private': 'visible',
+                'internal': 'published'}}
 
         with WorkflowChainUpdater(objects, mapping):
             self.set_workflow_chain(for_type='Folder',
                                     to_workflow='folder_workflow')
 
         self.assertReviewStates({
-                private_folder: 'private',
-                published_folder: 'published'})
+            private_folder: 'visible',
+            published_folder: 'published'})
 
     def test_object_security_is_updated(self):
         self.set_workflow_chain(for_type='Folder',
@@ -89,18 +90,18 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
                 'review_state': 'published'})
 
         mapping = {
-            ('simple_publication_workflow', 'folder_workflow'): {
-                'published': 'published'}}
+            ('simple_publication_workflow', 'intranet_folder_workflow'): {
+                'published': 'internal'}}
         with WorkflowChainUpdater([folder], mapping):
             self.set_workflow_chain(for_type='Folder',
-                                    to_workflow='folder_workflow')
+                                    to_workflow='intranet_folder_workflow')
 
-        self.assert_workflow_history_length(folder, 3)
+        self.assert_workflow_history_length(folder, 2)
         self.assert_workflow_history_entry(folder, {
                 'action': 'publish',
                 'actor': 'test_user_1_',
                 'comments': '',
-                'review_state': 'published'}, -2)
+                'review_state': 'internal'}, -1)
 
     def test_workflow_history_is_not_migrated_when_migration_disabled(self):
         self.set_workflow_chain(for_type='Folder',
@@ -119,6 +120,24 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
 
         self.assert_workflow_history_length(folder, 0)
 
+    def test_state_is_set_correctly_when_wfhistory_migration_is_disabled(self):
+        self.set_workflow_chain(for_type='Folder',
+                                to_workflow='simple_publication_workflow')
+
+        folder = create(Builder('folder'))
+        self.assert_workflow_history_length(folder, 1)
+
+        mapping = {
+            ('simple_publication_workflow', 'intranet_folder_workflow'): {
+                'published': 'internal'}}
+        with WorkflowChainUpdater([folder], mapping,
+                                  migrate_workflow_history=False):
+            self.set_workflow_chain(for_type='Folder',
+                                    to_workflow='intranet_folder_workflow')
+
+        self.assert_workflow_history_length(folder, 0)
+        self.assertReviewStates({folder: 'internal'})
+
     def test_workflow_history_transition_is_updated_when_mapped(self):
         self.set_workflow_chain(for_type='Folder',
                                 to_workflow='simple_publication_workflow')
@@ -134,23 +153,23 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
                 'review_state': 'published'})
 
         mapping = {
-            ('simple_publication_workflow', 'folder_workflow'): {
-                'published': 'published'}}
+            ('simple_publication_workflow', 'intranet_folder_workflow'): {
+                'published': 'internal'}}
         transition_mapping = {
-            ('simple_publication_workflow', 'folder_workflow'): {
-                'publish': 'publish'}}
+            ('simple_publication_workflow', 'intranet_folder_workflow'): {
+                'publish': 'show_internally'}}
 
         with WorkflowChainUpdater([folder], mapping,
                                   transition_mapping=transition_mapping):
             self.set_workflow_chain(for_type='Folder',
-                                    to_workflow='folder_workflow')
+                                    to_workflow='intranet_folder_workflow')
 
-        self.assert_workflow_history_length(folder, 3)
+        self.assert_workflow_history_length(folder, 2)
         self.assert_workflow_history_entry(folder, {
-                'action': 'publish',
+                'action': 'show_internally',
                 'actor': 'test_user_1_',
                 'comments': '',
-                'review_state': 'published'}, -2)
+                'review_state': 'internal'}, -1)
 
     def execute_transition(self, context, transition):
         wftool = getToolByName(self.layer['portal'], 'portal_workflow')

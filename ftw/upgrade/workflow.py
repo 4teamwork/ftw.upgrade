@@ -98,10 +98,10 @@ class WorkflowChainUpdater(object):
 
             if self.migrate_workflow_history:
                 self._migrate_workflow_history(obj, wf_before, wf_after)
-
-            wf_tool.setStatusOf(wf_after, obj, {
+            else:
+                wf_tool.setStatusOf(wf_after, obj, {
                     'review_state': new_review_state,
-                    'action': '',
+                    'action': 'systemupdate',
                     'actor': 'system',
                     'comments': '',
                     'time': DateTime()})
@@ -128,12 +128,17 @@ class WorkflowChainUpdater(object):
 
         def _migrate_action(entry):
             action = entry.get('action', None)
-            if not action:
-                return
+            if action:
+                actionmapping = self.transition_mapping.get((old_wf, new_wf), {})
+                if action in actionmapping:
+                    entry['action'] = actionmapping[action]
 
-            mapping = self.transition_mapping.get((old_wf, new_wf), {})
-            if action in mapping:
-                entry['action'] = mapping[action]
+            state = entry.get('review_state', None)
+            if state:
+                statemapping = self.review_state_mapping.get((old_wf, new_wf),
+                                                             {})
+                if state in statemapping:
+                    entry['review_state'] = statemapping[state]
 
         def _migrate_entry(entry):
             entry = entry.copy()

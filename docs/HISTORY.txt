@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.14.8 (unreleased)
+1.14.8 (2015-09-21)
 -------------------
 
 - Migrate workflow states with wfhistory migration and do not set state manually unless necessary.

@@ -11,6 +11,7 @@ tests_require = [
     'ftw.builder >= 1.6.0',
     'plone.testing',
     'plone.app.testing',
+    'plone.app.intid',
 
     'zope.configuration',
     'zc.recipe.egg',

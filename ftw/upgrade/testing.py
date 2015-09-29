@@ -76,3 +76,23 @@ COMMAND_AND_UPGRADE_FUNCTIONAL_TESTING = FunctionalTesting(
            set_builder_session_factory(functional_session_factory),
            COMMAND_LAYER),
     name="ftw.upgrade:command_and_functional")
+
+
+class IntIdUpgradeLayer(PloneSandboxLayer):
+
+    defaultBases = (UPGRADE_LAYER, )
+
+    def setUpZope(self, app, configurationContext):
+        import plone.app.intid
+        xmlconfig.file('configure.zcml', plone.app.intid,
+                       context=configurationContext)
+
+    def setUpPloneSite(self, portal):
+        applyProfile(portal, 'plone.app.intid:default')
+
+
+INTID_UPGRADE_LAYER = IntIdUpgradeLayer()
+INTID_UPGRADE_FUNCTIONAL_TESTING = FunctionalTesting(
+    bases=(INTID_UPGRADE_LAYER,
+           set_builder_session_factory(functional_session_factory)),
+    name="ftw.upgrade-intid:functional")

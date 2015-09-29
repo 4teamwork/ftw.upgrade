@@ -5,7 +5,8 @@ Changelog
 1.14.9 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Update references to class-migrated objects in the intid utility.
+  [deiferni]
 
 
 1.14.8 (2015-09-21)

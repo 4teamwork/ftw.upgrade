@@ -3,11 +3,20 @@
 # E0213: Method should have "self" as first argument
 
 
+from zope.component.interfaces import IObjectEvent
 from zope.interface import Interface, Attribute
 
 
 class IUpgradeLayer(Interface):
     """ftw.upgrade specific browser layer.
+    """
+
+
+class IClassMigratedEvent(IObjectEvent):
+    """Fired after the class of an object is migrated.
+
+    This event is fired by an UpgradeStep after its migrate_class method is
+    called.
     """
 
 

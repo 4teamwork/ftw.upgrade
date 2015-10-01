@@ -1,0 +1,9 @@
+<configure xmlns="http://namespaces.zope.org/zope"
+           i18n_domain="ftw.upgrade">
+
+  <subscriber
+      for="ftw.upgrade.interfaces.IClassMigratedEvent"
+      handler=".migrate.update_intids_after_class_migration"
+      />
+
+</configure>

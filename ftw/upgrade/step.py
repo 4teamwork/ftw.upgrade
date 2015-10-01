@@ -1,5 +1,6 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from Acquisition import aq_base, aq_parent
+from ftw.upgrade.events import ClassMigratedEvent
 from ftw.upgrade.exceptions import NoAssociatedProfileError
 from ftw.upgrade.helpers import update_security_for
 from ftw.upgrade.interfaces import IUpgradeStep
@@ -11,6 +12,7 @@ from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.ActionInformation import ActionInformation
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ProgressHandler import ZLogHandler
+from zope.event import notify
 from zope.interface import directlyProvidedBy
 from zope.interface import directlyProvides
 from zope.interface import implements
@@ -285,6 +287,9 @@ class UpgradeStep(object):
         """Changes the class of a object and notifies the container so that
         the change is persistent.
         It has a special handling for BTreeFolder2Base based containers.
+
+        Fires an event after class migration so that custom reference cleanup
+        can be performed.
         """
         obj.__class__ = new_class
 
@@ -304,6 +309,8 @@ class UpgradeStep(object):
 
         # Refresh provided interfaces cache
         directlyProvides(base, directlyProvidedBy(base))
+
+        notify(ClassMigratedEvent(obj))
 
     security.declarePrivate('remove_broken_browserlayer')
     def remove_broken_browserlayer(self, name, dottedname):

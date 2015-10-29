@@ -79,7 +79,8 @@ class Executioner(object):
         except KeyError:
             return
 
-        quickinstaller = getToolByName(self.portal_setup, 'portal_quickinstaller')
+        quickinstaller = getToolByName(self.portal_setup,
+                                       'portal_quickinstaller')
         product = profileinfo['product']
         if not quickinstaller.isProductInstalled(product):
             return

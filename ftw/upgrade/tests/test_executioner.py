@@ -1,10 +1,8 @@
 from ftw.builder import Builder
-from ftw.builder import create
 from ftw.upgrade.executioner import Executioner
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.tests.base import UpgradeTestCase
 from Products.CMFCore.utils import getToolByName
-from Products.GenericSetup.registry import _profile_registry
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
 import transaction

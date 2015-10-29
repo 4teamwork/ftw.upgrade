@@ -28,10 +28,6 @@ class TestFakeTerminal(TestCase):
     def test_ljust(self):
         self.assertEquals(TERMINAL.ljust('foo', 10),
                           FakeTerminal().ljust('foo', 10))
-
-    def test_ljust(self):
-        self.assertEquals(TERMINAL.ljust('foo', 10),
-                          FakeTerminal().ljust('foo', 10))
         self.assertEquals(TERMINAL.ljust(u'foo', 10),
                           FakeTerminal().ljust(u'foo', 10))
 

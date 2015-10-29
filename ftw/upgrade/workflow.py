@@ -129,7 +129,8 @@ class WorkflowChainUpdater(object):
         def _migrate_action(entry):
             action = entry.get('action', None)
             if action:
-                actionmapping = self.transition_mapping.get((old_wf, new_wf), {})
+                actionmapping = self.transition_mapping.get(
+                    (old_wf, new_wf), {})
                 if action in actionmapping:
                     entry['action'] = actionmapping[action]
 

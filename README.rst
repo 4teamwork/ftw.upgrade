@@ -571,6 +571,9 @@ path to the upgrades directory using the ``--path`` argument.
     Download it and place it somewhere in your ``PATH``, cd in the directory and create an upgrade
     step: ``create-upgrade add_control_panel_action``.
 
+If you would like to have colorized output in the terminal, you can install
+the ``colors`` extras (``ftw.upgrade[colors]``).
+
 
 Reordering upgrade steps
 ------------------------

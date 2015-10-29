@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.14.9.dev0'
+version = '1.15.0.dev0'
 
 tests_require = [
     'unittest2',
@@ -19,6 +19,10 @@ tests_require = [
     'Products.ATContentTypes',
     'Products.CMFPlacefulWorkflow',
     ]
+
+extras_require = {
+    'colors': ['blessed'],
+    'tests': tests_require}
 
 setup(name='ftw.upgrade',
       version=version,
@@ -53,7 +57,6 @@ setup(name='ftw.upgrade',
       install_requires=[
         'argcomplete',
         'argparse',
-        'blessed',
         'inflection',
         'path.py >= 6.2',
         'requests',
@@ -80,7 +83,7 @@ setup(name='ftw.upgrade',
         ],
 
       tests_require=tests_require,
-      extras_require=dict(tests=tests_require),
+      extras_require=extras_require,
 
       entry_points={
         'z3c.autoinclude.plugin': [

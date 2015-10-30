@@ -21,7 +21,7 @@ tests_require = [
     ]
 
 extras_require = {
-    'colors': ['blessed'],
+    'colors': ['blessed <= 1.9.5'],
     'tests': tests_require}
 
 setup(name='ftw.upgrade',

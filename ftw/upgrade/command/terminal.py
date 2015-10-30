@@ -20,9 +20,6 @@ class FakeTerminal(str):
 try:
     from blessed import Terminal
 except ImportError, exc:
-    import sys
-    print >>sys.stderr, 'WARNING: Terminal colorization disabled' + \
-        ' because of ImportError: {0}'.format(exc)
     Terminal = FakeTerminal
 
 

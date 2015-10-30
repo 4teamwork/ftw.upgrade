@@ -2,8 +2,11 @@ Changelog
 =========
 
 
-1.14.9 (unreleased)
+1.15.0 (unreleased)
 -------------------
+
+- Make "blessed" dependency optional in the "colors" extras.
+  [jone]
 
 - Update references to class-migrated objects in the intid utility.
   [deiferni]

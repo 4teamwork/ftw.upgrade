@@ -5,7 +5,9 @@ Changelog
 1.15.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Change instance detection to support any name.
+  Before only "instance*" was supported.
+  [jone]
 
 
 1.15.0 (2015-10-30)

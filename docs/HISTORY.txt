@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.15.1 (unreleased)
+1.15.1 (2015-11-11)
 -------------------
 
 - Change instance detection to support any name.

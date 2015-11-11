@@ -131,3 +131,12 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             {'port': test_instance_port,
              'path': str(part2)},
             get_running_instance(self.layer['root_path']))
+
+    def test_find_first_running_instance_info_named_zeoclient(self):
+        test_zeoclient_port = int(os.environ.get('ZSERVER_PORT', 55001))
+        self.write_zconf('zeoclient1', '1000')
+        part2 = self.write_zconf('zeoclient2', test_zeoclient_port)
+        self.assertEqual(
+            {'port': test_zeoclient_port,
+             'path': str(part2)},
+            get_running_instance(self.layer['root_path']))

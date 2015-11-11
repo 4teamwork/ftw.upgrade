@@ -200,7 +200,7 @@ def get_running_instance(buildout_path):
 
 
 def find_instance_zconfs(buildout_path):
-    return sorted(buildout_path.glob('parts/instance*/etc/zope.conf'))
+    return sorted(buildout_path.glob('parts/*/etc/zope.conf'))
 
 
 def get_instance_port(zconf):

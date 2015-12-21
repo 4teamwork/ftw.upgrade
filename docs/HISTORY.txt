@@ -5,7 +5,10 @@ Changelog
 1.15.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Prevented UnicodeEncodeError when piping output of ``bin/upgrade
+  sites``.  This would fail when a site had non-ascii characters in
+  its title.
+  [maurits]
 
 
 1.15.1 (2015-11-11)

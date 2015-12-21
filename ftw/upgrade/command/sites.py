@@ -37,4 +37,4 @@ def sites_command(args, requestor):
         print response.text
     else:
         for site in response.json():
-            print site['path'].ljust(20), site['title']
+            print site['path'].ljust(20), site['title'].encode('utf-8')

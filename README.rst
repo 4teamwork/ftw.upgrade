@@ -63,8 +63,13 @@ Installation
 Installing ftw.upgrade's console script
 ---------------------------------------
 
-Installing the console script ``bin/upgrade`` can be done with an additional
-buildout part:
+If you include ``ftw.upgrade`` in the list of ``eggs`` of a
+``plone.recipe.zope2instance`` based section, the ``bin/upgrade`` script
+should be generated automatically for you (that is, if you haven't limited or
+suppressed script generation via the ``scripts`` option).
+
+Otherwise, installing the console script ``bin/upgrade`` can be done with an
+additional buildout part:
 
 .. code:: ini
 

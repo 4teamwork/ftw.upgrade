@@ -74,6 +74,19 @@ class PloneSiteAPI(APIView):
         recook_resources()
         return 'OK'
 
+    @jsonify
+    @action('POST')
+    def plone_upgrade(self):
+        """Upgrade the Plone Site.
+
+        This is what you would manually do in the @@plone-upgrade view.
+        """
+        portal_migration = getToolByName(self.context, 'portal_migration')
+        if not portal_migration.needUpgrading():
+            return 'Plone Site was already up to date.'
+        portal_migration.upgrade(swallow_errors=False)
+        return 'Plone Site has been updated.'
+
     def _refine_profile_info(self, profile):
         return {'id': profile['id'],
                 'title': profile['title'],

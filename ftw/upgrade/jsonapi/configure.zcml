@@ -13,6 +13,7 @@
                             list_proposed_upgrades
                             execute_upgrades
                             execute_proposed_upgrades
+                            plone_upgrade
                             recook_resources"
         />
 

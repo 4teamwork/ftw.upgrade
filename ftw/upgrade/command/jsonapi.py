@@ -100,8 +100,8 @@ def with_api_requestor(func):
         auth_value = args.auth or default_auth
         if auth_value:
             if len(auth_value.split(':')) != 2:
-                print 'ERROR: Invalid authentication information "{0}".'.format(
-                    auth_value)
+                print ('ERROR: Invalid authentication information '
+                       '"{0}".'.format(auth_value))
                 print 'A string of form "<username>:<password>" is required.'
                 sys.exit(1)
             auth = HTTPBasicAuth(*auth_value.split(':'))
@@ -163,8 +163,8 @@ def extend_url_with_virtualhost_config(zope_url, public_url, site):
     if not urlinfo.port:
         ports = {'http': 80, 'https': 443}
         urlinfo = urlinfo._replace(netloc='{0}:{1}'.format(
-                urlinfo.hostname,
-                ports[urlinfo.scheme]))
+            urlinfo.hostname,
+            ports[urlinfo.scheme]))
 
     url = zope_url.rstrip('/')
     url += '/VirtualHostBase'

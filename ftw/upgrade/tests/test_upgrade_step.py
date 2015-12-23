@@ -493,10 +493,8 @@ class TestUpgradeStep(UpgradeTestCase):
                         'IATLink interface not added in migration')
 
     def test_remove_broken_browserlayer(self):
-        # TODO: Currently, this test doesn't really test that the removal
-        # works, it only checks that the Step method can be called without
-        # causing problems.
-
+        from plone.browserlayer.utils import registered_layers
+        from plone.browserlayer.interfaces import ILocalBrowserLayerType
         register_layer(IMyProductLayer, 'my.product')
 
         class Step(UpgradeStep):
@@ -504,6 +502,21 @@ class TestUpgradeStep(UpgradeTestCase):
                 self.remove_broken_browserlayer('my.product',
                                                 'IMyProductLayer')
         Step(self.portal_setup)
+
+        # Check that it worked.  Note that this check fails if you have called
+        # registered_layers earlier in this test before calling
+        # remove_broken_browserlayer: the previous answer is cached.
+        self.assertFalse(IMyProductLayer in registered_layers())
+        # Check it a bit more low level.
+        sm = self.portal.getSiteManager()
+        adapters = sm.utilities._adapters
+        self.assertFalse('my.product' in adapters[0][ILocalBrowserLayerType])
+        subscribers = sm.utilities._subscribers
+        layer_subscribers = subscribers[0][ILocalBrowserLayerType]
+        iface_name = 'IMyProductLayer'
+        self.assertEqual(len([layer for layer in layer_subscribers['']
+                              if layer.__name__ == iface_name]), 0)
+
 
     def test_update_security_removes_roles_unmanaged_by_workflow(self):
         self.set_workflow_chain(for_type='Folder',

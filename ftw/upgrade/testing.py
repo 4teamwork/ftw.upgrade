@@ -13,7 +13,8 @@ from plone.testing import z2
 from Products.CMFCore.utils import getToolByName
 from Products.SiteAccess.VirtualHostMonster import manage_addVirtualHostMonster
 from zope.configuration import xmlconfig
-import ftw.upgrade.tests.builders
+# This import is not used, but it registers a builder that we need:
+import ftw.upgrade.tests.builders  # noqa
 import pkg_resources
 
 

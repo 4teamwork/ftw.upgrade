@@ -4,6 +4,7 @@ from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.jsonapi.base import APIView
 from ftw.upgrade.jsonapi.exceptions import AbortTransactionWithStreamedResponse
 from ftw.upgrade.jsonapi.exceptions import PloneSiteOutdated
+from ftw.upgrade.jsonapi.exceptions import ProfileNotAvailable
 from ftw.upgrade.jsonapi.exceptions import ProfileNotFound
 from ftw.upgrade.jsonapi.utils import action
 from ftw.upgrade.jsonapi.utils import jsonify
@@ -66,6 +67,20 @@ class PloneSiteAPI(APIView):
         api_ids = map(itemgetter('api_id'), self._get_proposed_upgrades())
         return self._install_upgrades(*api_ids)
 
+    @action('POST', rename_params={'profiles': 'profiles:list'})
+    def execute_profiles(self, profiles):
+        """Executes a list of profiles, each identified by their ID.
+        """
+        self._require_up_to_date_plone_site()
+        profile_ids = []
+        for profile in profiles:
+            # Note: profileExists can handle ids with or without 'profile-' at
+            # the start.
+            if not self.portal_setup.profileExists(profile):
+                raise ProfileNotFound(profile)
+            profile_ids.append(profile)
+        return self._install_profiles(*profile_ids)
+
     @jsonify
     @action('POST')
     def recook_resources(self):
@@ -111,7 +126,7 @@ class PloneSiteAPI(APIView):
         profiles = filter(lambda profile: profile['id'] == profileid,
                           self.gatherer.get_profiles())
         if len(profiles) == 0:
-            raise ProfileNotFound(profileid)
+            raise ProfileNotAvailable(profileid)
         else:
             return profiles[0]
 
@@ -129,6 +144,14 @@ class PloneSiteAPI(APIView):
         try:
             with ResponseLogger(self.request.RESPONSE, annotate_result=True):
                 executioner.install_upgrades_by_api_ids(*api_ids)
+        except Exception, exc:
+            raise AbortTransactionWithStreamedResponse(exc)
+
+    def _install_profiles(self, *profile_ids):
+        executioner = IExecutioner(self.portal_setup)
+        try:
+            with ResponseLogger(self.request.RESPONSE, annotate_result=True):
+                executioner.install_profiles_by_profile_ids(*profile_ids)
         except Exception, exc:
             raise AbortTransactionWithStreamedResponse(exc)
 

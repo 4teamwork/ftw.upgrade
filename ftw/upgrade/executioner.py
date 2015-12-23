@@ -49,6 +49,27 @@ class Executioner(object):
         data = [(upgrade['profile'], [upgrade['id']]) for upgrade in upgrades]
         return self.install(data)
 
+    security.declarePrivate('install_profiles_by_profile_ids')
+    def install_profiles_by_profile_ids(self, *profile_ids):
+        for profile_id in profile_ids:
+            # Starting from GenericSetup 1.8.0 getLastVersionForProfile can
+            # handle profile ids with or without 'profile-' prefix, but we need
+            # to support older versions as well, which only support it without
+            # the prefix.
+            prefix = 'profile-'
+            if profile_id.startswith(prefix):
+                profile_id = profile_id[len(prefix):]
+            installed = self.portal_setup.getLastVersionForProfile(profile_id)
+            if installed != 'unknown':
+                logger.info('Ignoring already installed profile %s.',
+                            profile_id)
+                continue
+            logger.info('Installing profile %s.', profile_id)
+            # For runAllImportStepsFromProfile we still must have 'profile-' at
+            # the start.
+            self.portal_setup.runAllImportStepsFromProfile(prefix + profile_id)
+            logger.info('Done installing profile %s.', profile_id)
+
     security.declarePrivate('_register_after_commit_hook')
     def _register_after_commit_hook(self):
 

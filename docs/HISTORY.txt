@@ -8,17 +8,18 @@ Changelog
 - Configure logging for the command line utility.  By default print
   only our own logging, on info level or higher.  With the new
   ``--verbose`` option print all loggers (so also from other packages
-  like ``requests``) at debug level and higher.
-  [maurits]
+  like ``requests``) at debug level and higher.  [maurits]
 
-- Added ``plone_upgrade`` command to upgrade a Plone Site.
-  This is what you would manually do in the ``@@plone-upgrade`` view.
-  [maurits]
+- Added ``plone_upgrade`` command to upgrade a Plone Site.  This is
+  what you would manually do in the ``@@plone-upgrade`` view.  [maurits]
+
+- Added support for installing profiles.  Profiles are only applied
+  once.  Example command line: ``bin/upgrade install --site Plone
+  --profiles Products.PloneFormGen:default``.  [maurits]
 
 - Prevented UnicodeEncodeError when piping output of ``bin/upgrade
   sites``.  This would fail when a site had non-ascii characters in
-  its title.
-  [maurits]
+  its title.  [maurits]
 
 
 1.15.1 (2015-11-11)

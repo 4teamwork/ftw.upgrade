@@ -16,7 +16,13 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
         self.assert_json_equal(
             {'api_version': 'v1',
              'actions':
-                 [{'name': 'execute_proposed_upgrades',
+                 [{'description': ('Executes a list of profiles, each '
+                                   'identified by their ID.'),
+                   'name': 'execute_profiles',
+                   'request_method': 'POST',
+                   'required_params': ['profiles:list']},
+
+                  {'name': 'execute_proposed_upgrades',
                    'required_params': [],
                    'description': 'Executes all proposed upgrades.',
                    'request_method': 'POST'},
@@ -124,7 +130,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
     @browsing
     def test_get_unkown_profile_returns_error(self, browser):
         with self.expect_api_error(status=400,
-                                   message='Profile not found',
+                                   message='Profile not available',
                                    details='The profile "something:default" is wrong'
                                    ' or not installed on this Plone site.'):
             self.api_request('GET', 'get_profile', {'profileid': 'something:default'})
@@ -398,3 +404,48 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
         with self.assert_resources_recooked():
             self.api_request('POST', 'recook_resources')
             self.assertEqual('OK', browser.json)
+
+    @browsing
+    def test_execute_profiles_standard(self, browser):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))
+                          .named('The upgrade')))
+
+        with self.package_created():
+            self.api_request('POST', 'execute_profiles',
+                             {'profiles:list': ['the.package:default']})
+            self.assertEqual(self.portal_setup.getLastVersionForProfile(
+                'the.package:default'), ('20110101000000', ))
+            self.assertTrue(self.is_installed(
+                'the.package:default', datetime(2011, 1, 1)))
+            self.assertIn('Done installing profile the.package:default.',
+                          browser.contents)
+            self.assertIn('Result: SUCCESS', browser.contents)
+
+    @browsing
+    def test_execute_profiles_already_installed(self, browser):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))
+                          .named('The upgrade')))
+
+        with self.package_created():
+            self.portal_setup.runAllImportStepsFromProfile(
+                'profile-the.package:default')
+            transaction.commit()
+            self.api_request('POST', 'execute_profiles',
+                             {'profiles:list': ['the.package:default']})
+            self.assertIn(
+                'Ignoring already installed profile the.package:default.',
+                browser.contents)
+            self.assertIn('Result: SUCCESS', browser.contents)
+
+    @browsing
+    def test_execute_profiles_not_found(self, browser):
+        with self.expect_api_error(
+                status=400,
+                message='Profile not found',
+                details='The profile "the.package:default" is unknown.'):
+            self.api_request('POST', 'execute_profiles',
+                             {'profiles:list': ['the.package:default']})

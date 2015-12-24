@@ -152,3 +152,41 @@ class TestListCommand(CommandAndInstanceTestCase):
 
             exitcode, output = self.upgrade_script('list --upgrades --json --pick-site')
             self.assertEqual(1, len(json.loads(output)))
+
+    def test_all_sites_argument_json(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(
+                Builder('ftw upgrade step').to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            self.install_profile(
+                'the.package:default', version='20110101000000')
+            self.clear_recorded_upgrades('the.package:default')
+
+            exitcode, output = self.upgrade_script(
+                'list --upgrades --json --all-sites')
+            self.assertEqual(exitcode, 0)
+            decoded = json.loads(output)
+            self.assertEqual(len(decoded), 1)
+            # The Plone site id is used as key.
+            self.assertEqual(decoded.keys(), ['/plone'])
+            self.assertTrue(isinstance(decoded['/plone'], list))
+
+    def test_all_sites_argument_no_json(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(
+                Builder('ftw upgrade step').to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            self.install_profile(
+                'the.package:default', version='20110101000000')
+            self.clear_recorded_upgrades('the.package:default')
+
+            exitcode, output = self.upgrade_script(
+                'list --upgrades --all-sites')
+            self.assertEqual(exitcode, 0)
+            self.assertIn('Proposed upgrades', output)
+            self.assertIn('20110101000000@the.package:default', output)
+            self.assertIn('INFO: Acting on site /plone', output)

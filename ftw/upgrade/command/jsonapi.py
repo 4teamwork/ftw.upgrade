@@ -7,12 +7,15 @@ from urlparse import urlparse
 import cgi
 import hashlib
 import hmac
+import logging
 import os
 import re
 import requests
 import socket
 import sys
 import tempfile
+
+logger = logging.getLogger('ftw.upgrade')
 
 
 class NoRunningInstanceFound(Exception):
@@ -89,6 +92,9 @@ def add_site_path_argument(argparse_command):
     group.add_argument(
         '--last-site', '-L', action='store_true',
         help='Automatically pick the last Plone site ordered by path.')
+    group.add_argument(
+        '--all-sites', '-A', action='store_true',
+        help='Perform the action on all Plone sites.')
 
 
 def add_json_argument(argparse_command):
@@ -221,20 +227,40 @@ def is_port_open(port):
 
 def get_plone_site_by_args(args, requestor):
     if getattr(args, 'site', None):
-        return args.site
+        site = args.site
+        setattr(args, 'picked_site', site)
+        return site
     if getattr(args, 'pick_site', False):
         sites = get_sites(requestor)
         if len(sites) != 1:
             print 'ERROR: --pick-site is ambiguous:'
             print 'Expected exactly one site, found', len(sites)
             sys.exit(1)
-        return sites[0]['path']
+        site = sites[0]['path']
+        setattr(args, 'picked_site', site)
+        return site
     if getattr(args, 'last_site', False):
         sites = get_sites(requestor)
         if len(sites) == 0:
             print 'ERROR: No Plone site found.'
             sys.exit(1)
-        return sites[-1]['path']
+        site = sites[-1]['path']
+        setattr(args, 'picked_site', site)
+        return site
+    if getattr(args, 'all_sites', None):
+        sites = get_sites(requestor)
+        if len(sites) == 0:
+            print 'ERROR: No Plone site found.'
+            sys.exit(1)
+        # Get and update site index stored in the arguments.  This is used for
+        # iterating over the sites one by one.
+        site_index = getattr(args, 'site_index', 0)
+        if site_index >= len(sites):
+            raise StopIteration
+        site = sites[site_index]['path']
+        setattr(args, 'site_index', site_index + 1)
+        setattr(args, 'picked_site', site)
+        return site
     return None
 
 

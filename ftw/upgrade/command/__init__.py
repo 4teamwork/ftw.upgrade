@@ -9,10 +9,12 @@ from ftw.upgrade.command import touch
 from ftw.upgrade.command import user
 from ftw.upgrade.command.formatter import FlexiFormatter
 from ftw.upgrade.command.terminal import TERMINAL
+from ftw.upgrade.command.utils import capture
 from pkg_resources import get_distribution
 import argcomplete
 import argparse
 import logging
+import json
 import sys
 
 
@@ -142,7 +144,28 @@ class UpgradeCommand(object):
         args = self.parser.parse_args()
         configure_logging(args)
         setattr(args, 'parser', self.parser)
-        args.func(args)
+        if getattr(args, 'all_sites', False):
+            info = {}
+            while True:
+                try:
+                    with capture() as out:
+                        args.func(args)
+                    output = out.getvalue().strip()
+                    if getattr(args, 'json', False):
+                        # "[]" must be turned into [] and put in dictionary.
+                        output = json.loads(output)
+                        info[args.picked_site] = output
+                    else:
+                        logger.info('Acting on site {0}'.format(
+                            args.picked_site))
+                        print(output)
+                except StopIteration:
+                    break
+            if getattr(args, 'json', False):
+                # Pretty print the output of all sites.
+                print(json.dumps(info, indent=4, encoding='utf-8'))
+        else:
+            args.func(args)
 
 
 def configure_logging(args):

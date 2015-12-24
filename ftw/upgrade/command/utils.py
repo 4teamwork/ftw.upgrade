@@ -1,4 +1,7 @@
+from StringIO import StringIO
 from path import Path
+import sys
+import contextlib
 import os
 import sys
 
@@ -26,3 +29,13 @@ def find_package_namespace_path(egginfo):
         top_level_path = top_level_file.read().strip()
 
     return egginfo.dirname().joinpath(top_level_path)
+
+
+@contextlib.contextmanager
+def capture():
+    oldout = sys.stdout
+    try:
+        sys.stdout = StringIO()
+        yield sys.stdout
+    finally:
+        sys.stdout = oldout

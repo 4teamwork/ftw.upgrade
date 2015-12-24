@@ -76,6 +76,9 @@ def add_requestor_authentication_argument(argparse_command):
 
 
 def add_site_path_argument(argparse_command):
+    argparse_command.add_argument(
+        '--verbose', '-v', action='store_true',
+        help='Verbose logging.')
     group = argparse_command.add_mutually_exclusive_group(required=True)
     group.add_argument(
         '--site', '-s',

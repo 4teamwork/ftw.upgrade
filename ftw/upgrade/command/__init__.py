@@ -12,10 +12,12 @@ from ftw.upgrade.command.terminal import TERMINAL
 from pkg_resources import get_distribution
 import argcomplete
 import argparse
+import logging
 import sys
 
 
 VERSION = get_distribution('ftw.upgrade').version
+logger = logging.getLogger('ftw.upgrade')
 
 
 DOCS = """
@@ -138,8 +140,32 @@ class UpgradeCommand(object):
 
     def __call__(self):
         args = self.parser.parse_args()
+        configure_logging(args)
         setattr(args, 'parser', self.parser)
         args.func(args)
+
+
+def configure_logging(args):
+    # Extend the level names with colors.
+    logging.addLevelName(
+        logging.INFO, '{t.green}{levelname}{t.normal}'.format(
+            t=TERMINAL, levelname=logging.getLevelName(logging.INFO)))
+    for level in (logging.WARN, logging.ERROR, logging.CRITICAL):
+        logging.addLevelName(
+            level, '{t.red_bold}{levelname}{t.normal}'.format(
+                t=TERMINAL, levelname=logging.getLevelName(level)))
+    if getattr(args, 'verbose', False):
+        # Log debug level and higher for all loggers.
+        start_level = logging.DEBUG
+        format = '%(levelname)s %(name)s: %(message)s'
+        logging.basicConfig(level=start_level, format=format)
+    else:
+        # Log info level and higher, only for our own logger.
+        start_level = logging.INFO
+        format = '%(levelname)s: %(message)s'
+        logging.basicConfig(level=start_level, format=format)
+        for handler in logging.root.handlers:
+            handler.addFilter(logging.Filter('ftw.upgrade'))
 
 
 def main():

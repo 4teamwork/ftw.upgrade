@@ -5,6 +5,12 @@ Changelog
 1.15.2 (unreleased)
 -------------------
 
+- Configure logging for the command line utility.  By default print
+  only our own logging, on info level or higher.  With the new
+  ``--verbose`` option print all loggers (so also from other packages
+  like ``requests``) at debug level and higher.
+  [maurits]
+
 - Added ``plone_upgrade`` command to upgrade a Plone Site.
   This is what you would manually do in the ``@@plone-upgrade`` view.
   [maurits]

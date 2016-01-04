@@ -13,8 +13,11 @@ from plone.testing import z2
 from Products.CMFCore.utils import getToolByName
 from Products.SiteAccess.VirtualHostMonster import manage_addVirtualHostMonster
 from zope.configuration import xmlconfig
+# This import is not used, but it registers a builder that we need:
 import ftw.upgrade.tests.builders
 import pkg_resources
+
+ftw.upgrade.tests.builders  # pyflakes
 
 
 COMMAND_LAYER = ConsoleScriptLayer('ftw.upgrade',

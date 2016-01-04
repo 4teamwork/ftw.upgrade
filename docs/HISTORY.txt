@@ -5,6 +5,10 @@ Changelog
 1.15.2 (unreleased)
 -------------------
 
+- Added ``plone_upgrade`` command to upgrade a Plone Site.
+  This is what you would manually do in the ``@@plone-upgrade`` view.
+  [maurits]
+
 - Prevented UnicodeEncodeError when piping output of ``bin/upgrade
   sites``.  This would fail when a site had non-ascii characters in
   its title.

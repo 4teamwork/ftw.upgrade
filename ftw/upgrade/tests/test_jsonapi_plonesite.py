@@ -48,6 +48,11 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                    'description': 'Returns a list of proposed upgrades.',
                    'request_method': 'GET'},
 
+                  {'name': 'plone_upgrade',
+                   'required_params': [],
+                   'description': 'Upgrade the Plone Site. This is what you would manually do in the @@plone-upgrade view.',
+                  'request_method': 'POST'},
+
                   {'name': 'recook_resources',
                    'required_params': [],
                    'description': 'Recook CSS and JavaScript resource bundles.',

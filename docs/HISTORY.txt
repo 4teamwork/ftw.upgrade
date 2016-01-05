@@ -5,6 +5,10 @@ Changelog
 1.15.2 (unreleased)
 -------------------
 
+- Added ``--all-sites`` option.  This iterates over all sites and
+  performs the specified command on each of them.  A failing command
+  for one site will stop the entire command.  [maurits]
+
 - Configure logging for the command line utility.  By default print
   only our own logging, on info level or higher.  With the new
   ``--verbose`` option print all loggers (so also from other packages

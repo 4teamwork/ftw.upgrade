@@ -1,6 +1,5 @@
 from StringIO import StringIO
 from path import Path
-import sys
 import contextlib
 import os
 import sys

@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.15.2 (unreleased)
+1.16.0 (2016-01-05)
 -------------------
 
 - Added ``--all-sites`` option.  This iterates over all sites and

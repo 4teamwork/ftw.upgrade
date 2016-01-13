@@ -891,6 +891,56 @@ Example for exeuting all proposed upgrades of a Plone site:
     Result: SUCCESS
 
 
+Installing profiles
+~~~~~~~~~~~~~~~~~~~
+
+You can install complete profiles.  When the profile is already
+installed, nothing is done.  Usually you will want to install the
+default profile, but it is fine to install an uninstall profile.
+
+Note that we do nothing with the ``portal_quickinstaller``.  So if you
+install an uninstall profile, you may still see the product as
+installed.  But for default profiles everything goes as you would
+expect.
+
+Example for installing PloneFormGen (which was not installed yet) and
+ftw.upgrade (which was already installed):
+
+.. code:: sh
+
+    $ curl -uadmin:admin -X POST "http://localhost:8080/Plone/upgrades-api/execute_profiles?profiles:list=Products.PloneFormGen:default&profiles:list=ftw.upgrade:default"
+    2016-01-05 13:09:46 INFO ftw.upgrade Installing profile Products.PloneFormGen:default.
+    2016-01-05 13:09:46 INFO GenericSetup.rolemap Role / permission map imported.
+    ...
+    2016-01-05 13:09:48 INFO GenericSetup.types 'FieldsetEnd' type info imported.
+    2016-01-05 13:09:48 INFO GenericSetup.factorytool FactoryTool settings imported.
+    2016-01-05 13:09:48 INFO ftw.upgrade Done installing profile Products.PloneFormGen:default.
+    2016-01-05 13:09:48 INFO ftw.upgrade Ignoring already installed profile ftw.upgrade:default.
+    Result: SUCCESS
+
+
+Upgrading Plone
+~~~~~~~~~~~~~~~
+
+You can migrate your Plone Site.  This is what you would manually do
+in the @@plone-upgrade view, which is linked to in the overview
+control panel (or the ZMI) when your Plone Site needs updating.
+
+Example for upgrading Plone:
+
+.. code:: sh
+
+    $ curl -uadmin:admin -X POST "http://localhost:8080/test/upgrades-api/plone_upgrade"
+    "Plone Site has been updated."
+
+Example for upgrading Plone when no upgrade is needed:
+
+.. code:: sh
+
+    $ curl -uadmin:admin -X POST "http://localhost:8080/test/upgrades-api/plone_upgrade"
+    "Plone Site was already up to date."
+
+
 Recook resources
 ----------------
 

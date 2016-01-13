@@ -14,7 +14,7 @@ This is what you would manually do in the @@plone-upgrade view.
 
 {t.bold}EXAMPLES:{t.normal}
 [quote]
-$ bin/upgrade ploneupgrade --site Plone
+$ bin/upgrade plone_upgrade --site Plone
 [/quote]
 
 """.format(t=TERMINAL).strip()

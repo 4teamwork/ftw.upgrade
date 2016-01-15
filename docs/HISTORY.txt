@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.16.2 (unreleased)
+1.16.2 (2016-01-15)
 -------------------
 
 - Actually the same as 1.16.1, but pypi was broken when I

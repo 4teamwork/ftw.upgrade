@@ -5,7 +5,10 @@ Changelog
 1.16.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Actually the same as 1.16.1, but pypi was broken when I
+  released it and now it does not let me use the same version
+  number. :-(
+  [jone]
 
 
 1.16.1 (2016-01-13)

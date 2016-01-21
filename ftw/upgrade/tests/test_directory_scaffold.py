@@ -68,11 +68,22 @@ class TestUpgradeStepCreator(TestCase):
                              'classname': 'AddControlpanelAction',
                              'docstring': 'Add controlpanel action.'})
 
+    def test_sentence_as_input_is_used_as_docstring_without_modification(self):
+        with freeze(datetime(2014, 3, 4, 5, 6, 7)):
+            UpgradeStepCreator(self.upgrades_directory).create(
+                'Update ftw.subsite to newest Version.')
+
+        self.assert_upgrade(
+            {'name': '20140304050607_update_ftw_subsite_to_newest_version',
+             'classname': 'UpdateFtwSubsiteToNewestVersion',
+             'docstring': 'Update ftw.subsite to newest Version.'})
+
     def assert_upgrade(self, expected):
         upgrade_directory = os.path.join(self.upgrades_directory, expected['name'])
         upgrade_code_file = os.path.join(upgrade_directory, 'upgrade.py')
 
-        self.assertTrue(os.path.isdir(upgrade_directory))
+        self.assertTrue(os.path.isdir(upgrade_directory),
+                        os.listdir(os.path.dirname(upgrade_directory)))
         self.assertTrue(os.path.isfile(upgrade_code_file))
 
         with open(upgrade_code_file) as python_file:

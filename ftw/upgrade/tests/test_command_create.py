@@ -52,6 +52,27 @@ class TestCreateCommand(CommandTestCase):
             'Expected subpackage upgrades directory to have one upgrade; {0}'.format(
                 subpackage_upgrades_dir.listdir()))
 
+    def test_creating_an_upgrade_step_with_text_containing_dots(self):
+        package = create(Builder('python package')
+                         .named('the.package')
+                         .at_path(self.layer.sample_buildout)
+                         .with_directory('upgrades'))
+
+        self.upgrade_script('create "Update ftw.upgrade to version 3."')
+
+        upgrades_dir = package.package_path.joinpath('upgrades')
+        step_path, = upgrades_dir.listdir()
+        self.assertRegexpMatches(step_path.name,
+                                 r'^\d{14}_update_ftw_upgrade_to_version_3$')
+
+        code_path = step_path.joinpath('upgrade.py')
+        self.assertTrue(code_path.exists(), 'upgrade.py is missing')
+        self.maxDiff = True
+        self.assertIn('class UpdateFtwUpgradeToVersion3(UpgradeStep):',
+                      code_path.text())
+        self.assertIn("""Update ftw.upgrade to version 3.\n    """,
+                      code_path.text())
+
     def test_fails_when_no_egginfo_found(self):
         exitcode, output = self.upgrade_script('create Title', assert_exitcode=False)
         self.assertEqual(1, exitcode, 'command should fail because there is no egg-info')

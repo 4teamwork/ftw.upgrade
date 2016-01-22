@@ -5,7 +5,8 @@ Changelog
 1.16.3 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Fix upgrade scaffolding when having dots or other
+  non-alphanumeric characters. [jone]
 
 
 1.16.2 (2016-01-15)

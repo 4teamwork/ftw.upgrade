@@ -2,6 +2,7 @@ from datetime import datetime
 from path import Path
 import inflection
 import os
+import re
 
 
 PYTHON_TEMPLATE = '''from ftw.upgrade import UpgradeStep
@@ -24,7 +25,15 @@ class UpgradeStepCreator(object):
         self.upgrades_directory = upgrades_directory
 
     def create(self, name):
-        name = name.replace(' ', '_').replace('\.$', '')
+        docstring = name.rstrip('.')
+        name = re.sub('\W', '_', name.rstrip('.'))
+
+        if re.match('^\w*$', docstring):
+            # docstring seems to not be a sentence but a camelcase classname
+            # or a underscored upgrade directory name.
+            # Lets make it human readable for use as docstring.
+            docstring = inflection.humanize(
+                inflection.underscore(name))
 
         step_name = '{0}_{1}'.format(
             datetime.now().strftime(DATETIME_FORMAT),
@@ -39,7 +48,6 @@ class UpgradeStepCreator(object):
             code_file.write(
                 PYTHON_TEMPLATE.format(
                     classname=inflection.camelize(name),
-                    docstring=inflection.humanize(
-                        inflection.underscore(name))))
+                    docstring=docstring))
 
         return step_directory

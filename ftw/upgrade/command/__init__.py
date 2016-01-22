@@ -3,6 +3,7 @@ from ftw.upgrade.command import help
 from ftw.upgrade.command import install
 from ftw.upgrade.command import list_cmd
 from ftw.upgrade.command import plone_upgrade
+from ftw.upgrade.command import plone_upgrade_needed
 from ftw.upgrade.command import recook
 from ftw.upgrade.command import sites
 from ftw.upgrade.command import touch
@@ -13,8 +14,8 @@ from ftw.upgrade.command.utils import capture
 from pkg_resources import get_distribution
 import argcomplete
 import argparse
-import logging
 import json
+import logging
 import sys
 
 
@@ -132,6 +133,7 @@ class UpgradeCommand(object):
         install.setup_argparser(commands)
         list_cmd.setup_argparser(commands)
         plone_upgrade.setup_argparser(commands)
+        plone_upgrade_needed.setup_argparser(commands)
         recook.setup_argparser(commands)
         sites.setup_argparser(commands)
         touch.setup_argparser(commands)

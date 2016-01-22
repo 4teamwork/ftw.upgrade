@@ -102,6 +102,14 @@ class PloneSiteAPI(APIView):
         portal_migration.upgrade(swallow_errors=False)
         return 'Plone Site has been updated.'
 
+    @jsonify
+    @action('GET')
+    def plone_upgrade_needed(self):
+        """Returns "true" when Plone needs to be upgraded.
+        """
+        portal_migration = getToolByName(self.context, 'portal_migration')
+        return bool(portal_migration.needUpgrading())
+
     def _refine_profile_info(self, profile):
         return {'id': profile['id'],
                 'title': profile['title'],

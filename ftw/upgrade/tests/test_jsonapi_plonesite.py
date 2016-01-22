@@ -3,6 +3,7 @@ from ftw.builder import Builder
 from ftw.testbrowser import browsing
 from ftw.upgrade.tests.base import JsonApiTestCase
 from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.factory import _DEFAULT_PROFILE
 import re
 import transaction
 
@@ -57,7 +58,12 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                   {'name': 'plone_upgrade',
                    'required_params': [],
                    'description': 'Upgrade the Plone Site. This is what you would manually do in the @@plone-upgrade view.',
-                  'request_method': 'POST'},
+                   'request_method': 'POST'},
+
+                  {'name': 'plone_upgrade_needed',
+                   'required_params': [],
+                   'description': 'Returns "true" when Plone needs to be upgraded.',
+                   'request_method': 'GET'},
 
                   {'name': 'recook_resources',
                    'required_params': [],
@@ -449,3 +455,13 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                 details='The profile "the.package:default" is unknown.'):
             self.api_request('POST', 'execute_profiles',
                              {'profiles:list': ['the.package:default']})
+
+    @browsing
+    def test_plone_upgrade_needed(self, browser):
+        self.api_request('GET', 'plone_upgrade_needed')
+        self.assertEquals('false', browser.contents.strip())
+
+        self.portal_setup.setLastVersionForProfile(_DEFAULT_PROFILE, '4')
+        transaction.commit()
+        self.api_request('GET', 'plone_upgrade_needed')
+        self.assertEquals('true', browser.contents.strip())

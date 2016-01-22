@@ -5,7 +5,7 @@ Changelog
 1.16.4 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Add ``bin/upgrade plone_upgrade_needed`` command.  [jone]
 
 
 1.16.3 (2016-01-22)

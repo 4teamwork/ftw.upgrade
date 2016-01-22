@@ -15,6 +15,7 @@
                             execute_profiles
                             execute_proposed_upgrades
                             plone_upgrade
+                            plone_upgrade_needed
                             recook_resources"
         />
 

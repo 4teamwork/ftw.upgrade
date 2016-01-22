@@ -940,6 +940,12 @@ Example for upgrading Plone when no upgrade is needed:
     $ curl -uadmin:admin -X POST "http://localhost:8080/test/upgrades-api/plone_upgrade"
     "Plone Site was already up to date."
 
+For checking whether a Plone upgrade is needed, you can do:
+
+.. code:: sh
+
+    $ curl -uadmin:admin -X POST "http://localhost:8080/test/upgrades-api/plone_upgrade_needed"
+
 
 Recook resources
 ----------------

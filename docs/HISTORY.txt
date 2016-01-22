@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.16.3 (unreleased)
+1.16.3 (2016-01-22)
 -------------------
 
 - Fix upgrade scaffolding when having dots or other

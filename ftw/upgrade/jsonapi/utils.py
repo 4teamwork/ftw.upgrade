@@ -15,6 +15,7 @@ from ftw.upgrade.jsonapi.exceptions import UpgradeNotFoundWrapper
 from ftw.upgrade.utils import get_tempfile_authentication_directory
 from OFS.interfaces import IApplication
 from zExceptions import Unauthorized
+from zope.interface import alsoProvides
 from zope.security import checkPermission
 import inspect
 import json
@@ -22,6 +23,14 @@ import os
 import re
 import stat
 import transaction
+
+
+try:
+    from plone.protect.interfaces import IDisableCSRFProtection
+except ImportError:
+    DISABLE_CSRF = False
+else:
+    DISABLE_CSRF = True
 
 
 class ErrorHandling(object):
@@ -84,6 +93,9 @@ def action(method, rename_params={}):
 
                 if not checkPermission('cmf.ManagePortal', self.context):
                     raise Unauthorized()
+
+                if DISABLE_CSRF:
+                    alsoProvides(self.request, IDisableCSRFProtection)
 
                 params = extract_action_params(
                     func, self.request, rename_params)

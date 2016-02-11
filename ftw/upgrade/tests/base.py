@@ -68,14 +68,14 @@ class UpgradeTestCase(TestCase):
     def record_installed_upgrades(self, profile, *destinations):
         profile = re.sub('^profile-', '', profile)
         recorder = getMultiAdapter((self.portal, profile), IUpgradeStepRecorder)
-        recorder.storage.clear()
+        recorder.clear()
         map(recorder.mark_as_installed, destinations)
         transaction.commit()
 
     def clear_recorded_upgrades(self, profile):
         profile = re.sub('^profile-', '', profile)
         recorder = getMultiAdapter((self.portal, profile), IUpgradeStepRecorder)
-        recorder.storage.clear()
+        recorder.clear()
         transaction.commit()
 
     def asset(self, filename):

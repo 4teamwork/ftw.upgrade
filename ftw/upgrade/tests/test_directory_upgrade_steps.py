@@ -86,5 +86,30 @@ class TestDirectoryUpgradeSteps(UpgradeTestCase):
                 'Expected upgrade steps to be marked as installed'
                 ' after upgrading.')
 
+    def test_base_profile_and_target_version_are_provided(self):
+        self.portal.upgrade_infos = {}
+
+        class StoreUpgradeInfos(UpgradeStep):
+            def __call__(self):
+                self.portal.upgrade_infos.update({
+                    'base_profile': self.base_profile,
+                    'target_version': self.target_version,
+                })
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 1, 1))
+                          .calling(StoreUpgradeInfos)))
+
+        with self.package_created():
+            self.install_profile('the.package:default')
+            self.assertEquals({}, self.portal.upgrade_infos)
+            self.install_profile_upgrades('the.package:default')
+            self.assertEquals(
+                {'base_profile': u'profile-the.package:default',
+                 'target_version': '20110101000000'},
+                self.portal.upgrade_infos)
+
     def get_action(self):
         return self.portal_actions.portal_tabs.get('test-action')

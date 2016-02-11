@@ -636,7 +636,6 @@ class TestUpgradeStep(UpgradeTestCase):
         self.assertEquals(['Anonymous'],
                           self.get_allowed_roles_and_users_for(folder))
 
-
     def test_update_workflow_security_expects_list_of_workflows(self):
         class Step(UpgradeStep):
             def __call__(self):
@@ -647,6 +646,23 @@ class TestUpgradeStep(UpgradeTestCase):
 
         self.assertEquals('"workflows" must be a list of workflow names.',
                           str(cm.exception))
+
+    def test_base_profile_and_target_version_are_stored_in_attribute(self):
+        result = {}
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                result['base_profile'] = self.base_profile
+                result['target_version'] = self.target_version
+
+        Step(self.portal_setup,
+             base_profile='profile-ftw.upgrade:default',
+             target_version=1500)
+
+        self.assertEquals(
+            {'base_profile': 'profile-ftw.upgrade:default',
+             'target_version': 1500},
+            result)
 
     def set_workflow_chain(self, for_type, to_workflow):
         wftool = getToolByName(self.portal, 'portal_workflow')

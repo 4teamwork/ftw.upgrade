@@ -5,7 +5,8 @@ Changelog
 1.17.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Provide the attributes ``base_profile`` and ``target_version`` on
+  upgrade steps when using the ``upgrade-step:directory`` directive. [jone]
 
 
 1.17.0 (2016-01-22)

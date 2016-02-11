@@ -343,6 +343,20 @@ The ``UpgradeStep`` class has various helper functions:
     sure you did not change any security relevant permissions (only ``View`` needs
     ``reindex_security=True`` for default Plone).
 
+``self.base_profile``
+    The attribute ``base_profile`` contains the profile name of the upgraded
+    profile including the ``profile-`` prefix.
+    Example: ``u"profile-the.package:default"``.
+    This information is only available when using the
+    ``upgrade-step:directory`` directive.
+
+``self.target_version``
+    The attribute ``target_version`` contains the target version of the upgrade
+    step as a bytestring.
+    Example with upgrade step directory: ``"20110101000000"``.
+    This information is only available when using the
+    ``upgrade-step:directory`` directive.
+
 
 
 Progress logger

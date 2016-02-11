@@ -132,6 +132,37 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                  'type': EXTENSION,
                  'for': None})
 
+    def test_profile_version_is_set_to_latest_old_school_profile_version(self):
+        self.profile.with_upgrade(Builder('plone upgrade step')
+                                  .upgrading('1000', to='1001')
+                                  .titled('Register foo utility.'))
+        self.profile.with_upgrade(Builder('ftw upgrade step')
+                                  .to(datetime(2011, 2, 2, 8)))
+
+        package = create(self.package)
+        # Remove upgrade-step directory upgrade in order to have the
+        # manually created upgrade step as last version
+        # but still declaring an upgrade-step:directory:
+        package.package_path.joinpath(
+            'upgrades', '20110202080000_upgrade').rmtree()
+
+        profile_path = package.package_path.joinpath('profiles', 'default')
+        self.assertNotIn('<version',
+                         profile_path.joinpath('metadata.xml').text())
+
+        with package.zcml_loaded(self.layer['configurationContext']):
+            from ftw.upgrade.directory.zcml import find_start_version
+            find_start_version(u'the.package:default')
+            self.assert_profile(
+                {'id': u'the.package:default',
+                 'title': u'the.package',
+                 'description': u'',
+                 'path': str(profile_path),
+                 'version': '1001',
+                 'product': 'the.package',
+                 'type': EXTENSION,
+                 'for': None})
+
     def test_version_set_to_default_when_no_upgrades_defined(self):
         upgrades = self.package.package.get_subpackage('upgrades')
         upgrades.with_zcml_include('ftw.upgrade', file='meta.zcml')

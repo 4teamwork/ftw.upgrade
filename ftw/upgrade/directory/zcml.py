@@ -59,7 +59,7 @@ def upgrade_step_directory_action(profile, dottedname, path):
                 profile))
 
     _package, profilename = profile.split(':', 1)
-    last_version = str(10 ** 13)
+    last_version = ''.join(find_start_version(profile))
     for upgrade_info in scanner.scan():
         upgrade_profile_name = '{0}-upgrade-{1}'.format(
             profilename, upgrade_info['target-version'])

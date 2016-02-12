@@ -8,6 +8,9 @@ Changelog
 - Provide the attributes ``base_profile`` and ``target_version`` on
   upgrade steps when using the ``upgrade-step:directory`` directive. [jone]
 
+- Fix profile version when using `upgrade-step:directory` and
+  having old upgrade steps but no new ones. [jone]
+
 
 1.17.0 (2016-01-22)
 -------------------

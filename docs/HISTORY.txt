@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.17.1 (unreleased)
+1.18.0 (2016-02-16)
 -------------------
 
 - Provide the attributes ``base_profile`` and ``target_version`` on

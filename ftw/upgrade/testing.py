@@ -1,6 +1,7 @@
 from ftw.builder.testing import BUILDER_LAYER
 from ftw.builder.testing import functional_session_factory
 from ftw.builder.testing import set_builder_session_factory
+from ftw.testbrowser import browser
 from ftw.testing.layer import COMPONENT_REGISTRY_ISOLATION
 from ftw.testing.layer import ConsoleScriptLayer
 from ftw.testing.layer import TEMP_DIRECTORY
@@ -9,13 +10,15 @@ from plone.app.testing import applyProfile
 from plone.app.testing import FunctionalTesting
 from plone.app.testing import PLONE_ZSERVER
 from plone.app.testing import PloneSandboxLayer
+from plone.app.testing import SITE_OWNER_NAME
 from plone.testing import z2
 from Products.CMFCore.utils import getToolByName
 from Products.SiteAccess.VirtualHostMonster import manage_addVirtualHostMonster
 from zope.configuration import xmlconfig
-# This import is not used, but it registers a builder that we need:
 import ftw.upgrade.tests.builders
 import pkg_resources
+import transaction
+
 
 ftw.upgrade.tests.builders  # pyflakes
 
@@ -49,6 +52,30 @@ class UpgradeLayer(PloneSandboxLayer):
         applyProfile(portal, 'ftw.upgrade:default')
 
         self.fix_plone_app_jquery_version(portal)
+        self.prevent_csrf_by_initializing_site_storages(portal)
+
+    def prevent_csrf_by_initializing_site_storages(self, portal):
+        """Plone auto-protection results in confirmation pages
+        when first hitting Plone with the browser.
+
+        By hitting the site once we can initialize all standard Plone containers
+        which cause writes on first hit.
+        We do this with disabled protection.
+        """
+        try:
+            from plone.protect import auto
+        except ImportError:
+            return
+
+        transaction.commit()
+        with browser(portal.aq_inner.aq_parent):
+            crsrf_disabled_ori = auto.CSRF_DISABLED
+            auto.CSRF_DISABLED = True
+            try:
+                browser.login(SITE_OWNER_NAME).open(view='overview-controlpanel')
+            finally:
+                auto.CSRF_DISABLED = crsrf_disabled_ori
+                transaction.begin()
 
     def fix_plone_app_jquery_version(self, portal):
         try:

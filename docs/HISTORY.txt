@@ -5,7 +5,7 @@ Changelog
 1.18.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Disable automatic CSRF protection for authorized jsonapi requests. [jone]
 
 
 1.18.0 (2016-02-16)

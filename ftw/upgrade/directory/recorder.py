@@ -17,16 +17,23 @@ class UpgradeStepRecorder(object):
     def __init__(self, portal, profilename):
         self.portal = portal
         self.profile = self._normalize_profilename(profilename)
-        self.storage = self._get_profile_storage()
 
     def is_installed(self, target_version):
-        return bool(self.storage.get(target_version, False))
+        storage = self._get_profile_storage()
+        return storage and bool(storage.get(target_version, False))
 
     def mark_as_installed(self, target_version):
-        self.storage[target_version] = True
+        storage = self._get_profile_storage(create=True)
+        storage[target_version] = True
 
-    def _get_profile_storage(self):
+    def clear(self):
+        self._get_profile_storage(create=True).clear()
+
+    def _get_profile_storage(self, create=False):
         annotations = IAnnotations(self.portal)
+        if ANNOTATION_KEY not in annotations and not create:
+            return None
+
         if ANNOTATION_KEY not in annotations:
             annotations[ANNOTATION_KEY] = OOBTree()
 

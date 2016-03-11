@@ -215,8 +215,8 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
         got = self.portal_setup.getProfileInfo(expected['id']).copy()
 
         # Ignore pre_handler and post_handler, only available in Plone >= 4.3.8
-        got.pop('pre_handler')
-        got.pop('post_handler')
+        got.pop('pre_handler', None)
+        got.pop('post_handler', None)
 
         self.maxDiff = None
         self.assertDictEqual(expected, got)

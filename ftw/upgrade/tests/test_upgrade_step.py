@@ -10,10 +10,8 @@ from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 from plone.browserlayer.utils import register_layer
 from Products.CMFCore.utils import getToolByName
-from StringIO import StringIO
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
-import logging
 
 
 class IMyProductLayer(Interface):
@@ -27,13 +25,7 @@ class TestUpgradeStep(UpgradeTestCase):
         super(TestUpgradeStep, self).setUp()
         self.portal = self.layer['portal']
         self.portal_setup = getToolByName(self.portal, 'portal_setup')
-
-        self.log = StringIO()
-        self.logger = logging.getLogger('ftw.upgrade')
-        self.logger.setLevel(logging.DEBUG)
-
-        handler = logging.StreamHandler(self.log)
-        self.logger.addHandler(handler)
+        self.setup_logging()
 
         setRoles(self.portal, TEST_USER_ID, ['Manager'])
 
@@ -96,7 +88,7 @@ class TestUpgradeStep(UpgradeTestCase):
         self.assertEquals(['STARTING Log message',
                            '1 of 3 (33%): Log message',
                            'DONE Log message'],
-                          self.read_log())
+                          self.get_log())
 
     def test_objects_modifying_catalog_does_not_reduce_result_set(self):
         old_date = DateTime(2010, 1, 1)
@@ -698,7 +690,3 @@ class TestUpgradeStep(UpgradeTestCase):
         rid = catalog.getrid(path)
         index_data = catalog.getIndexDataForRID(rid)
         return index_data.get('allowedRolesAndUsers')
-
-    def read_log(self):
-        self.log.seek(0)
-        return self.log.read().strip().split('\n')

@@ -123,3 +123,24 @@ class TestExecutioner(UpgradeTestCase):
             self.assertEquals('1.0', quickinstaller.get('the.package').getInstalledVersion())
             self.install_profile_upgrades('the.package:default')
             self.assertEquals('1.1', quickinstaller.get('the.package').getInstalledVersion())
+
+    def test_install_profiles_by_profile_ids(self):
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_upgrade(Builder('plone upgrade step')
+                                                .upgrading('1000', to='1001')))
+
+        self.setup_logging()
+        profile_id = 'the.package:default'
+        with self.package_created():
+            executioner = queryAdapter(self.portal_setup, IExecutioner)
+            executioner.install_profiles_by_profile_ids(profile_id)
+            self.assertEquals(
+                ['Installing profile the.package:default.',
+                 'Done installing profile the.package:default.'],
+                self.get_log())
+
+            self.purge_log()
+            executioner.install_profiles_by_profile_ids(profile_id)
+            self.assertEquals(
+                ['Ignoring already installed profile the.package:default.'],
+                self.get_log())

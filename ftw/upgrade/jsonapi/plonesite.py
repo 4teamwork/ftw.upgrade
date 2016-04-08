@@ -68,7 +68,7 @@ class PloneSiteAPI(APIView):
         return self._install_upgrades(*api_ids)
 
     @action('POST', rename_params={'profiles': 'profiles:list'})
-    def execute_profiles(self, profiles):
+    def execute_profiles(self, profiles, force_reinstall=False):
         """Executes a list of profiles, each identified by their ID.
         """
         self._require_up_to_date_plone_site()
@@ -79,7 +79,8 @@ class PloneSiteAPI(APIView):
             if not self.portal_setup.profileExists(profile):
                 raise ProfileNotFound(profile)
             profile_ids.append(profile)
-        return self._install_profiles(*profile_ids)
+        return self._install_profiles(*profile_ids,
+                                      force_reinstall=force_reinstall)
 
     @jsonify
     @action('POST')
@@ -155,11 +156,12 @@ class PloneSiteAPI(APIView):
         except Exception, exc:
             raise AbortTransactionWithStreamedResponse(exc)
 
-    def _install_profiles(self, *profile_ids):
+    def _install_profiles(self, *profile_ids, **options):
         executioner = IExecutioner(self.portal_setup)
         try:
             with ResponseLogger(self.request.RESPONSE, annotate_result=True):
-                executioner.install_profiles_by_profile_ids(*profile_ids)
+                executioner.install_profiles_by_profile_ids(
+                    *profile_ids, **options)
         except Exception, exc:
             raise AbortTransactionWithStreamedResponse(exc)
 

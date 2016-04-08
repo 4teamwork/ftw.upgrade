@@ -932,6 +932,10 @@ ftw.upgrade (which was already installed):
     2016-01-05 13:09:48 INFO ftw.upgrade Ignoring already installed profile ftw.upgrade:default.
     Result: SUCCESS
 
+By default, already installed profiles are skipped.
+When supplying the ``force_reinstall=True`` request parameter,
+already installed profiles will be reinstalled.
+
 
 Upgrading Plone
 ~~~~~~~~~~~~~~~

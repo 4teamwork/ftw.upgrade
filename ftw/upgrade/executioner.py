@@ -50,7 +50,8 @@ class Executioner(object):
         return self.install(data)
 
     security.declarePrivate('install_profiles_by_profile_ids')
-    def install_profiles_by_profile_ids(self, *profile_ids):
+    def install_profiles_by_profile_ids(self, *profile_ids, **options):
+        force_reinstall = options.get('force_reinstall', False)
         for profile_id in profile_ids:
             # Starting from GenericSetup 1.8.0 getLastVersionForProfile can
             # handle profile ids with or without 'profile-' prefix, but we need
@@ -60,7 +61,7 @@ class Executioner(object):
             if profile_id.startswith(prefix):
                 profile_id = profile_id[len(prefix):]
             installed = self.portal_setup.getLastVersionForProfile(profile_id)
-            if installed != 'unknown':
+            if installed != 'unknown' and not force_reinstall:
                 logger.info('Ignoring already installed profile %s.',
                             profile_id)
                 continue

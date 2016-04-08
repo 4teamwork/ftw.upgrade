@@ -144,3 +144,11 @@ class TestExecutioner(UpgradeTestCase):
             self.assertEquals(
                 ['Ignoring already installed profile the.package:default.'],
                 self.get_log())
+
+            self.purge_log()
+            executioner.install_profiles_by_profile_ids(profile_id,
+                                                        force_reinstall=True)
+            self.assertEquals(
+                ['Installing profile the.package:default.',
+                 'Done installing profile the.package:default.'],
+                self.get_log())

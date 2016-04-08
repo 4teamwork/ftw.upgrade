@@ -5,7 +5,7 @@ Changelog
 1.18.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Add option to force reinstall already installed profiles. [jone]
 
 
 1.18.1 (2016-03-09)

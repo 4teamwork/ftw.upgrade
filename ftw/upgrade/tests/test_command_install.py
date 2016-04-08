@@ -120,3 +120,23 @@ class TestInstallCommand(CommandAndInstanceTestCase):
              u' ftw.upgrade:default.',
              u'Result: SUCCESS'],
             output.splitlines())
+
+    def test_force_install_already_installed_profiles(self):
+        self.setup_logging()
+        self.purge_log()
+        exitcode, output = self.upgrade_script(
+            'install -s plone --force --profiles ftw.upgrade:default')
+        self.assertEquals(
+            [u'ftw.upgrade: Installing profile ftw.upgrade:default.',
+             u'ftw.upgrade: Done installing profile ftw.upgrade:default.',
+             u'Result: SUCCESS'],
+            output.splitlines())
+
+    def test_force_option_is_meant_to_be_combined_with_profiles(self):
+        exitcode, output = self.upgrade_script(
+            'install -s plone --force --upgrades 20110101000000@the.package:default',
+            assert_exitcode=False)
+        self.assertEquals(3, exitcode)
+        self.assertEquals(
+            [u'ERROR: --force can only be used with --profiles.'],
+            output.splitlines())

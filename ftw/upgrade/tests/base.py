@@ -17,11 +17,13 @@ from plone.app.testing import SITE_OWNER_NAME
 from plone.app.testing import TEST_USER_ID
 from plone.app.testing import TEST_USER_PASSWORD
 from Products.CMFCore.utils import getToolByName
+from StringIO import StringIO
 from unittest2 import TestCase
 from urllib2 import HTTPError
 from zope.component import getMultiAdapter
 from zope.component import queryAdapter
 import json
+import logging
 import os
 import re
 import transaction
@@ -38,6 +40,9 @@ class UpgradeTestCase(TestCase):
         self.portal = self.layer['portal']
         self.portal_setup = getToolByName(self.portal, 'portal_setup')
         self.portal_quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
+
+    def tearDown(self):
+        self.teardown_logging()
 
     @property
     def directory(self):
@@ -96,6 +101,29 @@ class UpgradeTestCase(TestCase):
         yield
         self.assertNotEqual(styles, get_styles(), 'Styles are not recooked.')
         self.assertNotEqual(scripts, get_scripts(), 'Scripts are not recooked.')
+
+    def setup_logging(self):
+        self.log = StringIO()
+        self.loghandler = logging.StreamHandler(self.log)
+        self.logger = logging.getLogger('ftw.upgrade')
+        self.logger.setLevel(logging.DEBUG)
+        self.logger.addHandler(self.loghandler)
+
+    def teardown_logging(self):
+        if getattr(self, 'log', None) is None:
+            return
+
+        self.logger.removeHandler(self.loghandler)
+        self.log = None
+        self.loghandler = None
+        self.logger = None
+
+    def get_log(self):
+        return self.log.getvalue().splitlines()
+
+    def purge_log(self):
+        self.log.seek(0)
+        self.log.truncate()
 
 
 class CommandTestCase(TestCase):

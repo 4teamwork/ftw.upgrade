@@ -96,3 +96,47 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             transaction.begin()  # sync transaction
             self.assertEquals(['https://foo.bar.com/baz/the-folder'],
                               self.layer['portal'].upgrade_info)
+
+    def test_install_profiles(self):
+        self.package.with_profile(Builder('genericsetup profile'))
+
+        self.setup_logging()
+        with self.package_created():
+            exitcode, output = self.upgrade_script(
+                'install -s plone --profiles the.package:default')
+            self.assertEquals(
+                [u'ftw.upgrade: Installing profile the.package:default.',
+                 u'ftw.upgrade: Done installing profile the.package:default.',
+                 u'Result: SUCCESS'],
+                output.splitlines())
+
+    def test_install_profiles_skipped_when_already_installed(self):
+        self.setup_logging()
+        self.purge_log()
+        exitcode, output = self.upgrade_script(
+            'install -s plone --profiles ftw.upgrade:default')
+        self.assertEquals(
+            [u'ftw.upgrade: Ignoring already installed profile'
+             u' ftw.upgrade:default.',
+             u'Result: SUCCESS'],
+            output.splitlines())
+
+    def test_force_install_already_installed_profiles(self):
+        self.setup_logging()
+        self.purge_log()
+        exitcode, output = self.upgrade_script(
+            'install -s plone --force --profiles ftw.upgrade:default')
+        self.assertEquals(
+            [u'ftw.upgrade: Installing profile ftw.upgrade:default.',
+             u'ftw.upgrade: Done installing profile ftw.upgrade:default.',
+             u'Result: SUCCESS'],
+            output.splitlines())
+
+    def test_force_option_is_meant_to_be_combined_with_profiles(self):
+        exitcode, output = self.upgrade_script(
+            'install -s plone --force --upgrades 20110101000000@the.package:default',
+            assert_exitcode=False)
+        self.assertEquals(3, exitcode)
+        self.assertEquals(
+            [u'ERROR: --force can only be used with --profiles.'],
+            output.splitlines())

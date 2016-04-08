@@ -448,6 +448,27 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
             self.assertIn('Result: SUCCESS', browser.contents)
 
     @browsing
+    def test_execute_profiles_force_when_already_installed(self, browser):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))
+                          .named('The upgrade')))
+
+        with self.package_created():
+            self.portal_setup.runAllImportStepsFromProfile(
+                'profile-the.package:default')
+            transaction.commit()
+            self.api_request('POST', 'execute_profiles',
+                             {'profiles:list': ['the.package:default'],
+                              'force_reinstall': True})
+            self.assertNotIn(
+                'Ignoring already installed profile the.package:default.',
+                browser.contents)
+            self.assertIn('Done installing profile the.package:default.',
+                          browser.contents)
+            self.assertIn('Result: SUCCESS', browser.contents)
+
+    @browsing
     def test_execute_profiles_not_found(self, browser):
         with self.expect_api_error(
                 status=400,

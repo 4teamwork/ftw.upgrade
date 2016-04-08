@@ -65,6 +65,11 @@ def setup_argparser(commands):
     add_requestor_authentication_argument(command)
     add_site_path_argument(command)
 
+    command.add_argument('--force', '-f', action='store_true',
+                         dest='force_reinstall',
+                         default=False,
+                         help='Force reinstall already installed profiles.')
+
     group = command.add_mutually_exclusive_group(required=True)
     group.add_argument('--upgrades', '-u', nargs='+',
                        help='One or many upgrade step API ids.',
@@ -79,12 +84,18 @@ def setup_argparser(commands):
 @with_api_requestor
 @error_handling
 def install_command(args, requestor):
+    if args.force_reinstall and not args.profiles:
+        print >>sys.stderr, 'ERROR: --force can only be used with --profiles.'
+        sys.exit(3)
+
     if args.proposed:
         action = 'execute_proposed_upgrades'
         params = ()
     elif args.profiles:
         action = 'execute_profiles'
         params = [('profiles:list', name) for name in set(args.profiles)]
+        if args.force_reinstall:
+            params.append(('force_reinstall', True))
     else:
         action = 'execute_upgrades'
         params = [('upgrades:list', name) for name in set(args.upgrades)]

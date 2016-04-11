@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-1.18.2 (unreleased)
+1.19.0 (2016-04-11)
 -------------------
 
 - Add option to force reinstall already installed profiles. [jone]

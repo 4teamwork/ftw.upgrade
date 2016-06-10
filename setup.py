@@ -12,6 +12,7 @@ tests_require = [
     'plone.testing',
     'plone.app.testing',
     'plone.app.intid',
+    'plone.app.contenttypes',
 
     'zope.configuration',
     'zc.recipe.egg',

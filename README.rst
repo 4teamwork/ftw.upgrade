@@ -490,6 +490,85 @@ the new states (value, plone_workflow).
   allowedRolesAndUsers (`True` by default).
 
 
+Inplace Migrator
+----------------
+
+The inplace migrator provides a fast and easy way for migrating content in
+upgrade steps.
+It can be used for example for migration from Archetypes to Dexterity.
+
+The difference between Plone's standard migration and the inplace migration
+is that the standard migration creates a new sibling and moves the children
+and the inplace migration simply replaces the objects within the tree an
+attaches the children to the new parent.
+This is a much faster approach since no move / rename events are fired.
+
+Example usage:
+
+.. code:: python
+
+    from ftw.upgrade import UpgradeStep
+    from ftw.upgrade.migration import InplaceMigrator
+
+    class MigrateContentPages(UpgradeStep):
+
+        def __call__(self):
+            self.install_upgrade_profile()
+
+            migrator = InplaceMigrator(
+                new_portal_type='DXContentPage',
+                field_mapping={'text': 'content'},
+            )
+
+            for obj in self.objects({'portal_type': 'ATContentPage'},
+                                    'Migrate content pages to dexterity'):
+                migrator.migrate_object(obj)
+
+
+**Arguments:**
+
+- ``new_portal_type`` (required): The portal_type name of the destination type.
+- ``field_mapping``: A mapping of old fieldnames to new fieldnames.
+- ``options``: One or many options (binary flags).
+- ``ignore_fields``: A list of fields which should be ignored.
+- ``attributes_to_migrate``: A list of attributes (not fields!) which should be
+  copied from the old to the new object. This defaults to
+  ``DEFAULT_ATTRIBUTES_TO_COPY``.
+
+**Options:**
+
+The options are binary flags: multiple options can be or-ed.
+Exmaple:
+
+.. code:: python
+
+   from ftw.upgrade.migration import IGNORE_STANDARD_FIELD_MAPPING
+   from ftw.upgrade.migration import IGNORE_UNMAPPED_FIELDS
+   from ftw.upgrade.migration import InplaceMigrator
+
+    migrator = InplaceMigrator(
+        'DXContentPage',
+        options=IGNORE_UNMAPPED_FIELDS | IGNORE_STANDARD_FIELD_MAPPING,
+    })
+
+- ``DISABLE_FIELD_AUTOMAPPING``: by default, fields with the same name on the
+  old and the new implementation are automatically mapped. This flags disables
+  the automatic mapping.
+- ``IGNORE_UNMAPPED_FIELDS``: by default, a ``FieldsNotMappedError`` is raised
+  when unmapped fields are detected. This flags disables this behavior and
+  unmapped fields are simply ignored.
+- ``BACKUP_AND_IGNORE_UNMAPPED_FIELDS``: ignores unmapped fields but stores the
+  values of unmapped fields in the annotations of the new object (using the
+  key from the constant ``UNMAPPED_FIELDS_BACKUP_ANN_KEY``), so that the values
+  can be handled later. This is useful when having additional fields (schema
+  extender).
+- ``IGNORE_STANDARD_FIELD_MAPPING`` by default, the ``STANDARD_FIELD_MAPPING``
+  is merged into each field mapping, containing standard Plone field mappings
+  from Archetypes to Dexterity. This flag disables this behavior.
+- ``IGNORE_DEFAULT_IGNORE_FIELDS`` by default, the fields listed in
+  ``DEFAULT_IGNORED_FIELDS`` are skipped. This flag disables this behavior.
+- ``SKIP_MODIFIED_EVENT`` when `True`, no modified event is triggered.
+
 
 Upgrade directories
 ===================

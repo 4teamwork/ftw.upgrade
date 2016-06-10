@@ -1,0 +1,526 @@
+from Acquisition import aq_base
+from Acquisition import aq_inner
+from Acquisition import aq_parent
+from archetypes.referencebrowserwidget.interfaces import IATReferenceField
+from DateTime import DateTime
+from ftw.upgrade.helpers import update_security_for
+from functools import partial
+from persistent.mapping import PersistentMapping
+from plone.app.blob.interfaces import IBlobWrapper
+from plone.app.relationfield.event import extract_relations
+from plone.app.textfield import IRichText
+from plone.app.textfield import IRichTextValue
+from plone.app.uuid.utils import uuidToObject
+from plone.dexterity.interfaces import IDexterityContent
+from plone.dexterity.utils import createContent
+from plone.dexterity.utils import iterSchemata
+from plone.namedfile.interfaces import INamedBlobFileField
+from plone.namedfile.interfaces import INamedBlobImageField
+from plone.namedfile.interfaces import INamedField
+from plone.uuid.interfaces import IMutableUUID
+from plone.uuid.interfaces import IUUID
+from Products.Archetypes.interfaces import IBaseObject
+from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.interfaces import constrains
+from z3c.relationfield.event import _setRelation
+from z3c.relationfield.interfaces import IRelationChoice
+from z3c.relationfield.relation import create_relation
+from zope.annotation import IAnnotations
+from zope.component import getUtility
+from zope.container.contained import notifyContainerModified
+from zope.event import notify
+from zope.intid.interfaces import IIntIds
+from zope.keyreference.interfaces import IKeyReference
+from zope.lifecycleevent import ObjectModifiedEvent
+from zope.schema import getFieldsInOrder
+
+
+DISABLE_FIELD_AUTOMAPPING = 1
+IGNORE_UNMAPPED_FIELDS = 2
+BACKUP_AND_IGNORE_UNMAPPED_FIELDS = 4
+IGNORE_STANDARD_FIELD_MAPPING = 8
+IGNORE_DEFAULT_IGNORE_FIELDS = 16
+SKIP_MODIFIED_EVENT = 32
+
+UNMAPPED_FIELDS_BACKUP_ANN_KEY = 'ftw.upgrade.migration:fields_backup'
+
+
+DEFAULT_ATTRIBUTES_TO_COPY = (
+    '__ac_local_roles__',
+    '__ac_local_roles_block__',
+    '__annotations__',
+    '_count',
+    '_mt_index',
+    '_owner',
+    '_tree',
+    'workflow_history',
+)
+
+
+DEFAULT_IGNORED_FIELDS = (
+    # ID, creation date and modification date are set by method, not by field.
+    'id',
+    'creation_date',
+    'modification_date',
+
+    # Constrain types are not regular behaviors.
+    'constrainTypesMode',
+    'locallyAllowedTypes',
+    'immediatelyAddableTypes',
+
+    # The location field is no longer available in Dexterity.
+    'location',
+
+    # The presentation field is no longer available in Dexterity.
+    'presentation',
+)
+
+
+DEFAULT_OMIT_INDEXES = (
+    'SearchableText',  # expensive; should be calculated afterwards
+)
+
+
+STANDARD_FIELD_MAPPING = {
+    'subject': 'subjects',
+    'allowDiscussion': 'allow_discussion',
+    'effectiveDate': 'effective',
+    'expirationDate': 'expires',
+    'excludeFromNav': 'exclude_from_nav',
+    'tableContents': 'table_of_contents',
+}
+
+
+class IgnoreField(Exception):
+    """Exception for indicating that the current field should
+    be silently ignored.
+    Used internally only.
+    """
+
+
+class FieldNotMappedError(ValueError):
+    """A field was not mapped properly.
+    """
+
+
+class FieldsNotMappedError(ValueError):
+    """A field was not mapped properly.
+    """
+
+    message_template = (
+        'Some fields are not mapped correctly when migrating'
+        ' from "{old_type}" to "{new_type}":\n\n'
+        'Not mapped:\n- {not_mapped}\n\n'
+        'Target fields:\n- {target_fields}\n\n'
+    )
+
+    def __init__(self, not_mapped, old_type, new_type, target_fields):
+        super(FieldsNotMappedError, self).__init__(
+            self.message_template.format(
+                not_mapped='\n- '.join(sorted(not_mapped)),
+                old_type=old_type,
+                new_type=new_type,
+                target_fields='\n- '.join(sorted(target_fields))))
+        self.not_mapped_fields = not_mapped
+        self.old_type = old_type
+        self.new_type = new_type
+        self.target_fields = target_fields
+
+
+class InplaceMigrator(object):
+    """The inplace migrator allows to easily migrate object inplace
+    to dexterity objects.
+
+    It supports Archetypes and Dexterity frameworks as source but only can
+    produce Dexterity objects as destination.
+    """
+
+    def __init__(self,
+                 new_portal_type,
+                 field_mapping=None,
+                 options=0,
+                 ignore_fields=(),
+                 attributes_to_migrate=DEFAULT_ATTRIBUTES_TO_COPY,
+                 additional_steps=(),
+                 omit_indexes=DEFAULT_OMIT_INDEXES):
+
+        self.new_portal_type = new_portal_type
+        self.field_mapping = field_mapping or {}
+        self.options = options
+        self.attributes_to_migrate = attributes_to_migrate
+        self.omit_indexes = omit_indexes
+
+        self.ignore_fields = list(ignore_fields)
+        if not (options & IGNORE_DEFAULT_IGNORE_FIELDS):
+            self.ignore_fields.extend(DEFAULT_IGNORED_FIELDS)
+
+        self.steps_before_clone = (
+            self.dump_and_remove_references,
+        )
+        self.steps_after_clone = (
+            self.migrate_intid,
+            self.migrate_field_values,
+            self.add_relations_to_relation_catalog,
+            self.migrate_properties,
+            self.migrate_constrain_types_configuration,
+        )
+        self.additional_steps = additional_steps
+        self.final_steps = (
+            self.update_creation_date,
+            self.update_security,
+            self.trigger_modified_event,
+            self.update_modification_date,
+        )
+
+    def migrate_object(self, old_object):
+        map(lambda func: func(old_object),
+            self.steps_before_clone)
+        new_object = self.clone_object(old_object)
+        map(lambda func: func(old_object, new_object),
+            list(self.steps_after_clone) +
+            list(self.additional_steps) +
+            list(self.final_steps))
+        return new_object
+
+    def dump_and_remove_references(self, old_object):
+        """We can only remove the relations from the reference_catalog
+        as long as we did not replace the object (clone_object()),
+        because otherwise the catalog cannot lookup the object anymore.
+        We need to remove references from the reference_catalog,
+        because otherwise the references will stay forever.
+        Usually, when having DX=>DX relations at the end, we should no
+        longer have references in the (AT) reference_catalog but only
+        in the zc.catalog (intid).
+        """
+        self.removed_field_values = {}
+
+        if not IBaseObject.providedBy(old_object):
+            return  # not AT
+
+        for field in old_object.Schema().values():
+            if not IATReferenceField.providedBy(field):
+                continue
+
+            value = field.getRaw(old_object)
+            if not value:
+                continue
+
+            self.removed_field_values[field.__name__] = value
+            field.set(old_object, ())  # removes references.
+
+    def clone_object(self, old_object):
+        new_object = self.construct_clone_for(old_object)
+        self.migrate_id_and_uuid(old_object, new_object)
+        self.migrate_attributes(old_object, new_object)
+        new_object = self.replace_in_parent(old_object, new_object)
+        return new_object
+
+    def construct_clone_for(self, old_object):
+        return createContent(self.new_portal_type)
+
+    def migrate_id_and_uuid(self, old_object, new_object):
+        new_object.id = old_object.id
+        IMutableUUID(new_object).set(IUUID(old_object))
+
+    def migrate_intid(self, old_object, new_object):
+        if '_intids' not in dir(self):
+            self._intids = getUtility(IIntIds)
+
+        old_key = IKeyReference(old_object)
+        new_key = IKeyReference(new_object)
+        uid = self._intids.ids[old_key]
+
+        self._intids.refs[uid] = new_key
+        self._intids.ids[new_key] = uid
+        del self._intids.ids[old_key]
+
+    def migrate_attributes(self, old_object, new_object):
+        old_object = aq_base(old_object)
+        new_object = aq_base(new_object)
+
+        for name in self.attributes_to_migrate:
+            if hasattr(old_object, name):
+                setattr(new_object, name, getattr(old_object, name))
+
+    def replace_in_parent(self, old_object, new_object):
+        parent = aq_parent(aq_inner(old_object))
+        new_object = aq_base(new_object)
+
+        parent._delOb(old_object.id)
+        objects = [info for info in parent._objects
+                   if info['id'] != new_object.id]
+        objects = tuple(objects)
+        objects += ({'id': new_object.id,
+                     'meta_type': getattr(new_object, 'meta_type', None)},)
+        parent._objects = objects
+        parent._setOb(new_object.id, new_object)
+        notifyContainerModified(parent)
+
+        if hasattr(aq_base(parent), '_tree'):
+            del parent._tree[new_object.id]
+            parent._tree[new_object.id] = new_object
+
+        return parent._getOb(new_object.id)
+
+    def migrate_field_values(self, old_object, new_object):
+        not_mapped = {}
+        new_field_map = self.build_new_field_map(new_object)
+
+        for old_fieldname, value in self.get_field_values(old_object):
+            try:
+                new_field = self.get_new_field(old_object,
+                                               new_object,
+                                               old_fieldname,
+                                               new_field_map)
+
+            except FieldNotMappedError:
+                not_mapped[old_fieldname] = value
+                continue
+
+            except IgnoreField:
+                continue
+
+            else:
+                self.set_field_value(new_object, new_field, value)
+
+        if not_mapped and self.options & BACKUP_AND_IGNORE_UNMAPPED_FIELDS:
+            annotations = IAnnotations(new_object)
+            if UNMAPPED_FIELDS_BACKUP_ANN_KEY not in annotations:
+                annotations[UNMAPPED_FIELDS_BACKUP_ANN_KEY] = PersistentMapping()
+
+            annotations[UNMAPPED_FIELDS_BACKUP_ANN_KEY].update(not_mapped)
+
+        elif not_mapped:
+            raise FieldsNotMappedError(not_mapped.keys(),
+                                       old_object.portal_type,
+                                       new_object.portal_type,
+                                       new_field_map)
+
+    def get_new_field(self, old_object, new_object,
+                      old_fieldname, new_field_map):
+        if old_fieldname in self.field_mapping:
+            new_fieldname = self.field_mapping[old_fieldname]
+            if new_fieldname in new_field_map:
+                return new_field_map[new_fieldname]
+
+        if not (self.options & IGNORE_STANDARD_FIELD_MAPPING):
+            if old_fieldname in STANDARD_FIELD_MAPPING:
+                new_fieldname = STANDARD_FIELD_MAPPING[old_fieldname]
+                if new_fieldname in new_field_map:
+                    return new_field_map[new_fieldname]
+
+        if not (self.options & DISABLE_FIELD_AUTOMAPPING):
+            if old_fieldname in new_field_map:
+                return new_field_map[old_fieldname]
+
+        if self.options & IGNORE_UNMAPPED_FIELDS:
+            raise IgnoreField()
+
+        raise FieldNotMappedError()
+
+    def get_field_values(self, old_object):
+        if IBaseObject.providedBy(old_object):
+            return self.get_at_field_values(old_object)
+        elif IDexterityContent.providedBy(old_object):
+            return self.get_dx_field_values(old_object)
+        else:
+            raise NotImplementedError('Only AT and DX is supported.')
+
+    def get_at_field_values(self, old_object):
+        for field in old_object.Schema().values():
+            fieldname = field.__name__
+            if fieldname in self.ignore_fields:
+                continue
+
+            value = self.removed_field_values.get(
+                fieldname, field.getRaw(old_object))
+            value = self.normalize_at_field_value(field, fieldname, value)
+            yield fieldname, value
+
+    def normalize_at_field_value(self, old_field, old_fieldname, value):
+        recurse = partial(self.normalize_at_field_value,
+                          old_field, old_fieldname)
+
+        if isinstance(value, str):
+            return recurse(value.decode('utf-8'))
+
+        if isinstance(value, list):
+            return map(recurse, value)
+
+        if isinstance(value, tuple):
+            return tuple(map(recurse, value))
+
+        if isinstance(value, DateTime):
+            return recurse(value.asdatetime().replace(tzinfo=None))
+
+        return value
+
+    def get_dx_field_values(self, old_object):
+        no_value_marker = object()
+
+        for schemata in iterSchemata(old_object):
+            storage = schemata(old_object)
+
+            for fieldname, field in getFieldsInOrder(schemata):
+                if fieldname in self.ignore_fields:
+                    continue
+
+                value = getattr(storage, fieldname, no_value_marker)
+                if value == no_value_marker:
+                    continue
+
+                value = self.normalize_dx_field_value(field, fieldname, value)
+                yield fieldname, value
+
+    def normalize_dx_field_value(self, old_field, old_fieldname, value):
+        return value
+
+    def set_field_value(self, new_object, field, value):
+        value = self.prepare_field_value(new_object, field, value)
+        field.set(field.interface(new_object), value)
+
+    def prepare_field_value(self, new_object, field, value):
+        recurse = partial(self.prepare_field_value, new_object, field)
+
+        if isinstance(value, str):
+            return recurse(value.decode('utf-8'))
+
+        if isinstance(value, list):
+            return map(recurse, value)
+
+        if isinstance(value, tuple):
+            return tuple(map(recurse, value))
+
+        relation_fields = filter(IRelationChoice.providedBy,
+                                 (field, getattr(field, 'value_type', None)))
+        if relation_fields and isinstance(value, unicode):
+            target = uuidToObject(value)
+            return create_relation('/'.join(target.getPhysicalPath()))
+
+        if IRichText.providedBy(field) \
+           and not IRichTextValue.providedBy(value):
+            return recurse(field.fromUnicode(value))
+
+        if INamedField.providedBy(field) and value \
+           and not isinstance(value, field._type):
+
+            source_is_blobby = IBlobWrapper.providedBy(value)
+            target_is_blobby = INamedBlobFileField.providedBy(field) or \
+                               INamedBlobImageField.providedBy(field)
+
+            if source_is_blobby and target_is_blobby:
+                filename = value.filename
+                if isinstance(filename, str):
+                    filename = filename.decode('utf-8')
+
+                new_value = field._type(
+                    data='',  # empty blob, will be replaced
+                    contentType=value.content_type,
+                    filename=filename)
+                if not hasattr(new_value, '_blob'):
+                    raise ValueError(
+                        ('Unsupported file value type {!r}'
+                         ', missing _blob.').format(
+                             new_value.__class__))
+
+                # Simply copy the persistent blob object (with the file system
+                # pointer) to the new value so that the file is not copied.
+                # We assume that the old object is trashed and can therefore
+                # adopt the blob file.
+                new_value._blob = value.getBlob()
+                return recurse(new_value)
+
+            elif source_is_blobby and not target_is_blobby:
+                filename = value.filename
+                if isinstance(filename, str):
+                    filename = filename.decode('utf-8')
+
+                return recurse(field._type(
+                    data=value.data,
+                    contentType=value.content_type,
+                    filename=filename))
+
+            else:
+                raise ValueError(
+                    'Unsupported file value type {!r} ({!r})'
+                    .format(value.__class__,
+                            {'source_is_blobby': source_is_blobby,
+                             'target_is_blobby': target_is_blobby}))
+
+        return value
+
+    def build_new_field_map(self, new_object):
+        fieldmap = {}
+
+        for schemata in iterSchemata(new_object):
+            for new_fieldname, field in getFieldsInOrder(schemata):
+                if field.readonly:
+                    continue
+
+                fieldmap[new_fieldname] = field
+                fieldmap['.'.join((field.interface.__identifier__,
+                                   new_fieldname))] = field
+
+        return fieldmap
+
+    def add_relations_to_relation_catalog(self, old_object, new_object):
+        for behavior_interface, name, relation in extract_relations(new_object):
+            _setRelation(new_object, name, relation)
+
+    def migrate_properties(self, old_object, new_object):
+        for item in old_object.propertyMap():
+            key = item['id']
+            if key == 'title':
+                continue
+
+            value = old_object.getProperty(key)
+            if new_object.hasProperty(key):
+                new_object._updateProperty(key, value)
+            else:
+                new_object._setProperty(key, value, item['type'])
+
+    def migrate_constrain_types_configuration(self, old_object, new_object):
+        old_ct = constrains.IConstrainTypes(old_object, None)
+        if not old_ct:
+            # No constrain types support on old object.
+            # It might not be folderish.
+            return
+
+        old_mode = old_ct.getConstrainTypesMode()
+        if old_mode == constrains.DISABLED:
+            return
+
+        new_ct = constrains.ISelectableConstrainTypes(new_object, None)
+        if new_ct is None:
+            return
+
+        new_ct.setConstrainTypesMode(old_mode)
+
+        if old_mode != constrains.ENABLED:
+            return
+
+        portal_types = getToolByName(old_object, 'portal_types')
+        new_ct.setLocallyAllowedTypes(
+            filter(portal_types.get, old_ct.getLocallyAllowedTypes()))
+        new_ct.setImmediatelyAddableTypes(
+            filter(portal_types.get, old_ct.getImmediatelyAddableTypes()))
+
+    def update_creation_date(self, old_object, new_object):
+        new_object.creation_date = (
+            old_object.created().asdatetime().replace(tzinfo=None))
+
+    def update_security(self, old_object, new_object):
+        update_security_for(new_object, reindex_security=False)
+
+    def trigger_modified_event(self, old_object, new_object):
+        if self.options & SKIP_MODIFIED_EVENT:
+            return
+
+        notify(ObjectModifiedEvent(new_object))
+
+    def update_modification_date(self, old_object, new_object):
+        new_object.setModificationDate(
+            old_object.modified().asdatetime().replace(tzinfo=None))
+
+        if not (self.options & SKIP_MODIFIED_EVENT):
+            new_object.reindexObject(idxs=['modified'])

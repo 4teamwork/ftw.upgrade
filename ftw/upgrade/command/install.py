@@ -102,7 +102,10 @@ def install_command(args, requestor):
 
     with closing(requestor.POST(action, params=params,
                                 stream=True)) as response:
-        for line in response.iter_lines(chunk_size=30, decode_unicode=True):
+        for line in response.iter_lines(chunk_size=30):
+            if isinstance(line, str):
+                line = line.decode('utf-8')
+
             print line
 
     if line.strip() != 'Result: SUCCESS':

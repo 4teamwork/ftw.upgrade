@@ -42,6 +42,11 @@ class UpgradeLayer(PloneSandboxLayer):
         xmlconfig.file('configure.zcml', ftw.upgrade,
                        context=configurationContext)
 
+        z2.installProduct(app, 'Products.DateRecurringIndex')
+        import plone.app.contenttypes
+        xmlconfig.file('configure.zcml', plone.app.contenttypes,
+                       context=configurationContext)
+
         z2.installProduct(app, 'Products.CMFPlacefulWorkflow')
 
         manage_addVirtualHostMonster(app, 'virtual_hosting')

@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.19.1.dev0'
+version = '2.0.0.dev0'
 
 tests_require = [
     'unittest2',
@@ -12,6 +12,7 @@ tests_require = [
     'plone.testing',
     'plone.app.testing',
     'plone.app.intid',
+    'plone.app.contenttypes',
 
     'zope.configuration',
     'zc.recipe.egg',
@@ -34,8 +35,6 @@ setup(name='ftw.upgrade',
 
       classifiers=[
         'Framework :: Plone',
-        'Framework :: Plone :: 4.1',
-        'Framework :: Plone :: 4.2',
         'Framework :: Plone :: 4.3',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License (GPL)',

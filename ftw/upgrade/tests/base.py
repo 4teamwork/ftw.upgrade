@@ -44,6 +44,10 @@ class UpgradeTestCase(TestCase):
     def tearDown(self):
         self.teardown_logging()
 
+    def grant(self, *roles):
+        setRoles(self.portal, TEST_USER_ID, list(roles))
+        transaction.commit()
+
     @property
     def directory(self):
         return self.layer['temp_directory']

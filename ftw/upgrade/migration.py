@@ -445,22 +445,17 @@ class InplaceMigrator(object):
                 new_value._blob = value.getBlob()
                 return recurse(new_value)
 
-            elif source_is_blobby and not target_is_blobby:
+            else:
                 filename = value.filename
                 if isinstance(filename, str):
                     filename = filename.decode('utf-8')
 
+                data = value.data
+                data = getattr(data, 'data', data)  # extract Pdata
                 return recurse(field._type(
-                    data=value.data,
+                    data=data,
                     contentType=value.content_type,
                     filename=filename))
-
-            else:
-                raise ValueError(
-                    'Unsupported file value type {!r} ({!r})'
-                    .format(value.__class__,
-                            {'source_is_blobby': source_is_blobby,
-                             'target_is_blobby': target_is_blobby}))
 
         return value
 

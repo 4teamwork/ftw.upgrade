@@ -57,6 +57,17 @@ DEFAULT_ATTRIBUTES_TO_COPY = (
 )
 
 
+DUBLIN_CORE_IGNORES = (
+    'allowDiscussion',
+    'contributors',
+    'creators',
+    'nextPreviousEnabled',
+    'rights',
+    'language',
+    'relatedItems',
+)
+
+
 DEFAULT_IGNORED_FIELDS = (
     # ID, creation date and modification date are set by method, not by field.
     'id',

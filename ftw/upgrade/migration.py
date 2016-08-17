@@ -5,6 +5,7 @@ from archetypes.referencebrowserwidget.interfaces import IATReferenceField
 from DateTime import DateTime
 from ftw.upgrade.helpers import update_security_for
 from functools import partial
+from operator import methodcaller
 from persistent.mapping import PersistentMapping
 from plone.app.blob.interfaces import IBlobWrapper
 from plone.app.relationfield.event import extract_relations
@@ -509,11 +510,12 @@ class InplaceMigrator(object):
         if old_mode != constrains.ENABLED:
             return
 
-        portal_types = getToolByName(old_object, 'portal_types')
+        allowed_types = map(methodcaller('getId'), new_ct.getDefaultAddableTypes())
+        isallowed = allowed_types.__contains__
         new_ct.setLocallyAllowedTypes(
-            filter(portal_types.get, old_ct.getLocallyAllowedTypes()))
+            filter(isallowed, old_ct.getLocallyAllowedTypes()))
         new_ct.setImmediatelyAddableTypes(
-            filter(portal_types.get, old_ct.getImmediatelyAddableTypes()))
+            filter(isallowed, old_ct.getImmediatelyAddableTypes()))
 
     def update_creation_date(self, old_object, new_object):
         new_object.creation_date = (

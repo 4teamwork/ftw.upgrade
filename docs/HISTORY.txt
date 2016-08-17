@@ -6,7 +6,7 @@ Changelog
 -------------------
 
 - Fix NoneType AttributeError with newest requests module. [jone]
-- Nothing changed yet.
+
 - Drop Plone 4.1 and 4.2 support. [jone]
 
 - Implement inplace migrator. [jone]

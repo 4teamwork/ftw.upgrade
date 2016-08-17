@@ -20,6 +20,7 @@ from plone.namedfile.interfaces import INamedField
 from plone.uuid.interfaces import IMutableUUID
 from plone.uuid.interfaces import IUUID
 from Products.Archetypes.interfaces import IBaseObject
+from Products.Archetypes.interfaces import IComputedField
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces import constrains
 from z3c.relationfield.event import _setRelation
@@ -339,6 +340,9 @@ class InplaceMigrator(object):
 
     def get_at_field_values(self, old_object):
         for field in old_object.Schema().values():
+            if IComputedField.providedBy(field):
+                continue
+
             fieldname = field.__name__
             if fieldname in self.ignore_fields:
                 continue

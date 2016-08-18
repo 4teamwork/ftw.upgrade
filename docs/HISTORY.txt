@@ -2,8 +2,8 @@ Changelog
 =========
 
 
-2.0.0 (unreleased)
--------------------
+2.0.0 (2016-08-18)
+------------------
 
 - Fix NoneType AttributeError with newest requests module. [jone]
 

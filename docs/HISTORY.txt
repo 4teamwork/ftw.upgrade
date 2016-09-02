@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.0.1 (unreleased)
+2.0.1 (2016-09-02)
 ------------------
 
 - Added support for jQuery 1.9+ on @@manage-upgrades control panel. [neilferreira]

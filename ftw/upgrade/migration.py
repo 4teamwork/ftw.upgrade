@@ -22,7 +22,6 @@ from plone.uuid.interfaces import IMutableUUID
 from plone.uuid.interfaces import IUUID
 from Products.Archetypes.interfaces import IBaseObject
 from Products.Archetypes.interfaces import IComputedField
-from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces import constrains
 from z3c.relationfield.event import _setRelation
 from z3c.relationfield.interfaces import IRelationChoice

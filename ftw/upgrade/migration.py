@@ -24,7 +24,7 @@ from Products.Archetypes.interfaces import IBaseObject
 from Products.Archetypes.interfaces import IComputedField
 from Products.CMFPlone.interfaces import constrains
 from z3c.relationfield.event import _setRelation
-from z3c.relationfield.interfaces import IRelationChoice
+from z3c.relationfield.interfaces import IRelation
 from z3c.relationfield.relation import create_relation
 from zope.annotation import IAnnotations
 from zope.component import getUtility
@@ -409,7 +409,7 @@ class InplaceMigrator(object):
         if isinstance(value, tuple):
             return tuple(map(recurse, value))
 
-        relation_fields = filter(IRelationChoice.providedBy,
+        relation_fields = filter(IRelation.providedBy,
                                  (field, getattr(field, 'value_type', None)))
         if relation_fields and isinstance(value, unicode):
             target = uuidToObject(value)

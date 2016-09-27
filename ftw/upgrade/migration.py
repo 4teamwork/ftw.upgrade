@@ -34,6 +34,7 @@ from zope.intid.interfaces import IIntIds
 from zope.keyreference.interfaces import IKeyReference
 from zope.lifecycleevent import ObjectModifiedEvent
 from zope.schema import getFieldsInOrder
+import logging
 
 
 DISABLE_FIELD_AUTOMAPPING = 1
@@ -44,6 +45,8 @@ IGNORE_DEFAULT_IGNORE_FIELDS = 16
 SKIP_MODIFIED_EVENT = 32
 
 UNMAPPED_FIELDS_BACKUP_ANN_KEY = 'ftw.upgrade.migration:fields_backup'
+
+LOG = logging.getLogger('ftw.upgrade.migration')
 
 
 DEFAULT_ATTRIBUTES_TO_COPY = (
@@ -475,6 +478,13 @@ class InplaceMigrator(object):
 
     def add_relations_to_relation_catalog(self, old_object, new_object):
         for behavior_interface, name, relation in extract_relations(new_object):
+            if isinstance(relation, (str, unicode)):
+                # We probably got a UID, but we are working with intids
+                # and can not do anything with it, so we skip it.
+                LOG.warning('Got a invalid relation ({!r}), which is not '
+                            'z3c.relationfield compatible.'.format(relation))
+                continue
+
             _setRelation(new_object, name, relation)
 
     def migrate_properties(self, old_object, new_object):

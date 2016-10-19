@@ -419,8 +419,11 @@ class InplaceMigrator(object):
            and not IRichTextValue.providedBy(value):
             return recurse(field.fromUnicode(value))
 
-        if INamedField.providedBy(field) and value \
+        if INamedField.providedBy(field) and value is not None \
            and not isinstance(value, field._type):
+
+            if hasattr(value, 'get_size') and value.get_size() == 0:
+                return None
 
             source_is_blobby = IBlobWrapper.providedBy(value)
             target_is_blobby = INamedBlobFileField.providedBy(field) or \

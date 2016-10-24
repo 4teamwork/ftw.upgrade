@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.0.4 (unreleased)
+2.0.4 (2016-10-24)
 ------------------
 
 - Migration: do not migrate empty blobs. [jone]

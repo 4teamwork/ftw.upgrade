@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.0.5 (unreleased)
+2.0.5 (2016-10-24)
 ------------------
 
 - Migration: fix error when file obj is an empty string. [jone]

@@ -422,6 +422,9 @@ class InplaceMigrator(object):
         if INamedField.providedBy(field) and value is not None \
            and not isinstance(value, field._type):
 
+            if value == '':
+                return None
+
             if hasattr(value, 'get_size') and value.get_size() == 0:
                 return None
 

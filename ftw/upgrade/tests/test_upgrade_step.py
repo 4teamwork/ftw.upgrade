@@ -447,6 +447,41 @@ class TestUpgradeStep(UpgradeTestCase):
 
         Step(self.portal_setup)
 
+    def test_is_profile_installed(self):
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_fs_version('1000'))
+        testcase = self
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                testcase.assertFalse(self.is_profile_installed(
+                    'profile-the.package:default'))
+                testcase.assertFalse(self.is_profile_installed(
+                    'the.package:default'))
+                self.setup_install_profile('profile-the.package:default')
+                testcase.assertTrue(self.is_profile_installed(
+                    'profile-the.package:default'))
+                testcase.assertTrue(self.is_profile_installed(
+                    'the.package:default'))
+
+        with self.package_created():
+            Step(self.portal_setup)
+
+    def test_is_profile_installed_respects_quickinstaller_uninstall(self):
+        testcase = self
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                testcase.assertFalse(self.is_profile_installed(
+                    'Products.CMFPlacefulWorkflow:CMFPlacefulWorkflow'))
+                self.setup_install_profile(
+                    'Products.CMFPlacefulWorkflow:CMFPlacefulWorkflow')
+                testcase.assertTrue(self.is_profile_installed(
+                    'Products.CMFPlacefulWorkflow:CMFPlacefulWorkflow'))
+                self.uninstall_product('Products.CMFPlacefulWorkflow')
+                testcase.assertFalse(self.is_profile_installed(
+                    'Products.CMFPlacefulWorkflow:CMFPlacefulWorkflow'))
+
     def test_uninstall_product(self):
         quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
         quickinstaller.installProduct('CMFPlacefulWorkflow')

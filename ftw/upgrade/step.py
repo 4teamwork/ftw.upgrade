@@ -17,6 +17,7 @@ from zope.interface import directlyProvidedBy
 from zope.interface import directlyProvides
 from zope.interface import implements
 import logging
+import re
 
 
 LOG = logging.getLogger('ftw.upgrade')
@@ -279,6 +280,26 @@ class UpgradeStep(object):
             raise NoAssociatedProfileError()
 
         self.setup_install_profile(self.associated_profile, steps=steps)
+
+    security.declarePrivate('is_product_installed')
+    def is_profile_installed(self, profileid):
+        """Checks whether a generic setup profile is installed.
+        Respects product uninstallation via quickinstaller.
+        """
+        profileid = re.sub(r'^profile-', '', profileid)
+        setup = self.getToolByName('portal_setup')
+        quickinstaller = self.getToolByName('portal_quickinstaller')
+
+        try:
+            profileinfo = self.portal_setup.getProfileInfo(profileid)
+        except KeyError:
+            return False
+
+        if not self.is_product_installed(profileinfo['product']):
+            return False
+
+        version = self.portal_setup.getLastVersionForProfile(profileid)
+        return version != 'unknown'
 
     security.declarePrivate('is_product_installed')
     def is_product_installed(self, product_name):

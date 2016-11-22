@@ -5,6 +5,8 @@ Changelog
 2.0.6 (unreleased)
 ------------------
 
+- Add upgrade step method ``is_profile_installed(profileid)``. [jone]
+
 - Add upgrade step method ``is_product_installed(product_name)``. [jone]
 
 

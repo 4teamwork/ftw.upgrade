@@ -434,6 +434,19 @@ class TestUpgradeStep(UpgradeTestCase):
         with self.assertRaises(NoAssociatedProfileError):
             Step(self.portal_setup)
 
+    def test_is_product_installed(self):
+        testcase = self
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                testcase.assertTrue(self.is_product_installed(
+                    'CMFPlacefulWorkflow'))
+                self.uninstall_product('CMFPlacefulWorkflow')
+                testcase.assertFalse(self.is_product_installed(
+                    'CMFPlacefulWorkflow'))
+
+        Step(self.portal_setup)
+
     def test_uninstall_product(self):
         quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
         quickinstaller.installProduct('CMFPlacefulWorkflow')

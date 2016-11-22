@@ -280,6 +280,14 @@ class UpgradeStep(object):
 
         self.setup_install_profile(self.associated_profile, steps=steps)
 
+    security.declarePrivate('is_product_installed')
+    def is_product_installed(self, product_name):
+        """Check whether a product is installed.
+        """
+        quickinstaller = self.getToolByName('portal_quickinstaller')
+        return quickinstaller.isProductInstallable(product_name) and \
+            quickinstaller.isProductInstalled(product_name)
+
     security.declarePrivate('uninstall_product')
     def uninstall_product(self, product_name):
         """Uninstalls a product using the quick installer.

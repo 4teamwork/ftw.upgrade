@@ -295,6 +295,9 @@ The ``UpgradeStep`` class has various helper functions:
     Profile may be associated to upgrade steps by using either the
     ``upgrade-step:importProfile`` or the ``upgrade-step:directory`` directive.
 
+``self.is_product_installed(product_name)``
+    Check whether a product is installed.
+
 ``self.uninstall_product(product_name)``
     Uninstalls a product using the quick installer.
 

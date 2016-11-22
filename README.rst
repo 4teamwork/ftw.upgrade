@@ -290,6 +290,9 @@ The ``UpgradeStep`` class has various helper functions:
     If a list step names is passed with ``steps`` (e.g. ['actions']),
     only those steps are installed. All steps are installed by default.
 
+``self.ensure_profile_installed(profileid)``
+    Install a generic setup profile only when it is not yet installed.
+
 ``self.install_upgrade_profile(steps=None)``
     Installs the generic setup profile associated with this upgrade step.
     Profile may be associated to upgrade steps by using either the

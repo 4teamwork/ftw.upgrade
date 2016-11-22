@@ -272,6 +272,13 @@ class UpgradeStep(object):
                                                run_dependencies=False,
                                                purge_old=False)
 
+    security.declarePrivate('ensure_profile_installed')
+    def ensure_profile_installed(self, profileid):
+        """Install a generic setup profile only when it is not yet installed.
+        """
+        if not self.is_profile_installed(profileid):
+            self.setup_install_profile(profileid)
+
     security.declarePrivate('install_upgrade_profile')
     def install_upgrade_profile(self, steps=None):
         """Installs the generic setup profile for this upgrade step.

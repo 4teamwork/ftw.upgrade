@@ -406,6 +406,36 @@ class TestUpgradeStep(UpgradeTestCase):
         with self.package_created():
             Step(self.portal_setup)
 
+    def test_ensure_profile_installed(self):
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_fs_version('1111'))
+
+        testcase = self
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                testcase.assertEquals('unknown', self.get_version())
+                self.ensure_profile_installed('profile-the.package:default')
+                testcase.assertEquals((u'1111',), self.get_version())
+                self.set_version((u'1000',))
+                testcase.assertEquals((u'1000',), self.get_version())
+                self.ensure_profile_installed('profile-the.package:default')
+                testcase.assertEquals(
+                    (u'1000',), self.get_version(),
+                    'Profile should not have been installed again because it'
+                    ' was already installed.')
+
+            def get_version(self):
+                return self.getToolByName('portal_setup').getLastVersionForProfile(
+                    'the.package:default')
+
+            def set_version(self, version):
+                return self.getToolByName('portal_setup').setLastVersionForProfile(
+                    'the.package:default', version)
+
+        with self.package_created():
+            Step(self.portal_setup)
+
     def test_install_upgrade_profile(self):
         class AddSiteProperty(UpgradeStep):
             def __call__(self):

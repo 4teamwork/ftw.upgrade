@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.0.6 (unreleased)
+2.1.0 (unreleased)
 ------------------
 
 - Add upgrade step method ``ensure_profile_installed(profileid)``. [jone]

@@ -17,6 +17,7 @@ from zope.interface import directlyProvidedBy
 from zope.interface import directlyProvides
 from zope.interface import implements
 import logging
+import re
 
 
 LOG = logging.getLogger('ftw.upgrade')
@@ -271,6 +272,13 @@ class UpgradeStep(object):
                                                run_dependencies=False,
                                                purge_old=False)
 
+    security.declarePrivate('ensure_profile_installed')
+    def ensure_profile_installed(self, profileid):
+        """Install a generic setup profile only when it is not yet installed.
+        """
+        if not self.is_profile_installed(profileid):
+            self.setup_install_profile(profileid)
+
     security.declarePrivate('install_upgrade_profile')
     def install_upgrade_profile(self, steps=None):
         """Installs the generic setup profile for this upgrade step.
@@ -279,6 +287,34 @@ class UpgradeStep(object):
             raise NoAssociatedProfileError()
 
         self.setup_install_profile(self.associated_profile, steps=steps)
+
+    security.declarePrivate('is_product_installed')
+    def is_profile_installed(self, profileid):
+        """Checks whether a generic setup profile is installed.
+        Respects product uninstallation via quickinstaller.
+        """
+        profileid = re.sub(r'^profile-', '', profileid)
+        setup = self.getToolByName('portal_setup')
+        quickinstaller = self.getToolByName('portal_quickinstaller')
+
+        try:
+            profileinfo = self.portal_setup.getProfileInfo(profileid)
+        except KeyError:
+            return False
+
+        if not self.is_product_installed(profileinfo['product']):
+            return False
+
+        version = self.portal_setup.getLastVersionForProfile(profileid)
+        return version != 'unknown'
+
+    security.declarePrivate('is_product_installed')
+    def is_product_installed(self, product_name):
+        """Check whether a product is installed.
+        """
+        quickinstaller = self.getToolByName('portal_quickinstaller')
+        return quickinstaller.isProductInstallable(product_name) and \
+            quickinstaller.isProductInstalled(product_name)
 
     security.declarePrivate('uninstall_product')
     def uninstall_product(self, product_name):

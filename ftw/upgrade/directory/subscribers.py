@@ -7,6 +7,9 @@ import re
 
 
 def profile_installed(event):
+    if not event.profile_id:
+        return
+
     profile = re.sub('^profile-', '', event.profile_id)
     portal = getToolByName(event.tool, 'portal_url').getPortalObject()
     recorder = getMultiAdapter((portal, profile), IUpgradeStepRecorder)

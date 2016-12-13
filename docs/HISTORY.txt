@@ -5,7 +5,7 @@ Changelog
 2.1.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix support for GS import by tarball upload. [jone]
 
 
 2.1.0 (2016-12-06)

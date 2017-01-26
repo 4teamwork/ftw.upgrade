@@ -586,6 +586,8 @@ class TestUpgradeStep(UpgradeTestCase):
         iface_name = 'IMyProductLayer'
         self.assertEqual(len([layer for layer in layer_subscribers['']
                               if layer.__name__ == iface_name]), 0)
+        self.assertNotIn((ILocalBrowserLayerType, 'my.product'),
+                         sm._utility_registrations)
 
 
     def test_update_security_removes_roles_unmanaged_by_workflow(self):

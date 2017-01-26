@@ -1,4 +1,5 @@
 from collections import defaultdict
+from contextlib import contextmanager
 from copy import deepcopy
 from ftw.upgrade.exceptions import CyclicDependencies
 from path import Path
@@ -244,3 +245,28 @@ def get_tempfile_authentication_directory(directory=None):
         raise ValueError('{0} has an invalid owner.'.format(auth_directory))
 
     return auth_directory
+
+
+class StartsWithLogFilter(logging.Filter):
+    """Filter messages that start with criteria."""
+
+    def __init__(self, criteria):
+        self.criteria = criteria
+
+    def filter(self, record):
+        return not record.getMessage().startswith(self.criteria)
+
+
+@contextmanager
+def log_silencer(logger_name, criteria):
+    """Prevents messages that start with `criteria` from being logged to the
+    logger that is registered as `logger_name`.
+    """
+    log = logging.getLogger(logger_name)
+    filt = StartsWithLogFilter(criteria)
+    log.addFilter(filt)
+
+    try:
+        yield
+    finally:
+        log.removeFilter(filt)

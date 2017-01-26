@@ -579,6 +579,7 @@ class TestUpgradeStep(UpgradeTestCase):
         self.assertFalse(IMyProductLayer in registered_layers())
         # Check it a bit more low level.
         sm = self.portal.getSiteManager()
+
         adapters = sm.utilities._adapters
         self.assertFalse('my.product' in adapters[0][ILocalBrowserLayerType])
         subscribers = sm.utilities._subscribers
@@ -586,6 +587,39 @@ class TestUpgradeStep(UpgradeTestCase):
         iface_name = 'IMyProductLayer'
         self.assertEqual(len([layer for layer in layer_subscribers['']
                               if layer.__name__ == iface_name]), 0)
+        self.assertNotIn((ILocalBrowserLayerType, 'my.product'),
+                         sm._utility_registrations)
+
+    def test_remove_remove_broken_portlet_manager(self):
+        from plone.portlets.interfaces import IPortletManager
+        from plone.portlets.interfaces import IPortletManagerRenderer
+        from plone.portlets.manager import PortletManager
+        from zope.browser.interfaces import IBrowserView
+        from zope.publisher.interfaces.browser import IBrowserRequest
+
+        sm = self.portal.getSiteManager()
+        sm.registerUtility(component=PortletManager(),
+                           provided=IPortletManager,
+                           name='my.manager')
+
+        self.assertIsNotNone(sm.adapters.lookup(
+            [Interface, IBrowserRequest, IBrowserView],
+            IPortletManagerRenderer,
+            'my.manager'))
+        self.assertIsNotNone(sm.queryUtility(
+            IPortletManager, name='my.manager'))
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                self.remove_broken_portlet_manager('my.manager')
+        Step(self.portal_setup)
+
+        self.assertIsNone(sm.adapters.lookup(
+            [Interface, IBrowserRequest, IBrowserView],
+            IPortletManagerRenderer,
+            'my.manager'))
+        self.assertIsNone(sm.queryUtility(
+            IPortletManager, name='my.manager'))
 
 
     def test_update_security_removes_roles_unmanaged_by_workflow(self):

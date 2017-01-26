@@ -5,17 +5,23 @@ from ftw.upgrade.exceptions import NoAssociatedProfileError
 from ftw.upgrade.helpers import update_security_for
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.progresslogger import ProgressLogger
+from ftw.upgrade.utils import log_silencer
 from ftw.upgrade.utils import SavepointIterator
 from ftw.upgrade.utils import SizedGenerator
 from plone.browserlayer.interfaces import ILocalBrowserLayerType
+from plone.portlets.interfaces import IPortletManager
+from plone.portlets.interfaces import IPortletManagerRenderer
 from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.ActionInformation import ActionInformation
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ProgressHandler import ZLogHandler
+from zope.browser.interfaces import IBrowserView
 from zope.event import notify
 from zope.interface import directlyProvidedBy
 from zope.interface import directlyProvides
 from zope.interface import implements
+from zope.interface import Interface
+from zope.publisher.interfaces.browser import IBrowserRequest
 import logging
 import re
 
@@ -376,6 +382,38 @@ class UpgradeStep(object):
         sm._utility_registrations.pop((ILocalBrowserLayerType, name))
 
         sm.utilities._p_changed = True
+
+    security.declarePrivate('remove_broken_portlet_manager')
+    def remove_broken_portlet_manager(self, name):
+        """Removes a portlet manager, that cannot be imported any more, from
+        the persistent registry.
+
+        This method also filters some pretty ugly error messages from the
+        zodb connection log. The errors would appear when zodb attempts to load
+        the objects for classes that have been uninstalled previously.
+        """
+        sm = self.portal.getSiteManager()
+
+        manager_renderer = sm.adapters.lookup(
+            [Interface, IBrowserRequest, IBrowserView],
+            IPortletManagerRenderer,
+            name)
+        if manager_renderer is not None:
+            with log_silencer("ZODB.Connection", "Couldn't load state for"):
+                sm.unregisterAdapter(
+                    manager_renderer,
+                    [Interface, IBrowserRequest, IBrowserView],
+                    IPortletManagerRenderer,
+                    name)
+            LOG.info("Removed portlet manager renderer {0}".format(name))
+
+        with log_silencer("ZODB.Connection", "Couldn't load state for"):
+            manager = sm.queryUtility(IPortletManager, name=name)
+            if manager is not None:
+                sm.unregisterUtility(component=manager,
+                                     name=name,
+                                     provided=IPortletManager)
+                LOG.info("Removed portlet manager {0}".format(name))
 
     security.declarePrivate('update_security')
     def update_security(self, obj, reindex_security=True):

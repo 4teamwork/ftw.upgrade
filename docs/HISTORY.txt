@@ -5,7 +5,7 @@ Changelog
 2.2.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Do not downgrade installed version when installing an orphan upgrade step. [jone]
 
 
 2.2.0 (2017-01-30)

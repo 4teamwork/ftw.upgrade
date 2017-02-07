@@ -1,3 +1,4 @@
+from datetime import datetime
 from ftw.builder import Builder
 from ftw.upgrade.executioner import Executioner
 from ftw.upgrade.interfaces import IExecutioner
@@ -152,3 +153,36 @@ class TestExecutioner(UpgradeTestCase):
                 ['Installing profile the.package:default.',
                  'Done installing profile the.package:default.'],
                 self.get_log())
+
+    def test_do_not_decrease_version_when_only_installing_orphan_steps(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 11, 11, 11, 11)))
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2012, 12, 12, 12, 12))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', '20121212121200')
+            self.clear_recorded_upgrades('the.package:default')
+            self.record_installed_upgrades('the.package:default', '20121212121200')
+            self.assert_gathered_upgrades({
+                'the.package:default': {
+                    'done': ['20121212121200'],
+                    'proposed': ['20111111111100'],
+                    'orphan': ['20111111111100']}})
+            self.assertEquals(
+                (u'20121212121200',),
+                self.portal_setup.getLastVersionForProfile('the.package:default'))
+
+            executioner = queryAdapter(self.portal_setup, IExecutioner)
+            executioner.install_upgrades_by_api_ids(
+                '20111111111100@the.package:default')
+            self.assertEquals(
+                (u'20121212121200',),
+                self.portal_setup.getLastVersionForProfile('the.package:default'))
+            self.assert_gathered_upgrades({
+                'the.package:default': {
+                    'done': ['20111111111100', '20121212121200'],
+                    'proposed': [],
+                    'orphan': []}})

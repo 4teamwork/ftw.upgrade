@@ -89,8 +89,11 @@ class Executioner(object):
             last_dest_version = self._do_upgrade(profileid, upgradeid) \
                 or last_dest_version
 
-        self.portal_setup.setLastVersionForProfile(
-            profileid, last_dest_version)
+        old_version = self.portal_setup.getLastVersionForProfile(
+            profileid)
+        if last_dest_version > old_version:
+            self.portal_setup.setLastVersionForProfile(
+                profileid, last_dest_version)
 
         self._set_quickinstaller_version(profileid)
 

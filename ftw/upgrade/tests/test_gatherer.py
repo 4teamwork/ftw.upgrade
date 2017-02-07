@@ -358,28 +358,6 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
         result = gatherer.get_profiles()
         return dict([(profile['id'], profile) for profile in result])
 
-    def assert_gathered_upgrades(self, expected, *args, **kwargs):
-        gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        result = gatherer.get_profiles(*args, **kwargs)
-        got = {}
-        for profile in result:
-            if profile['id'] not in expected:
-                continue
-
-            got_profile = dict((key, []) for key in expected[profile['id']].keys())
-            got[profile['id']] = got_profile
-
-            for upgrade in profile['upgrades']:
-                for key in got_profile.keys():
-                    if upgrade[key]:
-                        got_profile[key].append(upgrade['sdest'])
-
-        self.maxDiff = None
-        self.assertDictEqual(
-            expected, got,
-            'Unexpected gatherer result.\n\nPackages in result {0}:'.format(
-                map(lambda profile: profile['id'], result)))
-
     def assert_outdated_profiles(self, expected_profiles, ignore=()):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
         result = gatherer.get_profiles()

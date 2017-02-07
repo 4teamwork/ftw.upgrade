@@ -639,6 +639,37 @@ Setting up an upgrade directory
     </metadata>
 
 
+Declare upgrades soft dependencies
+-----------------------------
+
+When having optional dependencies (``extras_require``), we sometimes need to tell
+``ftw.upgrade`` that our optional dependency's upgrades needs to be installed
+before our upgrades are installed.
+
+We do that by declare a soft dependency in the ``upgrade-step:directory``
+directive.
+It is possible to declare multiple dependencies by separating them
+with whitespace.
+
+.. code:: xml
+
+    <configure
+        xmlns="http://namespaces.zope.org/zope"
+        xmlns:upgrade-step="http://namespaces.zope.org/ftw.upgrade"
+        i18n_domain="my.package">
+
+        <include package="ftw.upgrade" file="meta.zcml" />
+
+        <upgrade-step:directory
+            profile="my.package:default"
+            directory="./upgrades"
+            soft_dependencies="other.package:default
+                               collective.fancy:default"
+            />
+
+    </configure>
+
+
 Creating an upgrade step
 ------------------------
 

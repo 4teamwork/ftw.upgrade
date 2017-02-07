@@ -18,6 +18,7 @@ class UpgradeStepBuilder(object):
         self.code = None
         self.directories = []
         self.files = []
+        self.zcml_directory_options = None
 
     def to(self, destination):
         if hasattr(destination, 'strftime'):
@@ -58,6 +59,12 @@ class UpgradeStepBuilder(object):
         self.directories.append(relative_path)
         return self
 
+    def with_zcml_directory_options(self, **options):
+        """Set additional options in the upgrade-step:directory directive.
+        """
+        self.zcml_directory_options = options
+        return self
+
     def with_file(self, relative_path, contents, makedirs=False):
         """Create a file within this package.
         """
@@ -93,7 +100,8 @@ class UpgradeStepBuilder(object):
         zcml.include('ftw.upgrade', file='meta.zcml')
         zcml.with_node('upgrade-step:directory',
                        profile=self.profile_builder.profile_name,
-                       directory='.')
+                       directory='.',
+                       **(self.zcml_directory_options or {}))
         zcml._upgrade_step_declarations[self.profile_builder.name] = True
 
     def _create_upgrade(self):

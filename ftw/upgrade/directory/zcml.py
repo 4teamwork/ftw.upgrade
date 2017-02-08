@@ -11,6 +11,7 @@ from Products.GenericSetup.upgrade import _registerUpgradeStep
 from Products.GenericSetup.upgrade import _upgrade_registry
 from Products.GenericSetup.upgrade import UpgradeStep
 from zope.configuration.fields import Path
+from zope.configuration.fields import Tokens
 from zope.interface import Interface
 import os
 import zope.schema
@@ -26,8 +27,15 @@ class IUpgradeStepDirectoryDirective(Interface):
         title=u'Path to the upgrade steps directory',
         required=True)
 
+    soft_dependencies = Tokens(
+        title=u'List of Generic Setup profile dependencies.',
+        description=u'Format: "my.package:default"',
+        required=False,
+        value_type=zope.schema.TextLine())
 
-def upgrade_step_directory_handler(context, profile, directory):
+
+def upgrade_step_directory_handler(context, profile, directory,
+                                   soft_dependencies=None):
     dottedname = context.package.__name__
     package_dir = os.path.dirname(context.package.__file__)
     if package_dir != os.path.abspath(directory):
@@ -38,10 +46,12 @@ def upgrade_step_directory_handler(context, profile, directory):
     context.action(
         discriminator=('upgrade-step:directory', profile),
         callable=upgrade_step_directory_action,
-        args=(profile, dottedname, context.path(directory)))
+        args=(profile, dottedname, context.path(directory),
+              soft_dependencies))
 
 
-def upgrade_step_directory_action(profile, dottedname, path):
+def upgrade_step_directory_action(profile, dottedname, path,
+                                  soft_dependencies):
     start_version = find_start_version(profile)
     scanner = Scanner(dottedname, path)
 
@@ -93,7 +103,9 @@ def upgrade_step_directory_action(profile, dottedname, path):
 
         last_version = upgrade_info['target-version']
 
-    GlobalRegistryStorage(IProfile).get(profile)['version'] = last_version
+    profile = GlobalRegistryStorage(IProfile).get(profile)
+    profile['version'] = last_version
+    profile['ftw.upgrade:dependencies'] = soft_dependencies
 
 
 def find_start_version(profile):

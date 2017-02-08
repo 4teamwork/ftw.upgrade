@@ -2,6 +2,8 @@ from datetime import datetime
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.tests.base import UpgradeTestCase
+from ftw.upgrade.utils import get_sorted_profile_ids
+from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces import IMigratingPloneSiteRoot
 from Products.GenericSetup.interfaces import EXTENSION
 from zope.configuration.config import ConfigurationExecutionError
@@ -126,6 +128,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                 {'id': u'the.package:default',
                  'title': u'the.package',
                  'description': u'',
+                 'ftw.upgrade:dependencies': None,
                  'path': profile_path,
                  'version': '20110202080000',
                  'product': 'the.package',
@@ -157,6 +160,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                 {'id': u'the.package:default',
                  'title': u'the.package',
                  'description': u'',
+                 'ftw.upgrade:dependencies': None,
                  'path': str(profile_path),
                  'version': '1001',
                  'product': 'the.package',
@@ -176,6 +180,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                 {'id': u'the.package:default',
                  'title': u'the.package',
                  'description': u'',
+                 'ftw.upgrade:dependencies': None,
                  'path': profile_path,
                  'version': u'10000000000000',
                  'product': 'the.package',
@@ -196,6 +201,56 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
             ' this profile to not define a version in its metadata.xml.'
             ' The version is automatically set to the latest upgrade.',
             str(cm.exception).splitlines()[0])
+
+    def test_declaring_upgrades_dependency(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .named('bar')
+            .with_upgrade(
+                Builder('ftw upgrade step')
+                .to(datetime(2010, 1, 1, 1, 1))
+                .with_zcml_directory_options(
+                    soft_dependencies="the.package:baz")))
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .named('foo')
+            .with_upgrade(
+                Builder('ftw upgrade step')
+                .to(datetime(2010, 1, 1, 1, 1))
+                .with_zcml_directory_options(
+                    soft_dependencies="the.package:bar the.package:baz")))
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .named('baz')
+            .with_upgrade(
+                Builder('ftw upgrade step')
+                .to(datetime(2010, 1, 1, 1, 1))
+                .with_zcml_directory_options(
+                    soft_dependencies="the.package:default")))
+
+        with self.package_created() as package:
+            self.assert_profile(
+                {'id': u'the.package:foo',
+                 'title': u'the.package',
+                 'description': u'',
+                 'ftw.upgrade:dependencies': [u'the.package:bar',
+                                              u'the.package:baz'],
+                 'path': package.package_path.joinpath('profiles', 'foo'),
+                 'version': u'20100101010100',
+                 'product': 'the.package',
+                 'type': EXTENSION,
+                 'for': None})
+
+            portal_setup = getToolByName(self.portal, 'portal_setup')
+            self.assertEquals(
+                [u'the.package:default',
+                 u'the.package:baz',
+                 u'the.package:bar',
+                 u'the.package:foo'],
+                filter(lambda profile_id: profile_id.startswith('the.package:'),
+                       get_sorted_profile_ids(portal_setup)))
 
     def assert_upgrades(self, expected):
         upgrades = self.portal_setup.listUpgrades('the.package:default')

@@ -3,9 +3,12 @@ from contextlib import contextmanager
 from copy import deepcopy
 from ftw.upgrade.exceptions import CyclicDependencies
 from path import Path
+from Products.GenericSetup.interfaces import IProfile
+from Products.GenericSetup.registry import GlobalRegistryStorage
 import logging
 import math
 import os
+import re
 import stat
 import tarjan.tc
 import transaction
@@ -150,23 +153,17 @@ def get_sorted_profile_ids(portal_setup):
     """
     profile_ids = []
     dependencies = []
+    profile_registry = GlobalRegistryStorage(IProfile)
 
     for profile in portal_setup.listProfileInfo():
         profile_ids.append(profile['id'])
 
     for profile in portal_setup.listProfileInfo():
-        if not profile.get('dependencies'):
-            continue
-
-        for dependency in profile.get('dependencies'):
-            if dependency.startswith('profile-'):
-                dependency = dependency.split('profile-', 1)[1]
-            else:
-                continue
-
-            if dependency not in profile_ids:
-                continue
-            dependencies.append((profile['id'], dependency))
+        for dependency in (list(profile.get('dependencies') or []) +
+                           list(profile.get('ftw.upgrade:dependencies') or [])):
+            dependency = re.sub('^profile-', '', dependency)
+            if dependency in profile_ids:
+                dependencies.append((profile['id'], dependency))
 
     order = topological_sort(profile_ids, dependencies)
 

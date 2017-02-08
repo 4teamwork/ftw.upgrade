@@ -26,6 +26,12 @@ import logging
 import re
 
 
+try:
+    from Products.GenericSetup.tool import DEPENDENCY_STRATEGY_NEW
+except ImportError:
+    DEPENDENCY_STRATEGY_NEW = None
+
+
 LOG = logging.getLogger('ftw.upgrade')
 
 
@@ -263,14 +269,20 @@ class UpgradeStep(object):
         self.set_property(context, key, data, data_type='lines')
 
     security.declarePrivate('setup_install_profile')
-    def setup_install_profile(self, profileid, steps=None):
+    def setup_install_profile(self, profileid, steps=None,
+                              dependency_strategy=None):
         """Installs the generic setup profile identified by ``profileid``.
         If a list step names is passed with ``steps`` (e.g. ['actions']),
         only those steps are installed. All steps are installed by default.
         """
         setup = self.getToolByName('portal_setup')
         if steps is None:
-            setup.runAllImportStepsFromProfile(profileid, purge_old=False)
+            runargs = {'purge_old': False}
+            if DEPENDENCY_STRATEGY_NEW is not None:
+                runargs['dependency_strategy'] = (
+                    dependency_strategy or DEPENDENCY_STRATEGY_NEW)
+
+            setup.runAllImportStepsFromProfile(profileid, **runargs)
         else:
             for step in steps:
                 setup.runImportStepFromProfile(profileid,

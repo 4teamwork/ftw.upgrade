@@ -10,8 +10,10 @@ from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 from plone.browserlayer.utils import register_layer
 from Products.CMFCore.utils import getToolByName
+from unittest2 import skipIf
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
+import pkg_resources
 
 
 class IMyProductLayer(Interface):
@@ -402,6 +404,56 @@ class TestUpgradeStep(UpgradeTestCase):
                 testcase.assertFalse(self.catalog_has_index('excludeFromNav'))
                 self.setup_install_profile('profile-the.package:default', ['catalog'])
                 testcase.assertTrue(self.catalog_has_index('excludeFromNav'))
+
+        with self.package_created():
+            Step(self.portal_setup)
+
+    @skipIf(pkg_resources.get_distribution('Products.GenericSetup').parsed_version
+            < pkg_resources.parse_version('1.8'),
+            'Old GenericSetup version does not support dependency_strategy option.')
+    def test_setup_install_profile_does_not_reinstall_installed_profiles(self):
+        # In upgrades we want to avoid accidental reinstalls of dependencies
+        # when they are already installed.
+        # This does only work with Products.GenericSetup>=1.8
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .named('foo')
+            .with_fs_version('1000')
+            .with_file(
+                'properties.xml',
+                '<site><property name="foo" type="string">Foo</property></site>'))
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .named('bar')
+            .with_fs_version('1000')
+            .with_dependencies('the.package:foo')
+            .with_file(
+                'properties.xml',
+                '<site><property name="bar" type="string">Bar</property></site>'))
+
+        testcase = self
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                testcase.assertEquals(None, self.portal.getProperty('bar'))
+                testcase.assertEquals(None, self.portal.getProperty('foo'))
+
+                self.setup_install_profile('profile-the.package:foo')
+                testcase.assertEquals(None, self.portal.getProperty('bar'))
+                testcase.assertEquals('Foo', self.portal.getProperty('foo'))
+
+                self.portal._updateProperty('foo', 'Custom')
+                testcase.assertEquals(None, self.portal.getProperty('bar'))
+                testcase.assertEquals('Custom', self.portal.getProperty('foo'))
+
+                self.setup_install_profile('profile-the.package:bar')
+                testcase.assertEquals('Bar', self.portal.getProperty('bar'))
+                testcase.assertEquals(
+                    'Custom', self.portal.getProperty('foo'),
+                    'Accidental reinstall of dependency my.package:foo'
+                    ' has caused the "foo" property to be reset.')
 
         with self.package_created():
             Step(self.portal_setup)

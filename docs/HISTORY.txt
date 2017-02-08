@@ -5,6 +5,9 @@ Changelog
 2.2.1 (unreleased)
 ------------------
 
+- Avoid overriding customizations by reinstalling already installed
+  profiles while upgrading (Plone>=4.3.8). [jone]
+
 - InplaceMigrator: Preserve object position in parent. [lknoepfel]
 
 - Do not downgrade installed version when installing an orphan upgrade step. [jone]

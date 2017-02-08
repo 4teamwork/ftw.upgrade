@@ -300,8 +300,6 @@ class UpgradeStep(object):
         Respects product uninstallation via quickinstaller.
         """
         profileid = re.sub(r'^profile-', '', profileid)
-        setup = self.getToolByName('portal_setup')
-        quickinstaller = self.getToolByName('portal_quickinstaller')
 
         try:
             profileinfo = self.portal_setup.getProfileInfo(profileid)

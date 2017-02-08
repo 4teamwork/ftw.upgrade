@@ -301,7 +301,8 @@ class InplaceMigrator(object):
         if not_mapped and self.options & BACKUP_AND_IGNORE_UNMAPPED_FIELDS:
             annotations = IAnnotations(new_object)
             if UNMAPPED_FIELDS_BACKUP_ANN_KEY not in annotations:
-                annotations[UNMAPPED_FIELDS_BACKUP_ANN_KEY] = PersistentMapping()
+                annotations[UNMAPPED_FIELDS_BACKUP_ANN_KEY] = (
+                    PersistentMapping())
 
             annotations[UNMAPPED_FIELDS_BACKUP_ANN_KEY].update(not_mapped)
 
@@ -483,7 +484,8 @@ class InplaceMigrator(object):
         return fieldmap
 
     def add_relations_to_relation_catalog(self, old_object, new_object):
-        for behavior_interface, name, relation in extract_relations(new_object):
+        for behavior_interface, name, relation in extract_relations(
+                new_object):
             if isinstance(relation, (str, unicode)):
                 # We probably got a UID, but we are working with intids
                 # and can not do anything with it, so we skip it.
@@ -525,7 +527,8 @@ class InplaceMigrator(object):
         if old_mode != constrains.ENABLED:
             return
 
-        allowed_types = map(methodcaller('getId'), new_ct.getDefaultAddableTypes())
+        allowed_types = map(methodcaller('getId'),
+                            new_ct.getDefaultAddableTypes())
         isallowed = allowed_types.__contains__
         new_ct.setLocallyAllowedTypes(
             filter(isallowed, old_ct.getLocallyAllowedTypes()))

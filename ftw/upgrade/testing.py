@@ -63,8 +63,8 @@ class UpgradeLayer(PloneSandboxLayer):
         """Plone auto-protection results in confirmation pages
         when first hitting Plone with the browser.
 
-        By hitting the site once we can initialize all standard Plone containers
-        which cause writes on first hit.
+        By hitting the site once we can initialize all standard Plone
+        containers which cause writes on first hit.
         We do this with disabled protection.
         """
         try:
@@ -77,7 +77,8 @@ class UpgradeLayer(PloneSandboxLayer):
             crsrf_disabled_ori = auto.CSRF_DISABLED
             auto.CSRF_DISABLED = True
             try:
-                browser.login(SITE_OWNER_NAME).open(view='overview-controlpanel')
+                browser.login(SITE_OWNER_NAME).open(
+                    view='overview-controlpanel')
             finally:
                 auto.CSRF_DISABLED = crsrf_disabled_ori
                 transaction.begin()

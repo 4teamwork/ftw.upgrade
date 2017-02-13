@@ -363,18 +363,22 @@ class TestInplaceMigrator(UpgradeTestCase):
     def test_migrate_object_position(self):
         self.grant('Manager')
         container = create(Builder('folder').titled('Container'))
-        create(Builder('folder').titled('One').within(container))
-        create(Builder('folder').titled('Two').within(container))
+        one = create(Builder('folder').titled('One').within(container))
+        two = create(Builder('folder').titled('Two').within(container))
+        three = create(Builder('folder').titled('Three').within(container))
 
-        self.assertEquals([0, 1], map(container.getObjectPosition, ('one', 'two')))
-        container.moveObjectsByDelta(['two'], -1)
-        self.assertEquals([1, 0], map(container.getObjectPosition, ('one', 'two')))
+        self.assertEquals([0, 1, 2], map(container.getObjectPosition, ('one', 'two', 'three')))
+        container.moveObjectsByDelta(['three'], -1)
+        self.assertEquals([0, 2, 1], map(container.getObjectPosition, ('one', 'two', 'three')))
 
         self.install_profile('plone.app.contenttypes:default')
         InplaceMigrator('Folder').migrate_object(container)
+        InplaceMigrator('Folder').migrate_object(three)
+        InplaceMigrator('Folder').migrate_object(two)
+        InplaceMigrator('Folder').migrate_object(one)
         container = self.portal.get('container')
 
-        self.assertEquals([1, 0], map(container.getObjectPosition, ('one', 'two')))
+        self.assertEquals([0, 2, 1], map(container.getObjectPosition, ('one', 'two', 'three')))
 
     def test_migrate_portlets(self):
         self.grant('Manager')

@@ -5,6 +5,8 @@ Changelog
 2.2.1 (unreleased)
 ------------------
 
+- InplaceMigrator: Preserve object position in parent. [lknoepfel]
+
 - Do not downgrade installed version when installing an orphan upgrade step. [jone]
 
 - Add "soft_dependencies" option to "upgrade-step:directory" directive. [jone]

@@ -260,6 +260,7 @@ class InplaceMigrator(object):
     def replace_in_parent(self, old_object, new_object):
         parent = aq_parent(aq_inner(old_object))
         new_object = aq_base(new_object)
+        position_in_parent = parent.getObjectPosition(old_object.id)
 
         parent._delOb(old_object.id)
         objects = [info for info in parent._objects
@@ -274,6 +275,8 @@ class InplaceMigrator(object):
         if hasattr(aq_base(parent), '_tree'):
             del parent._tree[new_object.id]
             parent._tree[new_object.id] = new_object
+
+        parent.moveObjectToPosition(new_object.id, position_in_parent)
 
         return parent._getOb(new_object.id)
 

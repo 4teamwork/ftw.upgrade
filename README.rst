@@ -640,7 +640,7 @@ Setting up an upgrade directory
 
 
 Declare upgrades soft dependencies
------------------------------
+----------------------------------
 
 When having optional dependencies (``extras_require``), we sometimes need to tell
 ``ftw.upgrade`` that our optional dependency's upgrades needs to be installed

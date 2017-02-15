@@ -115,8 +115,13 @@ class TestInplaceMigrator(UpgradeTestCase):
                          folder.get_local_roles())
 
         self.maxDiff = None
-        self.assertDictEqual(old_catalog_indexdata,
-                             self.get_catalog_indexdata_for(folder))
+
+        new_catalog_indexdata = self.get_catalog_indexdata_for(folder)
+        # In Plone 4.3.7, the SearchableText changes here.
+        del old_catalog_indexdata['SearchableText']
+        del new_catalog_indexdata['SearchableText']
+
+        self.assertDictEqual(old_catalog_indexdata, new_catalog_indexdata)
 
     def test_migrate_dexterity_folder_to_dexterity(self):
         self.grant('Manager')

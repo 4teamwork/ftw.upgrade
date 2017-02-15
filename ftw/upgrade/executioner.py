@@ -1,4 +1,5 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
+from distutils.version import LooseVersion
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IPostUpgrade
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
@@ -89,9 +90,11 @@ class Executioner(object):
             last_dest_version = self._do_upgrade(profileid, upgradeid) \
                 or last_dest_version
 
-        old_version = self.portal_setup.getLastVersionForProfile(
-            profileid)
-        if last_dest_version > old_version:
+        old_version = self.portal_setup.getLastVersionForProfile(profileid)
+        compareable = lambda v: LooseVersion('.'.join(v))
+
+        if old_version == 'unknown' or \
+           compareable(last_dest_version) > compareable(old_version):
             self.portal_setup.setLastVersionForProfile(
                 profileid, last_dest_version)
 

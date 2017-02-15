@@ -5,6 +5,9 @@ Changelog
 2.3.1 (unreleased)
 ------------------
 
+- Fix bug causing that versions are not properly set after upgrading
+  when switching versioning system. [jone]
+
 - Avoid overriding customizations by reinstalling already installed
   profiles while upgrading (Plone>=4.3.8). [jone]
 

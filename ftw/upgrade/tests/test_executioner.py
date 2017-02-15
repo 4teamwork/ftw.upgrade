@@ -186,3 +186,39 @@ class TestExecutioner(UpgradeTestCase):
                     'done': ['20111111111100', '20121212121200'],
                     'proposed': [],
                     'orphan': []}})
+
+    def test_regression_switching_versioning_system(self):
+        # test_do_not_decrease_version_when_only_installing_orphan_steps
+        # caused an issue when switching to upgrade step directories,
+        # since the versioning system changed and '4' > '2016' but 4 < 2016.
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('plone upgrade step')
+                          .upgrading('4000', to='4002'))
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 11, 11, 11, 11))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', '4002')
+            self.clear_recorded_upgrades('the.package:default')
+            self.assert_gathered_upgrades({
+                'the.package:default': {
+                    'done': ['4002'],
+                    'proposed': ['20111111111100'],
+                    'orphan': []}})
+            self.assertEquals(
+                (u'4002',),
+                self.portal_setup.getLastVersionForProfile('the.package:default'))
+
+            executioner = queryAdapter(self.portal_setup, IExecutioner)
+            executioner.install_upgrades_by_api_ids(
+                '20111111111100@the.package:default')
+            self.assertEquals(
+                (u'20111111111100',),
+                self.portal_setup.getLastVersionForProfile('the.package:default'))
+            self.assert_gathered_upgrades({
+                'the.package:default': {
+                    'done': ['4002', '20111111111100'],
+                    'proposed': [],
+                    'orphan': []}})

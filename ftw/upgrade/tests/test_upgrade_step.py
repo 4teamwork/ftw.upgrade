@@ -15,6 +15,13 @@ from zope.interface import Interface
 from zope.interface.verify import verifyClass
 import pkg_resources
 
+try:
+    from Products.CMFCore.indexing import processQueue
+except ImportError:
+    def processQueue():
+        # Plone 4
+        pass
+
 
 class IMyProductLayer(Interface):
     """Dummy class used in test_remove_broken_browserlayer()
@@ -849,6 +856,7 @@ class TestUpgradeStep(UpgradeTestCase):
         return map(lambda item: item.get('name'), acquired_permissions)
 
     def get_allowed_roles_and_users_for(self, obj):
+        processQueue()  # trigger async indexing
         catalog = getToolByName(self.portal, 'portal_catalog')
         path = '/'.join(obj.getPhysicalPath())
         rid = catalog.getrid(path)

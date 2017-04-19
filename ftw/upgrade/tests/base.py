@@ -30,6 +30,14 @@ import transaction
 import urllib
 
 
+try:
+    from Products.CMFCore.indexing import processQueue
+except ImportError:
+    def processQueue():
+        # Plone 4
+        pass
+
+
 class UpgradeTestCase(TestCase):
     layer = UPGRADE_FUNCTIONAL_TESTING
 
@@ -200,6 +208,7 @@ class WorkflowTestCase(TestCase):
             ' there were some which were not up to date.')
 
     def get_allowed_roles_and_users(self, for_object):
+        processQueue()  # trigger async indexing
         catalog = getToolByName(self.portal, 'portal_catalog')
         path = '/'.join(for_object.getPhysicalPath())
         rid = catalog.getrid(path)

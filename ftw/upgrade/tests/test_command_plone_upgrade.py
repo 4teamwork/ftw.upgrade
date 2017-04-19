@@ -1,5 +1,7 @@
-from Products.CMFCore.utils import getToolByName
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
+from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.utils import getFSVersionTuple
+from unittest2 import skipIf
 import transaction
 
 
@@ -19,7 +21,8 @@ class TestPloneUpgradeCommand(CommandAndInstanceTestCase):
         transaction.begin()  # sync transaction
         self.assertIn(u'Plone Site was already up to date.', output)
 
-    def test_plone_upgrade_needed(self):
+    @skipIf(getFSVersionTuple() > (5, ), 'The test does not work on Plone 5.')
+    def test_upgrade_plone(self):
         from Products.CMFPlone.factory import _DEFAULT_PROFILE
         setup = getToolByName(self.portal, 'portal_setup')
         setup.setLastVersionForProfile(_DEFAULT_PROFILE, '4')

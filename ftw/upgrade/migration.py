@@ -1,7 +1,6 @@
 from Acquisition import aq_base
 from Acquisition import aq_inner
 from Acquisition import aq_parent
-from archetypes.referencebrowserwidget.interfaces import IATReferenceField
 from DateTime import DateTime
 from ftw.upgrade.helpers import update_security_for
 from functools import partial
@@ -30,11 +29,22 @@ from zope.annotation import IAnnotations
 from zope.component import getUtility
 from zope.container.contained import notifyContainerModified
 from zope.event import notify
+from zope.interface import Interface
 from zope.intid.interfaces import IIntIds
 from zope.keyreference.interfaces import IKeyReference
 from zope.lifecycleevent import ObjectModifiedEvent
 from zope.schema import getFieldsInOrder
 import logging
+import pkg_resources
+
+
+try:
+    pkg_resources.get_distribution('archetypes.referencebrowserwidget')
+except pkg_resources.DistributionNotFound:
+    class IATReferenceField(Interface):
+        pass
+else:
+    from archetypes.referencebrowserwidget.interfaces import IATReferenceField
 
 
 DISABLE_FIELD_AUTOMAPPING = 1

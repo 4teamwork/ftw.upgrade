@@ -25,6 +25,8 @@ from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces.constrains import ENABLED
 from Products.CMFPlone.interfaces.constrains import IConstrainTypes
 from Products.CMFPlone.interfaces.constrains import ISelectableConstrainTypes
+from Products.CMFPlone.utils import getFSVersionTuple
+from unittest2 import skipIf
 from zope.annotation import IAnnotations
 from zope.component import getMultiAdapter
 from zope.component import getUtility
@@ -36,6 +38,9 @@ def todt(date):
     return date.replace(tzinfo=None)
 
 
+@skipIf(getFSVersionTuple() > (5, ),
+        'The inplace migrator migrates from Archetypes.'
+        ' Plone 5 has no Archetypes objects.')
 class TestInplaceMigrator(UpgradeTestCase):
 
     def setUp(self):

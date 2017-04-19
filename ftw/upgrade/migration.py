@@ -1,3 +1,4 @@
+from Products.CMFPlone.utils import getFSVersionTuple
 from Acquisition import aq_base
 from Acquisition import aq_inner
 from Acquisition import aq_parent
@@ -140,6 +141,10 @@ class FieldsNotMappedError(ValueError):
     )
 
     def __init__(self, not_mapped, old_type, new_type, target_fields):
+        if getFSVersionTuple() > (5, ):
+            raise NotImplementedError(
+                'The inplace migrator migrates from Archetypes.'
+                ' Plone 5 has no Archetypes objects.')
         super(FieldsNotMappedError, self).__init__(
             self.message_template.format(
                 not_mapped='\n- '.join(sorted(not_mapped)),

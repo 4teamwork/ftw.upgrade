@@ -6,6 +6,7 @@ from ftw.upgrade.gatherer import extend_auto_upgrades_with_human_formatted_date_
 from ftw.upgrade.gatherer import UpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.tests.base import UpgradeTestCase
+from Products.CMFPlone.utils import getFSVersionTuple
 from unittest2 import TestCase
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
@@ -199,8 +200,9 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
         # - plone.formwidget.autocomplete:default (depends on Plone version)
 
         profiles = self.get_listed_profiles(filter_package=None)
-        self.assertIn('Products.CMFEditions:CMFEditions', profiles)
-        self.assertIn('Products.TinyMCE:TinyMCE', profiles)
+        if getFSVersionTuple() < (5,):
+            self.assertIn('Products.CMFEditions:CMFEditions', profiles)
+            self.assertIn('Products.TinyMCE:TinyMCE', profiles)
         self.assertIn('plone.app.discussion:default', profiles)
 
     def test_profile_infos(self):

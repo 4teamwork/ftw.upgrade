@@ -55,7 +55,7 @@ class TestInplaceMigrator(UpgradeTestCase):
 
         with freeze(creation_date):
             folder = create(Builder('folder')
-                            .titled('The Folder')
+                            .titled(u'The Folder')
                             .having(description='The Description',
                                     excludeFromNav=True,
                                     subject='One\nTwo',
@@ -185,7 +185,7 @@ class TestInplaceMigrator(UpgradeTestCase):
         self.grant('Manager')
 
         page = create(Builder('page')
-                      .titled('The Page')
+                      .titled(u'The Page')
                       .having(text='<p>Some Text</p>')
                       .in_state('published'))
 
@@ -212,7 +212,7 @@ class TestInplaceMigrator(UpgradeTestCase):
 
         thefile = create(
             Builder('file')
-            .titled('The File')
+            .titled(u'The File')
             .attach_file_containing('<doc>Content</doc>', name='data.xml'))
 
         self.assertTrue(IBaseObject.providedBy(thefile))
@@ -232,7 +232,7 @@ class TestInplaceMigrator(UpgradeTestCase):
 
     def test_field_mapping_overrides_auto_mapping(self):
         self.grant('Manager')
-        folder = create(Builder('folder').titled('The Title'))
+        folder = create(Builder('folder').titled(u'The Title'))
         self.install_profile('plone.app.contenttypes:default')
 
         InplaceMigrator('Folder', {'title': 'description'},
@@ -267,7 +267,7 @@ class TestInplaceMigrator(UpgradeTestCase):
     def test_BACKUP_AND_IGNORE_UNMAPPED_FIELDS_flag(self):
         self.grant('Manager')
         folder = create(Builder('folder')
-                        .titled('The Folder')
+                        .titled(u'The Folder')
                         .having(description='A very fancy folder.'))
         self.install_profile('plone.app.contenttypes:default')
 
@@ -317,7 +317,7 @@ class TestInplaceMigrator(UpgradeTestCase):
         self.grant('Manager')
         self.maxDiff = None
 
-        folder = create(Builder('folder').titled('The Folder'))
+        folder = create(Builder('folder').titled(u'The Folder'))
         self.set_constraintypes_config(
             folder,
             {'mode': ENABLED,
@@ -349,7 +349,7 @@ class TestInplaceMigrator(UpgradeTestCase):
         peter = create(Builder('user').named('Peter', 'Pan').with_roles('Manager'))
 
         login(self.portal, john.getId())
-        folder = create(Builder('folder').titled('The Folder'))
+        folder = create(Builder('folder').titled(u'The Folder'))
         folder.changeOwnership(peter.getUser())
 
         self.assertTrue(IBaseObject.providedBy(folder))
@@ -367,10 +367,10 @@ class TestInplaceMigrator(UpgradeTestCase):
 
     def test_migrate_object_position(self):
         self.grant('Manager')
-        container = create(Builder('folder').titled('Container'))
-        one = create(Builder('folder').titled('One').within(container))
-        two = create(Builder('folder').titled('Two').within(container))
-        three = create(Builder('folder').titled('Three').within(container))
+        container = create(Builder('folder').titled(u'Container'))
+        one = create(Builder('folder').titled(u'One').within(container))
+        two = create(Builder('folder').titled(u'Two').within(container))
+        three = create(Builder('folder').titled(u'Three').within(container))
 
         self.assertEquals([0, 1, 2], map(container.getObjectPosition, ('one', 'two', 'three')))
         container.moveObjectsByDelta(['three'], -1)
@@ -388,7 +388,7 @@ class TestInplaceMigrator(UpgradeTestCase):
     def test_migrate_portlets(self):
         self.grant('Manager')
 
-        folder = create(Builder('folder').titled('The Folder'))
+        folder = create(Builder('folder').titled(u'The Folder'))
         portlet = create(Builder('static portlet')
                          .within(folder)
                          .in_manager('plone.rightcolumn'))
@@ -408,8 +408,8 @@ class TestInplaceMigrator(UpgradeTestCase):
     def test_migrate_relations(self):
         self.grant('Manager')
 
-        foo = create(Builder('folder').titled('Foo'))
-        bar = create(Builder('folder').titled('Bar')
+        foo = create(Builder('folder').titled(u'Foo'))
+        bar = create(Builder('folder').titled(u'Bar')
                      .having(relatedItems=[foo]))
 
         self.assertEquals([foo], bar.getRelatedItems())

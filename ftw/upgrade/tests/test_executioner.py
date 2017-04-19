@@ -59,13 +59,13 @@ class TestExecutioner(UpgradeTestCase):
             Builder('genericsetup profile')
             .with_upgrade(Builder('plone upgrade step')
                           .upgrading('1000', to='1001')
-                          .titled('Register "foo" utility'))
+                          .titled(u'Register "foo" utility'))
             .with_upgrade(Builder('plone upgrade step')
                           .upgrading('1001', to='1002')
-                          .titled('Update email address'))
+                          .titled(u'Update email address'))
             .with_upgrade(Builder('plone upgrade step')
                           .upgrading('1002', to='1003')
-                          .titled('Update email from name')))
+                          .titled(u'Update email from name')))
 
         with self.package_created():
             self.install_profile('the.package:default', version='1000')
@@ -81,7 +81,7 @@ class TestExecutioner(UpgradeTestCase):
             Builder('genericsetup profile')
             .with_upgrade(Builder('plone upgrade step')
                           .upgrading('1000', to='1001')
-                          .titled('Register "foo" utility')))
+                          .titled(u'Register "foo" utility')))
 
         with self.package_created():
             self.install_profile('the.package:default', version='1000')

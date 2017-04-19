@@ -70,9 +70,9 @@ class TestUpgradeStep(UpgradeTestCase):
 
     def test_objects_method_yields_objects_with_logging(self):
         testcase = self
-        create(Builder('folder').titled('Foo'))
-        create(Builder('folder').titled('Bar'))
-        create(Builder('folder').titled('Baz'))
+        create(Builder('folder').titled(u'Foo'))
+        create(Builder('folder').titled(u'Bar'))
+        create(Builder('folder').titled(u'Baz'))
 
         object_titles = []
 
@@ -128,7 +128,7 @@ class TestUpgradeStep(UpgradeTestCase):
                 testcase.assertEqual(1, len(ctool._catalog.getIndex(name)))
 
         create(Builder('folder')
-               .titled('Rebuild Index Test Obj')
+               .titled(u'Rebuild Index Test Obj')
                .having(excludeFromNav=True))
 
         Step(self.portal_setup)
@@ -227,8 +227,8 @@ class TestUpgradeStep(UpgradeTestCase):
         testcase = self
 
         folder = create(Builder('folder'))
-        create(Builder('document').titled('Page One').within(folder))
-        create(Builder('document').titled('Page Two').within(folder))
+        create(Builder('document').titled(u'Page One').within(folder))
+        create(Builder('document').titled(u'Page Two').within(folder))
 
         folder_path = '/'.join(folder.getPhysicalPath())
 

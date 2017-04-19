@@ -228,7 +228,7 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
             Builder('genericsetup profile')
             .with_upgrade(Builder('plone upgrade step')
                           .upgrading('1000', to='1001')
-                          .titled('Add action')
+                          .titled(u'Add action')
                           .with_description('Some details...')))
 
         with self.package_created():

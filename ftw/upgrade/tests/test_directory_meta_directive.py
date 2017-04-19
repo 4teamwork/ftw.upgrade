@@ -37,7 +37,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
     def test_first_source_version_is_last_regulare_upgrade_step(self):
         self.profile.with_upgrade(Builder('plone upgrade step')
                                   .upgrading('1000', to='1001')
-                                  .titled('Register foo utility.'))
+                                  .titled(u'Register foo utility.'))
         self.profile.with_upgrade(Builder('ftw upgrade step')
                                   .to(datetime(2011, 1, 1, 8))
                                   .named('add_action'))
@@ -138,7 +138,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
     def test_profile_version_is_set_to_latest_old_school_profile_version(self):
         self.profile.with_upgrade(Builder('plone upgrade step')
                                   .upgrading('1000', to='1001')
-                                  .titled('Register foo utility.'))
+                                  .titled(u'Register foo utility.'))
         self.profile.with_upgrade(Builder('ftw upgrade step')
                                   .to(datetime(2011, 2, 2, 8)))
 

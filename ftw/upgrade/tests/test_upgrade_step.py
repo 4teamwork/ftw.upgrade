@@ -127,16 +127,15 @@ class TestUpgradeStep(UpgradeTestCase):
         class Step(UpgradeStep):
             def __call__(self):
                 ctool = self.getToolByName('portal_catalog')
-                name = 'getExcludeFromNav'
+                name = 'rights'
 
-                self.catalog_add_index(name, 'BooleanIndex')
-                testcase.assertEqual(0, len(ctool._catalog.getIndex(name)))
+                self.catalog_add_index(name, 'FieldIndex')
+                testcase.assertEqual(0, ctool._catalog.getIndex(name).indexSize())
                 self.catalog_rebuild_index(name)
-                testcase.assertEqual(1, len(ctool._catalog.getIndex(name)))
+                testcase.assertEqual(1, ctool._catalog.getIndex(name).indexSize())
 
         create(Builder('folder')
-               .titled(u'Rebuild Index Test Obj')
-               .having(excludeFromNav=True))
+               .titled(u'Rebuild Index Test Obj'))
 
         Step(self.portal_setup)
 
@@ -147,15 +146,15 @@ class TestUpgradeStep(UpgradeTestCase):
         class Step(UpgradeStep):
             def __call__(self):
                 ctool = self.getToolByName('portal_catalog')
-                name = 'getExcludeFromNav'
+                name = 'rights'
 
-                self.catalog_add_index(name, 'BooleanIndex')
-                testcase.assertEqual(0, len(ctool._catalog.getIndex(name)))
+                self.catalog_add_index(name, 'FieldIndex')
+                testcase.assertEqual(0, ctool._catalog.getIndex(name).indexSize())
 
                 self.catalog_reindex_objects({'portal_type': 'Folder'})
 
                 self.catalog_rebuild_index(name)
-                testcase.assertEqual(1, len(ctool._catalog.getIndex(name)))
+                testcase.assertEqual(1, ctool._catalog.getIndex(name).indexSize())
 
         Step(self.portal_setup)
 

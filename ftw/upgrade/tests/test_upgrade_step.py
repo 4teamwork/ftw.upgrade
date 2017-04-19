@@ -10,6 +10,7 @@ from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 from plone.browserlayer.utils import register_layer
 from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.utils import getFSVersionTuple
 from unittest2 import skipIf
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
@@ -592,33 +593,41 @@ class TestUpgradeStep(UpgradeTestCase):
         folder = create(Builder('folder'))
         subfolder = create(Builder('folder').within(folder))
 
+        class FancyFolder(subfolder.__class__):
+            pass
 
         class Step(UpgradeStep):
             def __call__(self):
-                self.migrate_class(subfolder, ATBTreeFolder)
+                self.migrate_class(subfolder, FancyFolder)
 
-        self.assertEqual('ATFolder', subfolder.__class__.__name__)
+        self.assertIn(subfolder.__class__.__name__,
+                      ('ATFolder', 'Folder'))
         Step(self.portal_setup)
-        self.assertEqual('ATBTreeFolder', subfolder.__class__.__name__)
+        self.assertEqual('FancyFolder', subfolder.__class__.__name__)
 
     def test_migrate_class_also_updates_provided_interfaces_info(self):
-        from Products.ATContentTypes.content.link import ATLink
-        from Products.ATContentTypes.interfaces import IATLink
-        from Products.ATContentTypes.interfaces import IATDocument
+        if getFSVersionTuple() > (5, ):
+            from plone.app.contenttypes.content import Link
+            from plone.app.contenttypes.interfaces import ILink
+            from plone.app.contenttypes.interfaces import IDocument
+        else:
+            from Products.ATContentTypes.content.link import ATLink as Link
+            from Products.ATContentTypes.interfaces import IATLink as ILink
+            from Products.ATContentTypes.interfaces import IATDocument as IDocument
 
         obj = create(Builder('document'))
-        self.assertTrue(IATDocument.providedBy(obj))
-        self.assertFalse(IATLink.providedBy(obj))
+        self.assertTrue(IDocument.providedBy(obj))
+        self.assertFalse(ILink.providedBy(obj))
 
         class Step(UpgradeStep):
             def __call__(self):
-                self.migrate_class(obj, ATLink)
+                self.migrate_class(obj, Link)
 
         Step(self.portal_setup)
-        self.assertFalse(IATDocument.providedBy(obj),
-                         'IATDocument interface not removed in migration')
-        self.assertTrue(IATLink.providedBy(obj),
-                        'IATLink interface not added in migration')
+        self.assertFalse(IDocument.providedBy(obj),
+                         'Document interface not removed in migration')
+        self.assertTrue(ILink.providedBy(obj),
+                        'Link interface not added in migration')
 
     def test_remove_broken_browserlayer(self):
         from plone.browserlayer.utils import registered_layers

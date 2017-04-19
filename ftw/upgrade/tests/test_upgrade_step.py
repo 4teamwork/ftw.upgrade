@@ -291,10 +291,10 @@ class TestUpgradeStep(UpgradeTestCase):
                 return False
 
             def __call__(self):
-                testcase.assertTrue(self.event_has_action('history'))
+                testcase.assertTrue(self.event_has_action('view'))
                 testcase.assertTrue(
-                    self.actions_remove_type_action('Event', 'history'))
-                testcase.assertFalse(self.event_has_action('history'))
+                    self.actions_remove_type_action('Event', 'view'))
+                testcase.assertFalse(self.event_has_action('view'))
 
         Step(self.portal_setup)
 
@@ -319,16 +319,16 @@ class TestUpgradeStep(UpgradeTestCase):
             def __call__(self):
                 testcase.assertEquals(
                     None, self.get_event_action('additional'))
-                testcase.assertEquals(
-                    ['view', 'edit', 'history', 'external_edit'],
+                testcase.assertNotIn(
+                    'additional',
                     self.get_action_ids())
 
                 self.actions_add_type_action(
                     'Event', 'history', action_id='additional', title='Additional',
                     action='string:#', permissions=('View', ))
 
-                testcase.assertEquals(
-                    ['view', 'edit', 'history', 'additional', 'external_edit'],
+                testcase.assertIn(
+                    'additional',
                     self.get_action_ids())
 
                 action = self.get_event_action('additional')

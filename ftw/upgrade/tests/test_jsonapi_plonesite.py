@@ -129,9 +129,9 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
     def test_get_profile_requires_GET(self, browser):
         with self.expect_api_error(status=405,
                                    message='Method Not Allowed',
-                                   details='Action requires GET') as cm:
+                                   details='Action requires GET'):
             self.api_request('POST', 'get_profile', {'profileid': 'the.package:default'})
-        self.assertEquals('GET', cm['headers'].get('allow'))
+        self.assertEquals('GET', browser.headers.get('allow'))
 
     @browsing
     def test_get_unkown_profile_returns_error(self, browser):
@@ -353,9 +353,9 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
     def test_execute_upgrades_requires_POST(self, browser):
         with self.expect_api_error(status=405,
                                    message='Method Not Allowed',
-                                   details='Action requires POST') as cm:
+                                   details='Action requires POST'):
             self.api_request('GET', 'execute_upgrades', {'upgrades:list': 'foo@bar:default'})
-        self.assertEquals('POST', cm['headers'].get('allow'))
+        self.assertEquals('POST', browser.headers.get('allow'))
 
     @browsing
     def test_execute_upgrades_not_allowed_when_plone_outdated(self, browser):

@@ -294,50 +294,27 @@ class JsonApiTestCase(UpgradeTestCase):
                 raise Exception('Unsupported request method {0}'.format(method))
 
     @contextmanager
-    def expect_api_error(self, **expectations):
+    def expect_api_error(self, status=None, message=None, details=None):
         api_error_info = {}
-        with self.expect_request_error() as response_info:
+        with browser.expect_http_error(code=status):
             yield api_error_info
 
-        api_error_info.update(response_info)
-        # del api_error_info['headers']  # not serializable
-        api_error_info['response_message'] = response_info['message']
+        expected = {'result': 'ERROR'}
+        if message is not None:
+            expected['message'] = message
+        if details is not None:
+            expected['details'] = details
 
-        # Make headers serializable
-        api_error_info['headers'] = dict(api_error_info['headers'])
-
-        try:
-            body_json = json.loads(response_info['body'])
-            assert len(body_json) == 3
-            assert body_json[0] == 'ERROR'
-            api_error_info['message'] = body_json[1]
-            api_error_info['details'] = body_json[2]
-        except:
-            raise AssertionError(
-                'Unexpected error response body. A three item list is expected,'
-                ' consisting of "ERROR", the error message (short) and the error details.\n'
-                'Response body: {0}'.format(response_info['body']))
+        got = dict(zip(['result', 'message', 'details'], browser.json))
 
         self.assertDictContainsSubset(
-            expectations, api_error_info,
+            expected,
+            got,
             'Unexpected error response details.\n\n'
             'Expected:' +
-            json.dumps(expectations, sort_keys=True, indent=4) +
+            json.dumps(expected, sort_keys=True, indent=4) +
             '\nto be included in:\n' +
-            json.dumps(api_error_info, sort_keys=True, indent=4))
-
-    @contextmanager
-    def expect_request_error(self):
-        response_info = {}
-        with self.assertRaises(HTTPError) as cm:
-            yield response_info
-
-        exc = cm.exception
-        response_info['status'] = exc.wrapped.code
-        response_info['message'] = exc.wrapped.msg
-        response_info['url'] = exc.wrapped._url
-        response_info['headers'] = exc.hdrs
-        response_info['body'] = exc.wrapped.read()
+            json.dumps(got, sort_keys=True, indent=4))
 
 
 class CommandAndInstanceTestCase(JsonApiTestCase, CommandTestCase):

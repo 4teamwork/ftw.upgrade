@@ -123,23 +123,17 @@ class UpgradeTestCase(TestCase):
 
     @contextmanager
     def assert_resources_recooked(self):
-        def get_styles():
+        def get_resources():
             doc = lxml.html.fromstring(self.portal())
             return map(str.strip,
                        map(lxml.html.tostring,
-                           doc.xpath('//link[@href]')))
+                           doc.xpath('//link[@rel="stylesheet"][@href]'
+                                     ' | //script[@src]')))
 
-        def get_scripts():
-            doc = lxml.html.fromstring(self.portal())
-            return map(str.strip,
-                       map(lxml.html.tostring,
-                           doc.xpath('//script[@src]')))
-
-        styles = get_styles()
-        scripts = get_scripts()
+        resources = get_resources()
         yield
-        self.assertNotEqual(styles, get_styles(), 'Styles are not recooked.')
-        self.assertNotEqual(scripts, get_scripts(), 'Scripts are not recooked.')
+        self.assertNotEqual(resources, get_resources(),
+                            'Resurces are not recooked.')
 
     def setup_logging(self):
         self.log = StringIO()

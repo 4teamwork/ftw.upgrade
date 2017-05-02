@@ -11,10 +11,12 @@ from plone.app.testing import FunctionalTesting
 from plone.app.testing import PLONE_ZSERVER
 from plone.app.testing import PloneSandboxLayer
 from plone.app.testing import SITE_OWNER_NAME
+from plone.registry.interfaces import IRegistry
 from plone.testing import z2
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import getFSVersionTuple
 from Products.SiteAccess.VirtualHostMonster import manage_addVirtualHostMonster
+from zope.component import getUtility
 from zope.configuration import xmlconfig
 import ftw.upgrade.tests.builders
 import pkg_resources
@@ -62,6 +64,12 @@ class UpgradeLayer(PloneSandboxLayer):
 
         self.fix_plone_app_jquery_version(portal)
         self.prevent_csrf_by_initializing_site_storages(portal)
+
+        # Enable development mode so that resources are included in separately
+        # in the HTML so that we can test for recooked resources.
+        registry = getUtility(IRegistry)
+        if 'plone.resources.development' in registry:
+            registry['plone.resources.development'] = True
 
     def prevent_csrf_by_initializing_site_storages(self, portal):
         """Plone auto-protection results in confirmation pages

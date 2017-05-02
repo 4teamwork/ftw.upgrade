@@ -24,6 +24,7 @@ from zope.component import getMultiAdapter
 from zope.component import queryAdapter
 import json
 import logging
+import lxml.html
 import os
 import re
 import transaction
@@ -123,12 +124,16 @@ class UpgradeTestCase(TestCase):
     @contextmanager
     def assert_resources_recooked(self):
         def get_styles():
-            return self.portal.restrictedTraverse(
-                'resourceregistries_styles_view').styles()
+            doc = lxml.html.fromstring(self.portal())
+            return map(str.strip,
+                       map(lxml.html.tostring,
+                           doc.xpath('//link[@href]')))
 
         def get_scripts():
-            return self.portal.restrictedTraverse(
-                'resourceregistries_scripts_view').scripts()
+            doc = lxml.html.fromstring(self.portal())
+            return map(str.strip,
+                       map(lxml.html.tostring,
+                           doc.xpath('//script[@src]')))
 
         styles = get_styles()
         scripts = get_scripts()

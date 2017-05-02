@@ -18,7 +18,6 @@ tests_require = [
     'zc.recipe.egg',
     'transaction',
     'Products.ATContentTypes',
-    'archetypes.referencebrowserwidget',
     'Products.CMFPlacefulWorkflow',
     ]
 

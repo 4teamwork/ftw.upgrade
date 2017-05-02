@@ -77,7 +77,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
         self.layer['portal'].upgrade_info = PersistentList()
 
         setRoles(self.layer['portal'], TEST_USER_ID, ['Manager'])
-        create(Builder('folder').with_id('the-folder'))
+        create(Builder('folder').titled(u'The Folder'))
 
         def upgrade_step(setup_context):
             portal = setup_context.portal_url.getPortalObject()

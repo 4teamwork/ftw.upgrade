@@ -26,6 +26,17 @@ class TestResponseLogger(TestCase):
             ['foo', u'bar'],
             response.read().strip().split('\n'))
 
+    def test_logged_tags_get_escaped(self):
+        response = StringIO()
+
+        with ResponseLogger(response):
+            logging.error('ERROR: Something at <TextBlock at /bla/blub>')
+
+        response.seek(0)
+        self.assertEqual(
+            ['ERROR: Something at &lt;TextBlock at /bla/blub&gt;'],
+            response.read().strip().split('\n'))
+
     def test_logging_exceptions(self):
         response = StringIO()
 

@@ -55,6 +55,8 @@ class ResponseLogger(object):
         if isinstance(line, unicode):
             line = line.encode('utf8')
 
+        line = line.replace('<', '&lt;').replace('>', '&gt;')
+
         self.response.write(line)
         self.response.flush()
 

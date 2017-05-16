@@ -5,6 +5,8 @@ Changelog
 2.3.2 (unreleased)
 ------------------
 
+- Escape < and > in browser logger. [lknoepfel]
+
 - Log current item in ProcessLogger if logger exits unexpectedly. [lknoepfel]
 
 

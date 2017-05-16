@@ -52,7 +52,7 @@ class TestProgressLogger(TestCase):
                           '1 of 5 (20%): Bar',
                           '2 of 5 (40%): Bar',
                           '3 of 5 (60%): Bar',
-                          'FAILED Bar (ValueError: baz)'],
+                          'FAILED Bar (ValueError: baz) at item nr. 3'],
                          self.read_log())
 
     def test_accepts_iterable_object(self):
@@ -83,3 +83,16 @@ class TestProgressLogger(TestCase):
         self.assertEqual(
             items, result,
             'Iterating over the progresslogger yields the original items.')
+
+    def test_current_item_is_printed_when_logger_exits_unexpectedly(self):
+        items = range(5)
+
+        with self.assertRaises(ValueError):
+            for item in ProgressLogger('Foo', items, logger=self.logger):
+                if item == 4:
+                    raise ValueError('baz')
+
+        self.assertEquals(['STARTING Foo',
+                           '1 of 5 (20%): Foo',
+                           'FAILED Foo (GeneratorExit: ) at 4'],
+                          self.read_log())

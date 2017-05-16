@@ -5,7 +5,7 @@ Changelog
 2.3.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Log current item in ProcessLogger if logger exits unexpectedly. [lknoepfel]
 
 
 2.3.1 (2017-02-15)

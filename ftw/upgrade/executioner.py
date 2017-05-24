@@ -1,5 +1,6 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from distutils.version import LooseVersion
+from ftw.upgrade.interfaces import IDuringUpgrade
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IPostUpgrade
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
@@ -12,6 +13,7 @@ from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import _upgrade_registry
 from zope.component import adapts
 from zope.component import getAdapters
+from zope.interface import alsoProvides
 from zope.interface import implements
 import logging
 import time
@@ -29,6 +31,7 @@ class Executioner(object):
 
     def __init__(self, portal_setup):
         self.portal_setup = portal_setup
+        alsoProvides(portal_setup.REQUEST, IDuringUpgrade)
 
     security.declarePrivate('install')
     def install(self, data):

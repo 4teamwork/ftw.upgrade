@@ -5,7 +5,7 @@ Changelog
 2.5.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Log (re/un)-indexing progress if collective.indexing is installed. [deiferni]
 
 
 2.5.0 (2017-06-07)

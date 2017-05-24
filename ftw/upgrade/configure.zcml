@@ -32,4 +32,12 @@
         handler=".directory.subscribers.profile_installed"
         />
 
+    <configure zcml:condition="installed collective.indexing">
+        <utility
+             provides="collective.indexing.interfaces.IIndexQueueProcessor"
+             name="ftw-upgrade-logging"
+             factory=".indexing.LoggingQueueProcessor"
+             />
+    </configure>
+
 </configure>

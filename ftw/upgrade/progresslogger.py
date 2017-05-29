@@ -24,6 +24,7 @@ class ProgressLogger(object):
         self.timeout = timeout
         self._timestamp = None
         self._counter = 0
+        self._current_item = None
 
     security.declarePrivate('__enter__')
     def __enter__(self):
@@ -36,10 +37,16 @@ class ProgressLogger(object):
             self.logger.info('DONE %s' % self.message)
 
         else:
-            self.logger.error('FAILED %s (%s: %s)' % (
+            if self._current_item is not None:
+                current_step = repr(self._current_item)
+            else:
+                current_step = 'item nr. %d' % self._counter
+
+            self.logger.error('FAILED %s (%s: %s) at %s' % (
                     self.message,
                     str(exc_type.__name__),
-                    str(exc_value)))
+                    str(exc_value),
+                    current_step))
 
     security.declarePrivate('__call__')
     def __call__(self):
@@ -58,6 +65,7 @@ class ProgressLogger(object):
     def __iter__(self):
         with self as step:
             for item in self.iterable:
+                self._current_item = item
                 yield item
                 step()
 

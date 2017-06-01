@@ -40,4 +40,12 @@
              />
     </configure>
 
+    <configure zcml:condition="have plone-5">
+        <utility
+             provides="Products.CMFCore.interfaces.IIndexQueueProcessor"
+             name="ftw-upgrade-logging"
+             factory=".indexing.LoggingQueueProcessor"
+             />
+    </configure>
+
 </configure>

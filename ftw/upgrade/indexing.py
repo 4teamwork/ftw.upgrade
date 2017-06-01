@@ -1,16 +1,26 @@
 import pkg_resources
 
+HAS_INDEXING = False
 
 try:
-    pkg_resources.get_distribution('collective.indexing')
-except pkg_resources.DistributionNotFound:
-    HAS_INDEXING = False
+    from Products.CMFCore.indexing import processQueue
+    from Products.CMFCore.indexing import getQueue
+except ImportError:
+    try:
+        pkg_resources.get_distribution('collective.indexing')
+    except pkg_resources.DistributionNotFound:
+        def processQueue():
+            # Plone 4 without collective.indexing
+            pass
+    else:
+        from collective.indexing.queue import getQueue
+        from collective.indexing.queue import processQueue
+        HAS_INDEXING = True
 else:
     HAS_INDEXING = True
 
 
 if HAS_INDEXING:
-    from collective.indexing.queue import getQueue
     from ftw.upgrade.interfaces import IDuringUpgrade
     from ftw.upgrade.progresslogger import ProgressLogger
     from zope.globalrequest import getRequest

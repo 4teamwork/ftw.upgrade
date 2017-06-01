@@ -3,6 +3,7 @@ from ftw.builder import Builder
 from ftw.builder import create
 from ftw.testbrowser import browser
 from ftw.upgrade.directory import scaffold
+from ftw.upgrade.indexing import processQueue
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
@@ -29,14 +30,6 @@ import os
 import re
 import transaction
 import urllib
-
-
-try:
-    from Products.CMFCore.indexing import processQueue
-except ImportError:
-    def processQueue():
-        # Plone 4
-        pass
 
 
 class UpgradeTestCase(TestCase):

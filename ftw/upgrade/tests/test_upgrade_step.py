@@ -4,6 +4,7 @@ from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade import UpgradeStep
 from ftw.upgrade.exceptions import NoAssociatedProfileError
+from ftw.upgrade.indexing import processQueue
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.tests.base import UpgradeTestCase
 from plone.app.testing import setRoles
@@ -15,13 +16,6 @@ from unittest2 import skipIf
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
 import pkg_resources
-
-try:
-    from Products.CMFCore.indexing import processQueue
-except ImportError:
-    def processQueue():
-        # Plone 4
-        pass
 
 
 class IMyProductLayer(Interface):

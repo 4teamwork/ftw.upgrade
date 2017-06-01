@@ -3,10 +3,12 @@ import pkg_resources
 HAS_INDEXING = False
 
 try:
+    # Plone 5
     from Products.CMFCore.indexing import processQueue
     from Products.CMFCore.indexing import getQueue
 except ImportError:
     try:
+        # Plone 4 with collective.indexing
         pkg_resources.get_distribution('collective.indexing')
     except pkg_resources.DistributionNotFound:
         def processQueue():
@@ -59,7 +61,7 @@ if HAS_INDEXING:
                 return
             self.logger()
 
-        def reindex(self, obj, attributes):
+        def reindex(self, obj, attributes, update_metadata=False):
             if not self.should_log:
                 return
             self.logger()

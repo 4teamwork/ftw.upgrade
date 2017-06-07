@@ -45,6 +45,12 @@
   cursor: pointer;
 }
 
+.upgrade:after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
 .upgrade:hover {
   background-color: #eee;
 }

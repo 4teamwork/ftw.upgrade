@@ -14,10 +14,10 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
                                 to_workflow='intranet_folder_workflow')
 
         private_folder = create(Builder('folder')
-                                .titled('Private Folder')
+                                .titled(u'Private Folder')
                                 .in_state('private'))
         published_folder = create(Builder('folder')
-                                  .titled('Published Folder')
+                                  .titled(u'Published Folder')
                                   .in_state('internal'))
 
         objects = [private_folder, published_folder]
@@ -39,7 +39,7 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
                                 to_workflow='intranet_workflow')
 
         container = create(Builder('folder')
-                           .titled('Container')
+                           .titled(u'Container')
                            .in_state('external'))
 
         mapping = {
@@ -57,7 +57,7 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
                                 to_workflow='intranet_workflow')
 
         container = create(Builder('folder')
-                           .titled('Container')
+                           .titled(u'Container')
                            .in_state('internal'))
 
         self.assertIn('Member',

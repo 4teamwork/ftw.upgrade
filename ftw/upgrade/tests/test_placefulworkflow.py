@@ -16,17 +16,17 @@ class TestPlacefulWorkflowPolicyActivator(WorkflowTestCase):
 
     def test_activate_placeful_workflow_policy_with_mapping(self):
         container = create(Builder('folder')
-                           .titled('Container')
+                           .titled(u'Container')
                            .in_state('external'))
 
         subfolder = create(Builder('folder')
                            .within(container)
-                           .titled('Subfolder')
+                           .titled(u'Subfolder')
                            .in_state('pending'))
 
         document = create(Builder('document')
                           .within(subfolder)
-                          .titled('The Document')
+                          .titled(u'The Document')
                           .in_state('internally_published'))
 
         self.create_placeful_workflow_policy(
@@ -49,7 +49,7 @@ class TestPlacefulWorkflowPolicyActivator(WorkflowTestCase):
 
     def test_object_security_is_updated(self):
         container = create(Builder('folder')
-                           .titled('Container')
+                           .titled(u'Container')
                            .in_state('external'))
 
         self.create_placeful_workflow_policy(
@@ -68,7 +68,7 @@ class TestPlacefulWorkflowPolicyActivator(WorkflowTestCase):
 
     def test_object_security_is_reindexed(self):
         container = create(Builder('folder')
-                           .titled('Container')
+                           .titled(u'Container')
                            .in_state('internal'))
 
         self.assertIn('Member',

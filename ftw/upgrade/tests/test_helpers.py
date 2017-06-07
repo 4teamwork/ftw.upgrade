@@ -2,7 +2,6 @@ from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.helpers import update_security_for
 from ftw.upgrade.tests.base import WorkflowTestCase
-from Products.CMFCore.utils import getToolByName
 
 
 class TestUpdateSecurity(WorkflowTestCase):
@@ -38,19 +37,19 @@ class TestUpdateSecurity(WorkflowTestCase):
                         .in_state('published'))
 
         self.assertEquals(['Anonymous'],
-                          self.get_allowed_roles_and_users_for(folder))
+                          self.get_allowed_roles_and_users(folder))
         folder.reindexObjectSecurity()
 
         folder.manage_permission('View', roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
 
         self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users_for(folder))
+                          self.get_allowed_roles_and_users(folder))
 
         update_security_for(folder)
 
         self.assertEquals(['Anonymous'],
-                          self.get_allowed_roles_and_users_for(folder))
+                          self.get_allowed_roles_and_users(folder))
 
     def test_without_reindexing_security(self):
         self.set_workflow_chain(for_type='Folder',
@@ -59,22 +58,15 @@ class TestUpdateSecurity(WorkflowTestCase):
                         .in_state('published'))
 
         self.assertEquals(['Anonymous'],
-                          self.get_allowed_roles_and_users_for(folder))
+                          self.get_allowed_roles_and_users(folder))
 
         folder.manage_permission('View', roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
 
         self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users_for(folder))
+                          self.get_allowed_roles_and_users(folder))
 
         update_security_for(folder, reindex_security=False)
 
         self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users_for(folder))
-
-    def get_allowed_roles_and_users_for(self, obj):
-        catalog = getToolByName(self.portal, 'portal_catalog')
-        path = '/'.join(obj.getPhysicalPath())
-        rid = catalog.getrid(path)
-        index_data = catalog.getIndexDataForRID(rid)
-        return index_data.get('allowedRolesAndUsers')
+                          self.get_allowed_roles_and_users(folder))

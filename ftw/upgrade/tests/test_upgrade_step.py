@@ -10,10 +10,18 @@ from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 from plone.browserlayer.utils import register_layer
 from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.utils import getFSVersionTuple
 from unittest2 import skipIf
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
 import pkg_resources
+
+try:
+    from Products.CMFCore.indexing import processQueue
+except ImportError:
+    def processQueue():
+        # Plone 4
+        pass
 
 
 class IMyProductLayer(Interface):
@@ -70,9 +78,9 @@ class TestUpgradeStep(UpgradeTestCase):
 
     def test_objects_method_yields_objects_with_logging(self):
         testcase = self
-        create(Builder('folder').titled('Foo'))
-        create(Builder('folder').titled('Bar'))
-        create(Builder('folder').titled('Baz'))
+        create(Builder('folder').titled(u'Foo'))
+        create(Builder('folder').titled(u'Bar'))
+        create(Builder('folder').titled(u'Baz'))
 
         object_titles = []
 
@@ -120,16 +128,15 @@ class TestUpgradeStep(UpgradeTestCase):
         class Step(UpgradeStep):
             def __call__(self):
                 ctool = self.getToolByName('portal_catalog')
-                name = 'getExcludeFromNav'
+                name = 'rights'
 
-                self.catalog_add_index(name, 'BooleanIndex')
-                testcase.assertEqual(0, len(ctool._catalog.getIndex(name)))
+                self.catalog_add_index(name, 'FieldIndex')
+                testcase.assertEqual(0, ctool._catalog.getIndex(name).indexSize())
                 self.catalog_rebuild_index(name)
-                testcase.assertEqual(1, len(ctool._catalog.getIndex(name)))
+                testcase.assertEqual(1, ctool._catalog.getIndex(name).indexSize())
 
         create(Builder('folder')
-               .titled('Rebuild Index Test Obj')
-               .having(excludeFromNav=True))
+               .titled(u'Rebuild Index Test Obj'))
 
         Step(self.portal_setup)
 
@@ -140,15 +147,15 @@ class TestUpgradeStep(UpgradeTestCase):
         class Step(UpgradeStep):
             def __call__(self):
                 ctool = self.getToolByName('portal_catalog')
-                name = 'getExcludeFromNav'
+                name = 'rights'
 
-                self.catalog_add_index(name, 'BooleanIndex')
-                testcase.assertEqual(0, len(ctool._catalog.getIndex(name)))
+                self.catalog_add_index(name, 'FieldIndex')
+                testcase.assertEqual(0, ctool._catalog.getIndex(name).indexSize())
 
                 self.catalog_reindex_objects({'portal_type': 'Folder'})
 
                 self.catalog_rebuild_index(name)
-                testcase.assertEqual(1, len(ctool._catalog.getIndex(name)))
+                testcase.assertEqual(1, ctool._catalog.getIndex(name).indexSize())
 
         Step(self.portal_setup)
 
@@ -227,8 +234,8 @@ class TestUpgradeStep(UpgradeTestCase):
         testcase = self
 
         folder = create(Builder('folder'))
-        create(Builder('document').titled('Page One').within(folder))
-        create(Builder('document').titled('Page Two').within(folder))
+        create(Builder('document').titled(u'Page One').within(folder))
+        create(Builder('document').titled(u'Page Two').within(folder))
 
         folder_path = '/'.join(folder.getPhysicalPath())
 
@@ -285,10 +292,10 @@ class TestUpgradeStep(UpgradeTestCase):
                 return False
 
             def __call__(self):
-                testcase.assertTrue(self.event_has_action('history'))
+                testcase.assertTrue(self.event_has_action('view'))
                 testcase.assertTrue(
-                    self.actions_remove_type_action('Event', 'history'))
-                testcase.assertFalse(self.event_has_action('history'))
+                    self.actions_remove_type_action('Event', 'view'))
+                testcase.assertFalse(self.event_has_action('view'))
 
         Step(self.portal_setup)
 
@@ -313,16 +320,16 @@ class TestUpgradeStep(UpgradeTestCase):
             def __call__(self):
                 testcase.assertEquals(
                     None, self.get_event_action('additional'))
-                testcase.assertEquals(
-                    ['view', 'edit', 'history', 'external_edit'],
+                testcase.assertNotIn(
+                    'additional',
                     self.get_action_ids())
 
                 self.actions_add_type_action(
                     'Event', 'history', action_id='additional', title='Additional',
                     action='string:#', permissions=('View', ))
 
-                testcase.assertEquals(
-                    ['view', 'edit', 'history', 'additional', 'external_edit'],
+                testcase.assertIn(
+                    'additional',
                     self.get_action_ids())
 
                 action = self.get_event_action('additional')
@@ -586,33 +593,41 @@ class TestUpgradeStep(UpgradeTestCase):
         folder = create(Builder('folder'))
         subfolder = create(Builder('folder').within(folder))
 
+        class FancyFolder(subfolder.__class__):
+            pass
 
         class Step(UpgradeStep):
             def __call__(self):
-                self.migrate_class(subfolder, ATBTreeFolder)
+                self.migrate_class(subfolder, FancyFolder)
 
-        self.assertEqual('ATFolder', subfolder.__class__.__name__)
+        self.assertIn(subfolder.__class__.__name__,
+                      ('ATFolder', 'Folder'))
         Step(self.portal_setup)
-        self.assertEqual('ATBTreeFolder', subfolder.__class__.__name__)
+        self.assertEqual('FancyFolder', subfolder.__class__.__name__)
 
     def test_migrate_class_also_updates_provided_interfaces_info(self):
-        from Products.ATContentTypes.content.link import ATLink
-        from Products.ATContentTypes.interfaces import IATLink
-        from Products.ATContentTypes.interfaces import IATDocument
+        if getFSVersionTuple() > (5, ):
+            from plone.app.contenttypes.content import Link
+            from plone.app.contenttypes.interfaces import ILink
+            from plone.app.contenttypes.interfaces import IDocument
+        else:
+            from Products.ATContentTypes.content.link import ATLink as Link
+            from Products.ATContentTypes.interfaces import IATLink as ILink
+            from Products.ATContentTypes.interfaces import IATDocument as IDocument
 
         obj = create(Builder('document'))
-        self.assertTrue(IATDocument.providedBy(obj))
-        self.assertFalse(IATLink.providedBy(obj))
+        self.assertTrue(IDocument.providedBy(obj))
+        self.assertFalse(ILink.providedBy(obj))
 
         class Step(UpgradeStep):
             def __call__(self):
-                self.migrate_class(obj, ATLink)
+                self.migrate_class(obj, Link)
 
         Step(self.portal_setup)
-        self.assertFalse(IATDocument.providedBy(obj),
-                         'IATDocument interface not removed in migration')
-        self.assertTrue(IATLink.providedBy(obj),
-                        'IATLink interface not added in migration')
+        self.assertFalse(IDocument.providedBy(obj),
+                         'Document interface not removed in migration')
+        self.assertTrue(ILink.providedBy(obj),
+                        'Link interface not added in migration')
 
     def test_remove_broken_browserlayer(self):
         from plone.browserlayer.utils import registered_layers
@@ -849,6 +864,7 @@ class TestUpgradeStep(UpgradeTestCase):
         return map(lambda item: item.get('name'), acquired_permissions)
 
     def get_allowed_roles_and_users_for(self, obj):
+        processQueue()  # trigger async indexing
         catalog = getToolByName(self.portal, 'portal_catalog')
         path = '/'.join(obj.getPhysicalPath())
         rid = catalog.getrid(path)

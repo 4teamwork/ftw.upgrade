@@ -24,10 +24,19 @@ from zope.component import getMultiAdapter
 from zope.component import queryAdapter
 import json
 import logging
+import lxml.html
 import os
 import re
 import transaction
 import urllib
+
+
+try:
+    from Products.CMFCore.indexing import processQueue
+except ImportError:
+    def processQueue():
+        # Plone 4
+        pass
 
 
 class UpgradeTestCase(TestCase):
@@ -114,19 +123,17 @@ class UpgradeTestCase(TestCase):
 
     @contextmanager
     def assert_resources_recooked(self):
-        def get_styles():
-            return self.portal.restrictedTraverse(
-                'resourceregistries_styles_view').styles()
+        def get_resources():
+            doc = lxml.html.fromstring(self.portal())
+            return map(str.strip,
+                       map(lxml.html.tostring,
+                           doc.xpath('//link[@rel="stylesheet"][@href]'
+                                     ' | //script[@src]')))
 
-        def get_scripts():
-            return self.portal.restrictedTraverse(
-                'resourceregistries_scripts_view').scripts()
-
-        styles = get_styles()
-        scripts = get_scripts()
+        resources = get_resources()
         yield
-        self.assertNotEqual(styles, get_styles(), 'Styles are not recooked.')
-        self.assertNotEqual(scripts, get_scripts(), 'Scripts are not recooked.')
+        self.assertNotEqual(resources, get_resources(),
+                            'Resurces are not recooked.')
 
     def setup_logging(self):
         self.log = StringIO()
@@ -200,6 +207,7 @@ class WorkflowTestCase(TestCase):
             ' there were some which were not up to date.')
 
     def get_allowed_roles_and_users(self, for_object):
+        processQueue()  # trigger async indexing
         catalog = getToolByName(self.portal, 'portal_catalog')
         path = '/'.join(for_object.getPhysicalPath())
         rid = catalog.getrid(path)

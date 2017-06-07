@@ -39,8 +39,9 @@ class TestAPIRequestor(CommandAndInstanceTestCase):
     def test_GET_with_params(self):
         requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD),
                                  site='plone')
+
         requestor.GET('get_profile', site='plone',
-                      params={'profileid': 'Products.TinyMCE:TinyMCE'})
+                      params={'profileid': 'plone.app.discussion:default'})
 
     def test_error_when_no_running_instance_found(self):
         self.layer['root_path'].joinpath('parts/instance').rmtree()

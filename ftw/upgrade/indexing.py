@@ -47,7 +47,7 @@ if HAS_INDEXING:
 
             indexing_queue_length = getQueue().length()
             self.logger = ProgressLogger(
-                'Collective indexing: processing queue',
+                'Processing indexing queue',
                 indexing_queue_length)
 
         def commit(self):

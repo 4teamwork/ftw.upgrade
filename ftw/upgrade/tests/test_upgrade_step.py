@@ -4,7 +4,9 @@ from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade import UpgradeStep
 from ftw.upgrade.exceptions import NoAssociatedProfileError
+from ftw.upgrade.indexing import HAS_INDEXING
 from ftw.upgrade.indexing import processQueue
+from ftw.upgrade.interfaces import IDuringUpgrade
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.tests.base import UpgradeTestCase
 from plone.app.testing import setRoles
@@ -13,6 +15,7 @@ from plone.browserlayer.utils import register_layer
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import getFSVersionTuple
 from unittest2 import skipIf
+from zope.interface import alsoProvides
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
 import pkg_resources
@@ -115,6 +118,28 @@ class TestUpgradeStep(UpgradeTestCase):
         self.assertEquals(
             4, data['processed_folders'],
             'Updating catalog reduced result set while iterating over it!!!')
+
+    @skipIf(not HAS_INDEXING,
+            'Tests must only run when indexing is available')
+    def test_logs_indexing_progress(self):
+        folders = [
+            create(Builder('folder')),
+            create(Builder('folder')),
+            create(Builder('folder')),
+        ]
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                for folder in folders:
+                    folder.reindexObject()
+                # manually trigger processing reindex queue
+                processQueue()
+
+        alsoProvides(self.portal.REQUEST, IDuringUpgrade)
+        Step(self.portal_setup)
+
+        self.assertEqual(['1 of 3 (33%): Processing indexing queue'],
+                         self.get_log())
 
     def test_catalog_rebuild_index(self):
         testcase = self

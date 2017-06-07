@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.4.1 (unreleased)
+2.5.0 (2017-06-07)
 ------------------
 
 - Add support for Plone 5.1. [jone]

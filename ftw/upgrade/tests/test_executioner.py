@@ -1,9 +1,15 @@
 from datetime import datetime
 from ftw.builder import Builder
+from ftw.builder import create
+from ftw.upgrade import UpgradeStep
 from ftw.upgrade.executioner import Executioner
+from ftw.upgrade.indexing import HAS_INDEXING
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.tests.base import UpgradeTestCase
+from plone.app.testing import setRoles
+from plone.app.testing import TEST_USER_ID
 from Products.CMFCore.utils import getToolByName
+from unittest2 import skipIf
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
 import transaction
@@ -186,6 +192,34 @@ class TestExecutioner(UpgradeTestCase):
                     'done': ['20111111111100', '20121212121200'],
                     'proposed': [],
                     'orphan': []}})
+
+    @skipIf(not HAS_INDEXING,
+            'Tests must only run when indexing is available')
+    def test_logs_indexing_progress_of_final_reindex(self):
+        self.grant('Manager')
+        create(Builder('folder'))
+        create(Builder('folder'))
+
+        class TriggerReindex(UpgradeStep):
+            def __call__(self):
+                catalog = self.getToolByName("portal_catalog")
+                for brain in catalog(portal_type="Folder"):
+                    brain.getObject().reindexObject()
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2013, 1, 1))
+                          .calling(TriggerReindex)))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1000')
+            self.setup_logging()
+
+            self.install_profile_upgrades('the.package:default')
+            self.assertEquals(
+                '1 of 2 (50%): Processing indexing queue',
+                self.get_log()[-1])
 
     def test_regression_switching_versioning_system(self):
         # test_do_not_decrease_version_when_only_installing_orphan_steps

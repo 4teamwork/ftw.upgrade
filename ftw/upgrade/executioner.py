@@ -1,5 +1,6 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from distutils.version import LooseVersion
+from ftw.upgrade.indexing import processQueue
 from ftw.upgrade.interfaces import IDuringUpgrade
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IPostUpgrade
@@ -45,6 +46,7 @@ class Executioner(object):
 
         TransactionNote().set_transaction_note()
         recook_resources()
+        self._process_indexing_queue()
 
     security.declarePrivate('install_upgrades_by_api_ids')
     def install_upgrades_by_api_ids(self, *upgrade_api_ids):
@@ -74,6 +76,7 @@ class Executioner(object):
             # the start.
             self.portal_setup.runAllImportStepsFromProfile(prefix + profile_id)
             logger.info('Done installing profile %s.', profile_id)
+        self._process_indexing_queue()
 
     security.declarePrivate('_register_after_commit_hook')
     def _register_after_commit_hook(self):
@@ -84,6 +87,14 @@ class Executioner(object):
 
         txn = transaction.get()
         txn.addAfterCommitHook(notification_hook)
+
+    def _process_indexing_queue(self):
+        """Reindex all objects in the indexing queue.
+
+        Process the indexing queue after installing upgrades to ensure that
+        its progress is also logged to the ResponseLogger.
+        """
+        processQueue()
 
     security.declarePrivate('_upgrade_profile')
     def _upgrade_profile(self, profileid, upgradeids):

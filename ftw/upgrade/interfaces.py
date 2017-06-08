@@ -12,6 +12,10 @@ class IUpgradeLayer(Interface):
     """
 
 
+class IDuringUpgrade(Interface):
+    """Request layer to indicate that upgrades are currently executed."""
+
+
 class IClassMigratedEvent(IObjectEvent):
     """Fired after the class of an object is migrated.
 

@@ -52,6 +52,17 @@ class UpgradeLayer(PloneSandboxLayer):
 
         z2.installProduct(app, 'Products.CMFPlacefulWorkflow')
 
+        try:
+            # Plone 4 with collective.indexing
+            pkg_resources.get_distribution('collective.indexing')
+        except pkg_resources.DistributionNotFound:
+            pass
+        else:
+            import collective.indexing
+            xmlconfig.file('configure.zcml', collective.indexing,
+                           context=configurationContext)
+            z2.installProduct(app, 'collective.indexing')
+
         manage_addVirtualHostMonster(app, 'virtual_hosting')
 
     def setUpPloneSite(self, portal):

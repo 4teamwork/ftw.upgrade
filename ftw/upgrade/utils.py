@@ -236,7 +236,9 @@ def get_tempfile_authentication_directory(directory=None):
     if not auth_directory.isdir():
         auth_directory.mkdir(mode=0700)
 
-    if stat.S_IMODE(auth_directory.stat().st_mode) != 0700:
+    # Verify that groups and others do not have any permissions on this
+    # directory, while the owner has rwx.
+    if (stat.S_IMODE(auth_directory.stat().st_mode) & 0777) != 0700:
         raise ValueError('{0} has invalid mode.'.format(auth_directory))
     if auth_directory.stat().st_uid != os.getuid():
         raise ValueError('{0} has an invalid owner.'.format(auth_directory))

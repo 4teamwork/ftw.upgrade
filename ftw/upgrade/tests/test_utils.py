@@ -1,12 +1,15 @@
 from ftw.testing import MockTestCase
+from ftw.testing.layer import TEMP_DIRECTORY
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.utils import find_cyclic_dependencies
 from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
+from ftw.upgrade.utils import get_tempfile_authentication_directory
 from ftw.upgrade.utils import SizedGenerator
 from ftw.upgrade.utils import subject_from_docstring
 from ftw.upgrade.utils import topological_sort
 from unittest2 import TestCase
+import stat
 
 
 class TestTopologicalSort(TestCase):
@@ -255,3 +258,34 @@ class TestSubjectFromDocstring(TestCase):
                                    'with multiple lines.\n'
                                    '\n'
                                    'And the body.'))
+
+
+class TestGetTempfileAuthenticationDirectory(TestCase):
+    layer = TEMP_DIRECTORY
+
+    def setUp(self):
+        self.buildoutdir = self.layer['temp_directory']
+        self.buildoutdir.joinpath('bin').mkdir()
+        self.buildoutdir.joinpath('bin', 'buildout').write_bytes('')
+        self.buildoutdir.joinpath('var').mkdir()
+
+    def test_directory_is_created(self):
+        tmpdir = get_tempfile_authentication_directory(self.buildoutdir)
+        self.assertTrue(tmpdir.isdir())
+
+    def test_supports_setguid_flag(self):
+        tmpdir = get_tempfile_authentication_directory(self.buildoutdir)
+        tmpdir.chmod(tmpdir.stat().st_mode | stat.S_ISGID)
+        get_tempfile_authentication_directory(self.buildoutdir)
+
+    def test_detects_unwanted_group_permissions(self):
+        tmpdir = get_tempfile_authentication_directory(self.buildoutdir)
+        tmpdir.chmod(tmpdir.stat().st_mode | stat.S_IRGRP)
+        with self.assertRaises(ValueError):
+            get_tempfile_authentication_directory(self.buildoutdir)
+
+    def test_detects_unwanted_others_permissions(self):
+        tmpdir = get_tempfile_authentication_directory(self.buildoutdir)
+        tmpdir.chmod(tmpdir.stat().st_mode | stat.S_IROTH)
+        with self.assertRaises(ValueError):
+            get_tempfile_authentication_directory(self.buildoutdir)

@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.6.2 (unreleased)
+2.7.0 (2017-06-28)
 ------------------
 
 - Support using ``bin/upgrade`` by another user than the Zope server

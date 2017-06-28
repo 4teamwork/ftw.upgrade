@@ -5,7 +5,8 @@ Changelog
 2.6.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Support using ``bin/upgrade`` by another user than the Zope server
+  with less strict security checks.[jone]
 
 
 2.6.1 (2017-06-28)

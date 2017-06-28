@@ -215,11 +215,9 @@ def validate_tempfile_authentication_header_value(header_value):
     if not filepath.isfile():
         raise ValueError('tempfile auth: tempfile does not exist.')
 
-    if stat.S_IMODE(filepath.stat().st_mode) != 0600:
-        raise ValueError('tempfile auth: tempfile has invalid mode.')
-
-    if filepath.stat().st_uid != os.getuid():
-        raise ValueError('tempfile auth: tempfile has invalid owner.')
+    # Verify that "others" do not have any permissions on this file.
+    if filepath.stat().st_mode & stat.S_IRWXO:
+        raise ValueError('tempfile auth: tempfile is accesible by "others".')
 
     if filepath.getsize() != 64:
         raise ValueError('tempfile auth: tempfile size is invalid.')

@@ -5,7 +5,7 @@ Changelog
 2.7.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix tempfile authentication when created by different user. [jone]
 
 
 2.7.0 (2017-06-28)

@@ -66,6 +66,9 @@ class TempfileAuth(AuthBase):
             dir=directory)
         self.authfile.write(self.authhash)
         self.authfile.flush()
+        # Make sure the file is readable by the group, so that the service
+        # user running Zope can read it even when it is not the creator.
+        Path(self.authfile.name).chmod(0640)
 
     def _get_temp_directory(self):
         relative_to = self.relative_to or sys.argv[0]

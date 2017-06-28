@@ -7,7 +7,6 @@ from Products.GenericSetup.interfaces import IProfile
 from Products.GenericSetup.registry import GlobalRegistryStorage
 import logging
 import math
-import os
 import re
 import stat
 import tarjan.tc
@@ -234,14 +233,12 @@ def get_tempfile_authentication_directory(directory=None):
 
     auth_directory = directory.joinpath('var', 'ftw.upgrade-authentication')
     if not auth_directory.isdir():
-        auth_directory.mkdir(mode=0700)
+        auth_directory.mkdir(mode=0770)
 
-    # Verify that groups and others do not have any permissions on this
-    # directory, while the owner has rwx.
-    if (stat.S_IMODE(auth_directory.stat().st_mode) & 0777) != 0700:
-        raise ValueError('{0} has invalid mode.'.format(auth_directory))
-    if auth_directory.stat().st_uid != os.getuid():
-        raise ValueError('{0} has an invalid owner.'.format(auth_directory))
+    # Verify that "others" do not have any permissions on this directory.
+    if auth_directory.stat().st_mode & stat.S_IRWXO:
+        raise ValueError('{0} has invalid mode: "others" should not have '
+                         'any permissions'.format(auth_directory))
 
     return auth_directory
 

@@ -278,12 +278,6 @@ class TestGetTempfileAuthenticationDirectory(TestCase):
         tmpdir.chmod(tmpdir.stat().st_mode | stat.S_ISGID)
         get_tempfile_authentication_directory(self.buildoutdir)
 
-    def test_detects_unwanted_group_permissions(self):
-        tmpdir = get_tempfile_authentication_directory(self.buildoutdir)
-        tmpdir.chmod(tmpdir.stat().st_mode | stat.S_IRGRP)
-        with self.assertRaises(ValueError):
-            get_tempfile_authentication_directory(self.buildoutdir)
-
     def test_detects_unwanted_others_permissions(self):
         tmpdir = get_tempfile_authentication_directory(self.buildoutdir)
         tmpdir.chmod(tmpdir.stat().st_mode | stat.S_IROTH)

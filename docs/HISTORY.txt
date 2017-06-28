@@ -5,7 +5,8 @@ Changelog
 2.6.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix a bug which caused ``bin/upgrade`` to fail when the ``var`` directory
+  had the setguid flag active. [jone]
 
 
 2.6.0 (2017-06-08)

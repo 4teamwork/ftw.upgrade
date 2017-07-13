@@ -7,6 +7,7 @@ from persistent.list import PersistentList
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 import os
+import sys
 import transaction
 
 
@@ -53,6 +54,42 @@ class TestInstallCommand(CommandAndInstanceTestCase):
                                                        assert_exitcode=False)
             self.assertEquals(3, exitcode)
             self.assertIn('Result: FAILURE', output)
+
+    def test_umlauts_can_be_printed(self):
+        """Regression:
+        https://github.com/4teamwork/ftw.upgrade/issues/141
+
+        When the terminal's encoding is ascii (LC_ALL=C), printing unicode
+        strings will result in an encoding error.
+        """
+
+        def upgrade(setup_context):
+            import logging
+            logging.getLogger('The Upgrade').error('Uml\xc3\xa4ut.')
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('plone upgrade step')
+                          .upgrading('1', to='2')
+                          .calling(upgrade)))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+
+            # The zc.buildout.testing's system implementation does encoding
+            # the command result with the default encoding.
+            # Since we need to log umlauts in order to proof that it works
+            # we need to make the system implementation support utf-8 characters.
+            # It's the easiest way to just temporarily change the system encoding.
+            system_encoding = sys.getdefaultencoding()
+            reload(sys)
+            sys.setdefaultencoding('utf-8')
+            try:
+                exitcode, output = self.upgrade_script('install -s plone --proposed')
+            finally:
+                sys.setdefaultencoding(system_encoding)
+
+            self.assertEquals(0, exitcode, output)
 
     def test_install_list_of_upgrades(self):
         self.package.with_profile(

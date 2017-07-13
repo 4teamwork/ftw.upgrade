@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.7.2 (unreleased)
+2.7.2 (2017-07-13)
 ------------------
 
 - Fix encoding issues in ASCII terminals. [jone]

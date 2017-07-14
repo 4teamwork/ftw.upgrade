@@ -150,7 +150,15 @@ class UpgradeStep(object):
     def catalog_unrestricted_get_object(self, brain):
         """Returns the unrestricted object of a brain.
         """
-        return self.portal.unrestrictedTraverse(brain.getPath())
+        try:
+            return self.portal.unrestrictedTraverse(brain.getPath())
+        except KeyError:
+            LOG.warning('The object of the brain with rid {!r} does no longer'
+                        ' exist at the path {!r}; removing the brain.'.format(
+                            brain.getRID(), brain.getPath()))
+            catalog = self.getToolByName('portal_catalog')
+            catalog.uncatalog_object(brain.getPath())
+            return None
 
     security.declarePrivate('catalog_unrestricted_search')
     def catalog_unrestricted_search(self, query, full_objects=False):
@@ -164,6 +172,7 @@ class UpgradeStep(object):
         if full_objects:
             generator = (self.catalog_unrestricted_get_object(brain)
                          for brain in brains)
+            generator = (obj for obj in generator if obj is not None)
             return SizedGenerator(generator, len(brains))
 
         else:

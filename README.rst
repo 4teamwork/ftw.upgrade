@@ -231,6 +231,11 @@ The ``UpgradeStep`` class has various helper functions:
     savepoint to be created every n items. This can be used to keep memory usage
     in check when creating large transactions.
 
+    This method will remove matching brains from the catalog when they are broken
+    because the object of the brain does no longer exist.
+    The progress logger will not compensate for the skipped objects and terminate
+    before reaching 100%.
+
 ``self.catalog_rebuild_index(name)``
     Reindex the ``portal_catalog`` index identified by ``name``.
 
@@ -255,6 +260,8 @@ The ``UpgradeStep`` class has various helper functions:
 
 ``self.catalog_unrestricted_get_object(brain)``
     Returns the unrestricted object of a brain.
+    Dead brains, for which there is no longer an object, are removed from
+    the catalog and ``None`` is returned.
 
 ``self.catalog_unrestricted_search(query, full_objects=False)``
     Searches the catalog without checking security.
@@ -263,6 +270,11 @@ The ``UpgradeStep`` class has various helper functions:
     Upgrade steps should generally use unrestricted catalog access
     since all objects should be upgraded - even if the manager
     running the upgrades has no access on the objects.
+
+    When using ``full_objects``, dead brains, for which there is no longer
+    an object, are removed from the catalog and skipped in the generator.
+    When dead brains are removed, the resulting sized generator's length
+    will not compensate for the skipped objects and therefore be too large.
 
 ``self.actions_add_type_action(self, portal_type, after, action_id, **kwargs)``
     Add a ``portal_types`` action from the type identified

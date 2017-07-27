@@ -2,10 +2,10 @@ Changelog
 =========
 
 
-2.7.3 (unreleased)
+2.8.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- The upgrade step methods will remove and skip broken catalog brains. [jone]
 
 
 2.7.2 (2017-07-13)

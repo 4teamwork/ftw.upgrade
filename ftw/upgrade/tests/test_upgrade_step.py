@@ -1,3 +1,5 @@
+from Acquisition import aq_inner
+from Acquisition import aq_parent
 from DateTime import DateTime
 from datetime import datetime
 from ftw.builder import Builder
@@ -249,6 +251,49 @@ class TestUpgradeStep(UpgradeTestCase):
 
         Step(self.portal_setup)
 
+    def test_catalog_unrestricted_get_object_removes_dead_brains(self):
+        """From time to time there are brains in the catalog for which the
+        object does no longer exist.
+        This can happen because of bugs such as when a "deleted"-event-subscriber
+        indexes the object.
+
+        The ``catalog_unrestricted_get_object``, which is used internally for
+        methods such as ``objects``, should therefore take care and remove those
+        dead brains and log a warning while returning ``None``.
+        """
+        testcase = self
+        folder = create(Builder('folder'))
+        # Delete folder and suppress events so that the catalog does not notice
+        # the object is gone, then try to get the object.
+        aq_parent(aq_inner(folder))._delObject(folder.getId(),
+                                               suppress_events=True)
+
+        class Step(UpgradeStep):
+
+            def __call__(self):
+                brains = self.get_folder_brains()
+                testcase.assertEquals(1, len(brains))
+                brain ,= brains
+
+                testcase.assertIsNone(
+                    self.catalog_unrestricted_get_object(brain),
+                    'Should return None in order to work well with .objects()')
+
+                testcase.assertIn(
+                    "The object of the brain with rid {!r} does no longer exist"
+                    " at the path '/plone/folder'; removing the brain.".format(
+                        brain.getRID()),
+                    testcase.get_log())
+
+                testcase.assertEqual(
+                    0, len(self.get_folder_brains()),
+                    'Brain should have been uncataloged at this point.')
+
+            def get_folder_brains(self):
+                return self.catalog_unrestricted_search({'portal_type': 'Folder'})
+
+        Step(self.portal_setup)
+
     def test_catalog_unrestricted_search(self):
         testcase = self
 
@@ -278,6 +323,41 @@ class TestUpgradeStep(UpgradeTestCase):
                                      [obj.id for obj in objects])
                 testcase.assertEqual('ImplicitAcquisitionWrapper',
                                      type(objects[0]).__name__)
+
+        Step(self.portal_setup)
+
+    def test_catalog_unrestricted_search_filters_nonexisting_objects(self):
+        """From time to time there are brains in the catalog for which the
+        object does no longer exist.
+        This can happen because of bugs such as when a "deleted"-event-subscriber
+        indexes the object.
+
+        The ``catalog_unrestricted_get_object`` may return with ``None`` in
+        such a situation, so ``catalog_unrestricted_search`` needs to filter those
+        when ``full_objects`` is set to ``True``.
+        """
+        testcase = self
+        folder = create(Builder('folder'))
+        # Delete folder and suppress events so that the catalog does not notice
+        # the object is gone, then try to get the object.
+        aq_parent(aq_inner(folder))._delObject(folder.getId(),
+                                               suppress_events=True)
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                query = {'portal_type': 'Folder'}
+                testcase.assertEqual(
+                    1, len(self.catalog_unrestricted_search(query)))
+
+                # Setting full_objects to true should skip missing objects..
+                testcase.assertEqual(
+                    (),
+                    tuple(self.catalog_unrestricted_search(query, full_objects=True)))
+
+                # .. and should have removed the broken brain.
+                testcase.assertEqual(
+                    (),
+                    tuple(self.catalog_unrestricted_search(query)))
 
         Step(self.portal_setup)
 

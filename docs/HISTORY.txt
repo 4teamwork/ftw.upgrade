@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.8.1 (unreleased)
+2.8.1 (2017-10-13)
 ------------------
 
 - Also catch AttributeErrors when accessing objects of broken brains. [buchi]

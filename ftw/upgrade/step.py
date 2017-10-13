@@ -152,7 +152,7 @@ class UpgradeStep(object):
         """
         try:
             return self.portal.unrestrictedTraverse(brain.getPath())
-        except KeyError:
+        except (AttributeError, KeyError):
             LOG.warning('The object of the brain with rid {!r} does no longer'
                         ' exist at the path {!r}; removing the brain.'.format(
                             brain.getRID(), brain.getPath()))

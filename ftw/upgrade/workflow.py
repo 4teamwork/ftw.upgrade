@@ -2,6 +2,7 @@ from DateTime import DateTime
 from Products.CMFCore.utils import getToolByName
 from ftw.upgrade import ProgressLogger
 from ftw.upgrade.helpers import update_security_for
+from ftw.upgrade.utils import SavepointIterator
 from ftw.upgrade.utils import SizedGenerator
 from zope.component.hooks import getSite
 import logging
@@ -151,9 +152,10 @@ class WorkflowChainUpdater(object):
 
 class WorkflowSecurityUpdater(object):
 
-    def update(self, changed_workflows, reindex_security=True):
+    def update(self, changed_workflows, reindex_security=True, savepoints=1000):
         types = self.get_suspected_types(changed_workflows)
-        for obj in self.lookup_objects(types):
+        objects = SavepointIterator.build(self.lookup_objects(types), savepoints)
+        for obj in objects:
             if self.obj_has_workflow(obj, changed_workflows):
                 update_security_for(obj, reindex_security=reindex_security)
 

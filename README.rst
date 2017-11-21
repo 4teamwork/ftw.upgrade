@@ -339,7 +339,7 @@ The ``UpgradeStep`` class has various helper functions:
     (``allowedRolesAndUsers``). This speeds up the update but should only be disabled
     when there are no changes for the ``View`` permission.
 
-``self.update_workflow_security(workflow_names, reindex_security=True)``
+``self.update_workflow_security(workflow_names, reindex_security=True, savepoints=1000)``
     Update all objects which have one of a list of workflows.
     This is useful when updating a bunch of workflows and you want to make sure
     that the object security is updated properly.
@@ -350,6 +350,10 @@ The ``UpgradeStep`` class has various helper functions:
     For speeding up you can pass ``reindex_security=False``, but you need to make
     sure you did not change any security relevant permissions (only ``View`` needs
     ``reindex_security=True`` for default Plone).
+
+    By default, transaction savepoints are created every 1000th object. This prevents
+    exaggerated memory consumption when creating large transactions. If your server has
+    enough memory, you may turn savepoints off by passing ``savepoints=None``.
 
 ``self.base_profile``
     The attribute ``base_profile`` contains the profile name of the upgraded

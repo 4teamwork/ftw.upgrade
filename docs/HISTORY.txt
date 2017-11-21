@@ -5,7 +5,8 @@ Changelog
 2.8.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Use a SavepointIterator in the WorkflowSecurityUpdater in order not to exceed
+  memory. [mbaechtold]
 
 
 2.8.1 (2017-10-13)

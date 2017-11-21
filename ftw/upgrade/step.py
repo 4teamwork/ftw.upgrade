@@ -442,10 +442,12 @@ class UpgradeStep(object):
         return update_security_for(obj, reindex_security=reindex_security)
 
     security.declarePrivate('update_workflow_security')
-    def update_workflow_security(self, workflow_names, reindex_security=True):
+    def update_workflow_security(self, workflow_names, reindex_security=True,
+                                 savepoints=1000):
         """Updates the object security of all objects with one of the
         passed workflows.
         `workflows` is expected to be a list of workflow names.
+        If `savepoints` is None, no savepoints will be created.
         """
 
         if getattr(workflow_names, '__iter__', None) is None or \
@@ -455,4 +457,5 @@ class UpgradeStep(object):
 
         from ftw.upgrade.workflow import WorkflowSecurityUpdater
         updater = WorkflowSecurityUpdater()
-        updater.update(workflow_names, reindex_security=reindex_security)
+        updater.update(workflow_names, reindex_security=reindex_security,
+                       savepoints=savepoints)

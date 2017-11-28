@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from ftw.upgrade.exceptions import CyclicDependencies
 from path import Path
+from zope.component.hooks import getSite
 import logging
 import math
 import re
@@ -110,6 +111,9 @@ class SizedGenerator(object):
 
 class SavepointIterator(object):
     """An iterator that creates a savepoint every n items.
+
+    The goal of this iterator is to move data from the current transaction to
+    the disk in order to free up RAM.
     """
 
     def __init__(self, iterable, threshold, logger=None):
@@ -127,6 +131,9 @@ class SavepointIterator(object):
         for i, item in enumerate(self.iterable):
             if i % self.threshold == 0:
                 transaction.savepoint()
+                # By "minimizing" the connection, cached objects on the connection
+                # are deactivated in order to free up memory.
+                getSite()._p_jar.cacheMinimize()
                 self.logger.info("Created savepoint at %s items" % i)
             yield item
 

@@ -687,8 +687,6 @@ class TestUpgradeStep(UpgradeTestCase):
         self.assertNotIn('CMFPlacefulWorkflow', installed_products())
 
     def test_migrate_class(self):
-        from Products.ATContentTypes.content.folder import ATBTreeFolder
-
         folder = create(Builder('folder'))
         subfolder = create(Builder('folder').within(folder))
 

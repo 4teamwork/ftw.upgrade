@@ -6,8 +6,6 @@ from ftw.upgrade.executioner import Executioner
 from ftw.upgrade.indexing import HAS_INDEXING
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.tests.base import UpgradeTestCase
-from plone.app.testing import setRoles
-from plone.app.testing import TEST_USER_ID
 from Products.CMFCore.utils import getToolByName
 from unittest2 import skipIf
 from zope.component import queryAdapter

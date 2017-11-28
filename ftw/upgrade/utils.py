@@ -3,8 +3,6 @@ from contextlib import contextmanager
 from copy import deepcopy
 from ftw.upgrade.exceptions import CyclicDependencies
 from path import Path
-from Products.GenericSetup.interfaces import IProfile
-from Products.GenericSetup.registry import GlobalRegistryStorage
 import logging
 import math
 import re
@@ -152,7 +150,6 @@ def get_sorted_profile_ids(portal_setup):
     """
     profile_ids = []
     dependencies = []
-    profile_registry = GlobalRegistryStorage(IProfile)
 
     for profile in portal_setup.listProfileInfo():
         profile_ids.append(profile['id'])

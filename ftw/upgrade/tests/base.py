@@ -20,7 +20,6 @@ from plone.app.testing import TEST_USER_PASSWORD
 from Products.CMFCore.utils import getToolByName
 from StringIO import StringIO
 from unittest2 import TestCase
-from urllib2 import HTTPError
 from zope.component import getMultiAdapter
 from zope.component import queryAdapter
 import json

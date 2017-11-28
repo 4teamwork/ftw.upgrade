@@ -5,7 +5,7 @@ Changelog
 2.8.2 (unreleased)
 ------------------
 
-- Reduce memory footprint in SavepointIterator by minimizing connection cache. [jone]
+- Reduce memory footprint in SavepointIterator by garbage-collecting connection cache. [jone]
 - Use a SavepointIterator in the WorkflowSecurityUpdater in order not to exceed
   memory. [mbaechtold]
 

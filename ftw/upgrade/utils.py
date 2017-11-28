@@ -130,10 +130,13 @@ class SavepointIterator(object):
     def __iter__(self):
         for i, item in enumerate(self.iterable):
             if i % self.threshold == 0:
-                transaction.savepoint()
-                # By "minimizing" the connection, cached objects on the connection
-                # are deactivated in order to free up memory.
-                getSite()._p_jar.cacheMinimize()
+                transaction.savepoint(optimistic=True)
+                # By calling `cacheGC` on the connection, the pickle cache gets a
+                # chance to respect the configured zodb cache size by garbage
+                # collecting "older" objects (LRU).
+                # This only works well when we've created a savepoint in advance,
+                # which moves the changes to the disk.
+                getSite()._p_jar.cacheGC()
                 self.logger.info("Created savepoint at %s items" % i)
             yield item
 

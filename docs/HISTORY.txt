@@ -5,6 +5,7 @@ Changelog
 2.8.2 (unreleased)
 ------------------
 
+- Optimize memory footprint after every upgrade step. [jone]
 - Reduce memory footprint in SavepointIterator by garbage-collecting connection cache. [jone]
 - Use a SavepointIterator in the WorkflowSecurityUpdater in order not to exceed
   memory. [mbaechtold]

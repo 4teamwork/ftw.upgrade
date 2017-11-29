@@ -9,6 +9,7 @@ from ftw.upgrade.resource_registries import recook_resources
 from ftw.upgrade.transactionnote import TransactionNote
 from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
+from ftw.upgrade.utils import optimize_memory_usage
 from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import _upgrade_registry
@@ -76,6 +77,7 @@ class Executioner(object):
             # the start.
             self.portal_setup.runAllImportStepsFromProfile(prefix + profile_id)
             logger.info('Done installing profile %s.', profile_id)
+            optimize_memory_usage()
         self._process_indexing_queue()
 
     security.declarePrivate('_register_after_commit_hook')

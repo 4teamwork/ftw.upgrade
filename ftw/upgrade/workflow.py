@@ -152,7 +152,7 @@ class WorkflowChainUpdater(object):
 
 class WorkflowSecurityUpdater(object):
 
-    def update(self, changed_workflows, reindex_security=True, savepoints=1000):
+    def update(self, changed_workflows, reindex_security=True, savepoints=None):
         types = self.get_suspected_types(changed_workflows)
         objects = SavepointIterator.build(self.lookup_objects(types), savepoints)
         for obj in objects:

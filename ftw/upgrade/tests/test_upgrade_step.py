@@ -87,7 +87,8 @@ class TestUpgradeStep(UpgradeTestCase):
             def __call__(self):
                 for obj in self.objects({'portal_type': 'Folder'},
                                         'Log message',
-                                        logger=testcase.logger):
+                                        logger=testcase.logger,
+                                        savepoints=False):
                     object_titles.append(obj.Title())
 
         Step(self.portal_setup)

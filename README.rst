@@ -230,6 +230,10 @@ The ``UpgradeStep`` class has various helper functions:
     If set to a non-zero value, the ``savepoints`` argument causes a transaction
     savepoint to be created every n items. This can be used to keep memory usage
     in check when creating large transactions.
+    The default value ``None`` indicates that we are not configuring this feature
+    and it should use the default configuration, which is usually ``1000``. See
+    the `Savepoints`_ section for more details.
+    In order to disable savepoints completely, you can use ``savepoints=False``.
 
     This method will remove matching brains from the catalog when they are broken
     because the object of the brain does no longer exist.
@@ -339,7 +343,7 @@ The ``UpgradeStep`` class has various helper functions:
     (``allowedRolesAndUsers``). This speeds up the update but should only be disabled
     when there are no changes for the ``View`` permission.
 
-``self.update_workflow_security(workflow_names, reindex_security=True, savepoints=1000)``
+``self.update_workflow_security(workflow_names, reindex_security=True, savepoints=None)``
     Update all objects which have one of a list of workflows.
     This is useful when updating a bunch of workflows and you want to make sure
     that the object security is updated properly.
@@ -1187,6 +1191,22 @@ Registration in ZCML:
             name="my.package:default" />
     </configure>
 
+
+Savepoints
+==========
+
+Certain iterators of ``ftw.upgrade`` are wrapped with a ``SavepointIterator``,
+creating savepoints after each batch of items.
+This allows us to keep the memory footprint low.
+
+The threshold for the savepoint iterator can be passed to certain methods, such as
+``self.objects`` in an upgrade, or it can be configured globally with an environment variable:
+
+.. code::
+
+  UPGRADE_SAVEPOINT_THRESHOLD = 1000
+
+The default savepoint threshold is 1000.
 
 Memory optimization while running upgrades
 ==========================================

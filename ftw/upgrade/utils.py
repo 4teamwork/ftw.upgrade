@@ -130,13 +130,7 @@ class SavepointIterator(object):
     def __iter__(self):
         for i, item in enumerate(self.iterable):
             if i % self.threshold == 0:
-                transaction.savepoint(optimistic=True)
-                # By calling `cacheGC` on the connection, the pickle cache gets a
-                # chance to respect the configured zodb cache size by garbage
-                # collecting "older" objects (LRU).
-                # This only works well when we've created a savepoint in advance,
-                # which moves the changes to the disk.
-                getSite()._p_jar.cacheGC()
+                optimize_memory_usage()
                 self.logger.info("Created savepoint at %s items" % i)
             yield item
 
@@ -149,6 +143,28 @@ class SavepointIterator(object):
             return SavepointIterator(iterable, threshold, logger)
         else:
             return iterable
+
+
+def optimize_memory_usage():
+    """Optimizes the current memory usage by garbage collecting objects.
+
+    The function creates a transaction savepoint in order to move pending
+    changes from the memory to the disk.
+    Afterwards the ZODB connection's pickle cache is notified to garbage
+    collect objects, when necessary, so that the configured ZODB cache sizes
+    are respected.
+
+    The tradeoff of this function is a low memory footprint versus a speed:
+    objects may be removed which will later be used again and have to be loaded
+    again from the ZODB.
+    """
+    transaction.savepoint(optimistic=True)
+    # By calling `cacheGC` on the connection, the pickle cache gets a
+    # chance to respect the configured zodb cache size by garbage
+    # collecting "older" objects (LRU).
+    # This only works well when we've created a savepoint in advance,
+    # which moves the changes to the disk.
+    getSite()._p_jar.cacheGC()
 
 
 def get_sorted_profile_ids(portal_setup):

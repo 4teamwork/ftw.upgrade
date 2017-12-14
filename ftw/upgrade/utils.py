@@ -6,6 +6,7 @@ from path import Path
 from zope.component.hooks import getSite
 import logging
 import math
+import os
 import re
 import stat
 import tarjan.tc
@@ -139,10 +140,41 @@ class SavepointIterator(object):
 
     @classmethod
     def build(cls, iterable, threshold=None, logger=None):
+        if threshold is None:
+            threshold = cls.get_default_threshold()
+
         if threshold:
             return SavepointIterator(iterable, threshold, logger)
         else:
             return iterable
+
+    @staticmethod
+    def get_default_threshold():
+        """Returns the default savepoint threshold.
+
+        The savepoint iterator threshold can be configured with an environment
+        variable ``UPGRADE_SAVEPOINT_THRESHOLD``.
+        When set to ``"None"``, savepoints are disabled.
+        """
+        value = os.environ.get('UPGRADE_SAVEPOINT_THRESHOLD', None)
+        if value is None:
+            # default unchanged; use application default
+            return 1000
+
+        value = value.strip().lower()
+        if value == 'none':
+            # threshold disabled
+            return None
+
+        try:
+            value = int(value)
+        except ValueError:
+            raise ValueError('Invalid savepoint threshold {!r}'.format(value))
+
+        if value > 0:
+            return value
+        else:
+            raise ValueError('Invalid savepoint threshold {!r}'.format(value))
 
 
 def optimize_memory_usage():

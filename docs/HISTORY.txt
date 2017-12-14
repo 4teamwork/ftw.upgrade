@@ -7,6 +7,8 @@ Changelog
 
 - Optimize memory footprint after every upgrade step. [jone]
 - Reduce memory footprint in SavepointIterator by garbage-collecting connection cache. [jone]
+- Set the default savepoint threshold to 1000; make it configurable. [jone]
+- Enable savepoint iterator by default. Affects ``self.objects``. [jone]
 - Use a SavepointIterator in the WorkflowSecurityUpdater in order not to exceed
   memory. [mbaechtold]
 

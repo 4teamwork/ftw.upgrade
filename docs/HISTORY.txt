@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.8.2 (unreleased)
+2.9.0 (2017-12-14)
 ------------------
 
 - Optimize memory footprint after every upgrade step. [jone]

@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 from ftw.upgrade.exceptions import CyclicDependencies
 from path import Path
+from zope.component.hooks import getSite
 import logging
 import math
 import re
@@ -110,6 +111,9 @@ class SizedGenerator(object):
 
 class SavepointIterator(object):
     """An iterator that creates a savepoint every n items.
+
+    The goal of this iterator is to move data from the current transaction to
+    the disk in order to free up RAM.
     """
 
     def __init__(self, iterable, threshold, logger=None):
@@ -126,7 +130,13 @@ class SavepointIterator(object):
     def __iter__(self):
         for i, item in enumerate(self.iterable):
             if i % self.threshold == 0:
-                transaction.savepoint()
+                transaction.savepoint(optimistic=True)
+                # By calling `cacheGC` on the connection, the pickle cache gets a
+                # chance to respect the configured zodb cache size by garbage
+                # collecting "older" objects (LRU).
+                # This only works well when we've created a savepoint in advance,
+                # which moves the changes to the disk.
+                getSite()._p_jar.cacheGC()
                 self.logger.info("Created savepoint at %s items" % i)
             yield item
 

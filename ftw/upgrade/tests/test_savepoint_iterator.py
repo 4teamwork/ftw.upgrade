@@ -1,16 +1,16 @@
+from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
 from ftw.upgrade.utils import SavepointIterator
 from unittest2 import TestCase
 import transaction
 
 
 class TestSavepointIterator(TestCase):
+    layer = UPGRADE_FUNCTIONAL_TESTING
 
     def setUp(self):
+        super(TestSavepointIterator, self).setUp()
         self.iterable = [1, 2, 3, 4, 5]
         self.txn = transaction.get()
-
-    def tearDown(self):
-        self.txn.abort()
 
     def test_creates_savepoints(self):
         self.assertEquals(

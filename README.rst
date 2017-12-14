@@ -1188,6 +1188,23 @@ Registration in ZCML:
     </configure>
 
 
+Memory optimization while running upgrades
+==========================================
+
+Zope is optimized for executing many smaller requests.
+The ZODB pickle cache keeps objects in the memory, so that they can be used for the next
+request.
+
+Running a large upgrade is a long-running request though, increasing the chance of a
+memory problem.
+
+``ftw.upgrade`` tries to optimize the memory usage by creating savepoints and triggering
+the pickle cache garbage collector.
+
+In order for this to work properly you should configure your ZODB cache sizes correctly
+(`zodb-cache-size-bytes` or `zodb-cache-size`).
+
+
 
 Links
 =====

@@ -73,12 +73,14 @@ def setup_argparser(commands):
     group = command.add_mutually_exclusive_group(required=True)
     group.add_argument('--upgrades', '-u', nargs='+',
                        help='One or many upgrade step API ids.',
-                       type=valid_upgrade_step_id)
+                       type=valid_upgrade_step_id,
+                       metavar='UPGRADE-STEP')
     group.add_argument('--proposed', '-p', action='store_true',
                        help='Installs all proposed upgrades.')
     group.add_argument('--profiles', nargs='+',
                        help='One or many profile ids.',
-                       type=valid_profile_id)
+                       type=valid_profile_id,
+                       metavar='PROFILE')
 
 
 @with_api_requestor

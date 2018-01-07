@@ -390,6 +390,35 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
             self.assertIn('Result: SUCCESS', browser.contents)
 
     @browsing
+    def test_execute_proposed_upgrades_for_profile(self, browser):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))
+                          .named('The upgrade')))
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .named('foo')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='2')
+            self.clear_recorded_upgrades('the.package:default')
+            self.install_profile('the.package:foo', version='2')
+            self.clear_recorded_upgrades('the.package:foo')
+
+            self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+            self.assertFalse(self.is_installed('the.package:foo', datetime(2011, 1, 1)))
+            self.api_request('POST', 'execute_proposed_upgrades',
+                             {'profiles:list': ['the.package:default']})
+            self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+            self.assertFalse(self.is_installed('the.package:foo', datetime(2011, 1, 1)))
+
+            self.assertIn('UPGRADE STEP the.package:default: The upgrade.',
+                          browser.contents)
+            self.assertIn('Result: SUCCESS', browser.contents)
+
+    @browsing
     def test_executing_upgrades_with_failure_results_in_error_result(self, browser):
         def failing_upgrade(setup_context):
             raise KeyError('foo')

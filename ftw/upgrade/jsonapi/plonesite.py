@@ -59,12 +59,13 @@ class PloneSiteAPI(APIView):
         self._validate_upgrade_ids(*upgrades)
         return self._install_upgrades(*upgrades)
 
-    @action('POST')
-    def execute_proposed_upgrades(self):
+    @action('POST', rename_params={'profiles': 'profiles:list'})
+    def execute_proposed_upgrades(self, profiles=None):
         """Executes all proposed upgrades.
         """
         self._require_up_to_date_plone_site()
-        api_ids = map(itemgetter('api_id'), self._get_proposed_upgrades())
+        api_ids = map(itemgetter('api_id'), self._get_proposed_upgrades(
+            only_profiles=profiles))
         return self._install_upgrades(*api_ids)
 
     @action('POST', rename_params={'profiles': 'profiles:list'})
@@ -139,8 +140,10 @@ class PloneSiteAPI(APIView):
         else:
             return profiles[0]
 
-    def _get_proposed_upgrades(self):
+    def _get_proposed_upgrades(self, only_profiles=None):
         profiles = self.gatherer.get_profiles(proposed_only=True)
+        if only_profiles:
+            profiles = filter(lambda profile: profile['id'] in only_profiles, profiles)
         if not profiles:
             return []
         return reduce(list.__add__, map(itemgetter('upgrades'), profiles))

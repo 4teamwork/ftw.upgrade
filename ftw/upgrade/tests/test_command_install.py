@@ -109,6 +109,27 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             self.assertIn('Result: SUCCESS', output)
 
+    def test_install_proposed_upgrades_of_profile(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1)))
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 2, 2))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='20110101000000')
+            self.clear_recorded_upgrades('the.package:default')
+            self.record_installed_upgrades('the.package:default', '20110101000000')
+
+            self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+            self.assertFalse(self.is_installed('the.package:default', datetime(2011, 2, 2)))
+            exitcode, output = self.upgrade_script(
+                'install -s plone --proposed the.package:default')
+            self.assertEquals(0, exitcode)
+            transaction.begin()  # sync transaction
+            self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+            self.assertTrue(self.is_installed('the.package:default', datetime(2011, 2, 2)))
+            self.assertIn('Result: SUCCESS', output)
+
     def test_virtual_host_monster_is_configured_by_environment_variable(self):
         os.environ['UPGRADE_PUBLIC_URL'] = 'https://foo.bar.com/baz'
         self.layer['portal'].upgrade_info = PersistentList()

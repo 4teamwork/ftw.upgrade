@@ -17,6 +17,12 @@ DOCS = """
     When using the "--proposed" argument, all proposed upgrade steps are\
  installed, ordered by dependencies and versions.
 
+{t.bold}INSTALL PROPOSED UPGRADES OF SPECIFIC PROFILES:{t.normal}
+    The "--proposed" argument optionally accepts a list of profiles, \
+for which proposed upgrades are installed. \
+When no profile is specified, all proposed upgrades of all profiles \
+are installed.
+
 {t.bold}SET OF UPGRADES:{t.normal}
     By using the "--upgrades" argument, one or many upgrades can be \
 installed. \
@@ -35,6 +41,7 @@ Upgrades within each profile are ordered by the source / destination versions.
 [quote]
 $ bin/upgrade install --site Plone --proposed
 $ bin/upgrade install --site Plone --proposed --auth admin:admin
+$ bin/upgrade install --site Plone --proposed my.package:default other.package:default
 $ bin/upgrade install --site Plone --upgrades 3001@my.package:default \
 3002@my.package:default
 $ bin/upgrade install --site Plone --profiles Products.PloneFormGen:default \
@@ -73,12 +80,15 @@ def setup_argparser(commands):
     group = command.add_mutually_exclusive_group(required=True)
     group.add_argument('--upgrades', '-u', nargs='+',
                        help='One or many upgrade step API ids.',
-                       type=valid_upgrade_step_id)
-    group.add_argument('--proposed', '-p', action='store_true',
-                       help='Installs all proposed upgrades.')
+                       type=valid_upgrade_step_id,
+                       metavar='UPGRADE-STEP')
+    group.add_argument('--proposed', '-p', nargs='*',
+                       help='Installs all proposed upgrades of all or specific profiles.',
+                       metavar='PROFILE')
     group.add_argument('--profiles', nargs='+',
                        help='One or many profile ids.',
-                       type=valid_profile_id)
+                       type=valid_profile_id,
+                       metavar='PROFILE')
 
 
 @with_api_requestor
@@ -88,9 +98,9 @@ def install_command(args, requestor):
         print >>sys.stderr, 'ERROR: --force can only be used with --profiles.'
         sys.exit(3)
 
-    if args.proposed:
+    if args.proposed is not None:
         action = 'execute_proposed_upgrades'
-        params = ()
+        params = [('profiles:list', name) for name in args.proposed]
     elif args.profiles:
         action = 'execute_profiles'
         params = [('profiles:list', name) for name in set(args.profiles)]

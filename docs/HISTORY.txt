@@ -2,8 +2,8 @@ Changelog
 =========
 
 
-2.9.1 (unreleased)
-------------------
+2.10.0 (2018-01-08)
+-------------------
 
 - Support installing proposed upgrades of specific Generic Setup profiles.
   Use ``bin/upgrade install --proposed the.package:default``. [jone]

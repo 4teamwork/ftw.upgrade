@@ -6,6 +6,7 @@ Changelog
 -------------------
 
 - Provide upgrade step handler interfaces and handler class in wrapper. [jone]
+- Do not propose executed upgrades newer than current db version. [jone]
 
 2.10.0 (2018-01-08)
 -------------------

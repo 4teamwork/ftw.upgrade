@@ -271,6 +271,30 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
                         'proposed': ['20110101000000', '20130101000000'],
                         'orphan': ['20110101000000']}})
 
+    def test_do_not_propose_future_upgrades_marked_as_executed(self):
+        """When the installed version is older than an upgrade step, but the upgrade
+        step was already marked as executed, the upgrade step should not be proposed.
+
+        This is mainly useful for when the IUpgradeStepRecorder is extend with additional
+        logic.
+        """
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('plone upgrade step').upgrading('1000', to='1001'))
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1)))
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2012, 1, 1)))
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2013, 1, 1))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='20110101000000')
+            self.record_installed_upgrades(
+                'the.package:default', '20110101000000', '20130101000000')
+            self.assert_gathered_upgrades({
+                    'the.package:default': {
+                        'done': ['1001', '20110101000000', '20130101000000'],
+                        'proposed': ['20120101000000'],
+                        'orphan': []}})
+
     def test_human_readable_timestamp_versions_are_added_to_profiles(self):
         self.package.with_profile(
             Builder('genericsetup profile')

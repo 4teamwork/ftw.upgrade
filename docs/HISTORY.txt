@@ -5,8 +5,7 @@ Changelog
 2.10.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
-
+- Provide upgrade step handler interfaces and handler class in wrapper. [jone]
 
 2.10.0 (2018-01-08)
 -------------------

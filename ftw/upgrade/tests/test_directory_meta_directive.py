@@ -1,12 +1,23 @@
 from datetime import datetime
 from ftw.builder import Builder
 from ftw.builder import create
+from ftw.upgrade.interfaces import IRecordableHandler
+from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.tests.base import UpgradeTestCase
 from ftw.upgrade.utils import get_sorted_profile_ids
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces import IMigratingPloneSiteRoot
 from Products.GenericSetup.interfaces import EXTENSION
+from Products.GenericSetup.upgrade import listUpgradeSteps
 from zope.configuration.config import ConfigurationExecutionError
+from zope.interface import implementer
+from zope.interface import Interface
+from zope.interface import providedBy
+
+
+class IFoo(Interface):
+    """Dummy interface.
+    """
 
 
 class TestDirectoryMetaDirective(UpgradeTestCase):
@@ -251,6 +262,31 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                  u'the.package:foo'],
                 filter(lambda profile_id: profile_id.startswith('the.package:'),
                        get_sorted_profile_ids(portal_setup)))
+
+    def test_handler_step_provides_interfaces_implemented_by_upgrade_step_class(self):
+        code = '\n'.join((
+            'from ftw.upgrade import UpgradeStep',
+            'from ftw.upgrade.tests.test_directory_meta_directive import IFoo',
+            'from zope.interface import implementer',
+            '',
+            '@implementer(IFoo)',
+            'class Foo(UpgradeStep):',
+            '    pass'))
+
+        self.profile.with_upgrade(Builder('ftw upgrade step')
+                                  .to(datetime(2011, 1, 1, 1))
+                                  .with_code(code))
+
+        with self.package_created():
+            portal_setup = getToolByName(self.portal, 'portal_setup')
+            steps = listUpgradeSteps(portal_setup, 'the.package:default', '10000000000000')
+            self.assertEquals(1, len(steps))
+            self.assertItemsEqual(
+                (IRecordableHandler,
+                 IUpgradeStep,
+                 IFoo),
+                tuple(providedBy(steps[0]['step'].handler)))
+            self.assertTrue(steps[0]['step'].handler.handler)
 
     def assert_upgrades(self, expected):
         upgrades = self.portal_setup.listUpgrades('the.package:default')

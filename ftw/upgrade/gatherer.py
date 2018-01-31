@@ -192,6 +192,10 @@ class UpgradeInformationGatherer(object):
                 upgrade['proposed'] = False
                 upgrade['done'] = True
 
+            if self._was_upgrade_executed(profileid, upgrade):
+                upgrade['proposed'] = False
+                upgrade['done'] = True
+
             upgrade['orphan'] = self._is_orphan(profileid, upgrade)
             if upgrade['orphan']:
                 upgrade['proposed'] = True
@@ -243,9 +247,7 @@ class UpgradeInformationGatherer(object):
             return False
         if not self._is_recordeable(upgrade_step_info):
             return False
-        recorder = getMultiAdapter((self.portal, profile),
-                                   IUpgradeStepRecorder)
-        return not recorder.is_installed(upgrade_step_info['sdest'])
+        return not self._was_upgrade_executed(profile, upgrade_step_info)
 
     security.declarePrivate('_is_recordeable')
     def _is_recordeable(self, upgrade_step_info):
@@ -253,3 +255,18 @@ class UpgradeInformationGatherer(object):
             return False
         handler = upgrade_step_info['step'].handler
         return IRecordableHandler.providedBy(handler)
+
+    security.declarePrivate('_was_upgrade_executed')
+    def _was_upgrade_executed(self, profile, upgrade_step_info):
+        """Check for whether we know if an upgrade step was executed.
+
+        Returns True when the recorder is sure that this upgrade was executed.
+        Returns False when the recorder is sure that it was not executed.
+        Returns None when the recorder does not know whether this upgrade was executed.
+        """
+        if not self._is_recordeable(upgrade_step_info):
+            return None
+        else:
+            recorder = getMultiAdapter((self.portal, profile),
+                                       IUpgradeStepRecorder)
+            return recorder.is_installed(upgrade_step_info['sdest'])

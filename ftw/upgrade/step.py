@@ -398,7 +398,7 @@ class UpgradeStep(object):
                                 if not layer.__name__ == iface_name])
         layer_subscribers[''] = remaining_layers
 
-        sm._utility_registrations.pop((ILocalBrowserLayerType, name))
+        sm._utility_registrations.pop((ILocalBrowserLayerType, name), None)
 
         sm.utilities._p_changed = True
 

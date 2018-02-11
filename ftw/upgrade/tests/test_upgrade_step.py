@@ -755,6 +755,13 @@ class TestUpgradeStep(UpgradeTestCase):
         self.assertNotIn((ILocalBrowserLayerType, 'my.product'),
                          sm._utility_registrations)
 
+    def test_remove_broken_browserlayer_doesnt_fail_if_layer_missing(self):
+        class Step(UpgradeStep):
+            def __call__(self):
+                self.remove_broken_browserlayer('my.nonexistent.product',
+                                                'IMyNonexistentProductLayer')
+        Step(self.portal_setup)
+
     def test_remove_remove_broken_portlet_manager(self):
         from plone.portlets.interfaces import IPortletManager
         from plone.portlets.interfaces import IPortletManagerRenderer

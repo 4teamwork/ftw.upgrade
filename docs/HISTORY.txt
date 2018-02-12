@@ -5,7 +5,8 @@ Changelog
 2.11.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Make sure remove_broken_browserlayer() helper doesn't fail if the browser
+  layer registration to be removed doesn't exist (any more). [lgraf]
 
 
 2.11.0 (2018-01-31)

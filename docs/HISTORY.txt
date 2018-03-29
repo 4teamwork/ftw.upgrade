@@ -5,6 +5,7 @@ Changelog
 2.11.1 (unreleased)
 -------------------
 
+- Fix connection problem when zope.conf contains ip-address. [jone]
 - Make sure remove_broken_browserlayer() helper doesn't fail if the browser
   layer registration to be removed doesn't exist (any more). [lgraf]
 

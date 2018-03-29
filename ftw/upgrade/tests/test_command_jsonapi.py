@@ -1,5 +1,6 @@
 from ftw.upgrade.command.jsonapi import APIRequestor
 from ftw.upgrade.command.jsonapi import get_api_url
+from ftw.upgrade.command.jsonapi import get_instance_port
 from ftw.upgrade.command.jsonapi import get_running_instance
 from ftw.upgrade.command.jsonapi import get_zope_url
 from ftw.upgrade.command.jsonapi import NoRunningInstanceFound
@@ -7,9 +8,21 @@ from ftw.upgrade.command.jsonapi import TempfileAuth
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from plone.app.testing import SITE_OWNER_NAME
 from plone.app.testing import TEST_USER_PASSWORD
+from Products.CMFPlone.utils import safe_unicode
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 import os
+
+
+class ZopeConfPathStub(object):
+    """Stubs a path.py Path object for a zope.conf file.
+    """
+
+    def __init__(self, *lines):
+        self._text = '\n'.join(map(safe_unicode, lines))
+
+    def text(self):
+        return self._text
 
 
 class TestAPIRequestor(CommandAndInstanceTestCase):
@@ -141,3 +154,46 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             {'port': test_zeoclient_port,
              'path': str(part2)},
             get_running_instance(self.layer['root_path']))
+
+    def test_get_instance_port_port_only(self):
+        zconf = ZopeConfPathStub('<http-server>',
+                                 '  address 8080',
+                                 '</http-server>')
+        self.assertEquals(8080, get_instance_port(zconf))
+
+    def test_get_instance_port_localhost_interface_prefix(self):
+        zconf = ZopeConfPathStub('<http-server>',
+                                 '  address 127.0.0.1:8080',
+                                 '</http-server>')
+        self.assertEquals(8080, get_instance_port(zconf))
+
+    def test_get_instance_port_public_interface_prefix(self):
+        zconf = ZopeConfPathStub('<http-server>',
+                                 '  address 127.0.0.1:8080',
+                                 '</http-server>')
+        self.assertEquals(8080, get_instance_port(zconf))
+
+    def test_get_instance_port_localhost_ip(self):
+        zconf = ZopeConfPathStub('ip-address 127.0.0.1',
+                                 '<http-server>',
+                                 '  address 127.0.0.1:8080',
+                                 '</http-server>')
+        self.assertEquals(8080, get_instance_port(zconf))
+
+    def test_get_instance_port_public_ip(self):
+        zconf = ZopeConfPathStub('ip-address 0.0.0.0',
+                                 '<http-server>',
+                                 '  address 127.0.0.1:8080',
+                                 '</http-server>')
+        self.assertEquals(8080, get_instance_port(zconf))
+
+    def test_get_instance_port_no_indent(self):
+        zconf = ZopeConfPathStub('<http-server>',
+                                 'address 8080',
+                                 '</http-server>')
+        self.assertEquals(8080, get_instance_port(zconf))
+
+    def test_get_instance_port_not_found(self):
+        zconf = ZopeConfPathStub('<http-server>',
+                                 '</http-server>')
+        self.assertEquals(None, get_instance_port(zconf))

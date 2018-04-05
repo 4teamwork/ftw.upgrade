@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.11.1 (unreleased)
+2.11.1 (2018-04-05)
 -------------------
 
 - Fix connection problem when zope.conf contains ip-address. [jone]

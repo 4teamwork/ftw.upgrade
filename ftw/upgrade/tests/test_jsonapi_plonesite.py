@@ -101,6 +101,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                          'source': '1',
                          'dest': '2',
                          'proposed': True,
+                         'deferrable': False,
                          'done': False,
                          'orphan': False,
                          'outdated_fs_version': False},
@@ -110,6 +111,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                          'source': '2',
                          'dest': '20110101000000',
                          'proposed': True,
+                         'deferrable': False,
                          'done': False,
                          'orphan': False,
                          'outdated_fs_version': False},
@@ -194,6 +196,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                          'source': '10000000000000',
                          'dest': '20110101000000',
                          'proposed': False,
+                         'deferrable': False,
                          'done': True,
                          'orphan': False,
                          'outdated_fs_version': False},
@@ -213,6 +216,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                          'source': '10000000000000',
                          'dest': '20110101000000',
                          'proposed': False,
+                         'deferrable': False,
                          'done': True,
                          'orphan': False,
                          'outdated_fs_version': False},
@@ -254,6 +258,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                          'source': '2',
                          'dest': '20110101000000',
                          'proposed': True,
+                         'deferrable': False,
                          'done': False,
                          'orphan': False,
                          'outdated_fs_version': False},
@@ -267,7 +272,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                          browser.headers.get('content-type'))
 
     @browsing
-    def test_list_proposed_upgrdes(self, browser):
+    def test_list_proposed_upgrades(self, browser):
         self.package.with_profile(
             Builder('genericsetup profile')
             .with_upgrade(Builder('plone upgrade step').upgrading('1', to='2')))
@@ -291,6 +296,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                  'source': '1',
                  'dest': '2',
                  'proposed': True,
+                 'deferrable': False,
                  'done': False,
                  'orphan': False,
                  'outdated_fs_version': False},
@@ -302,6 +308,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                  'source': '2',
                  'dest': '3',
                  'proposed': True,
+                 'deferrable': False,
                  'done': False,
                  'orphan': False,
                  'outdated_fs_version': False},

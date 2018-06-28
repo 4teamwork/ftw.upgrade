@@ -104,9 +104,10 @@ class UpgradeInformationGatherer(object):
         self.cyclic_dependencies = False
 
     security.declarePrivate('get_profiles')
-    def get_profiles(self, proposed_only=False):
+    def get_profiles(self, proposed_only=False, propose_deferrable=True):
         profiles = self._sort_profiles_by_dependencies(
-            self._get_profiles(proposed_only=proposed_only))
+            self._get_profiles(proposed_only=proposed_only,
+                               propose_deferrable=propose_deferrable))
         profiles = flag_profiles_with_outdated_fs_version(profiles)
         profiles = extend_auto_upgrades_with_human_formatted_date_version(
             profiles)
@@ -117,11 +118,14 @@ class UpgradeInformationGatherer(object):
                               'get_upgrades was renamed to get_profiles')
 
     security.declarePrivate('get_upgrades_by_api_ids')
-    def get_upgrades_by_api_ids(self, *api_ids):
+    def get_upgrades_by_api_ids(self, *api_ids, **kwargs):
+        propose_deferrable = kwargs.pop('propose_deferrable', True)
         upgrades = filter(lambda upgrade: upgrade['api_id'] in api_ids,
                           reduce(list.__add__,
                                  map(itemgetter('upgrades'),
-                                     self.get_profiles())))
+                                     self.get_profiles(
+                                        propose_deferrable=propose_deferrable))))
+
         missing_api_ids = (set(api_ids)
                            - set(map(itemgetter('api_id'), upgrades)))
         if missing_api_ids:
@@ -129,13 +133,14 @@ class UpgradeInformationGatherer(object):
         return upgrades
 
     security.declarePrivate('_get_profiles')
-    def _get_profiles(self, proposed_only=False):
+    def _get_profiles(self, proposed_only=False, propose_deferrable=True):
         for profileid in self.portal_setup.listProfilesWithUpgrades():
             if not self._is_profile_installed(profileid):
                 continue
 
-            data = self._get_profile_data(
-                profileid, proposed_only=proposed_only)
+            data = self._get_profile_data(profileid,
+                                          proposed_only=proposed_only,
+                                          propose_deferrable=propose_deferrable)
             if len(data['upgrades']) == 0:
                 continue
 
@@ -147,14 +152,18 @@ class UpgradeInformationGatherer(object):
             yield data
 
     security.declarePrivate('_get_profile_data')
-    def _get_profile_data(self, profileid, proposed_only=False):
+    def _get_profile_data(self, profileid,
+                          proposed_only=False,
+                          propose_deferrable=True):
         db_version = self.portal_setup.getLastVersionForProfile(profileid)
         if isinstance(db_version, (tuple, list)):
             db_version = '.'.join(db_version)
 
         data = {
             'upgrades': self._get_profile_upgrades(
-                profileid, proposed_only=proposed_only),
+                    profileid,
+                    proposed_only=proposed_only,
+                    propose_deferrable=propose_deferrable),
             'db_version': db_version}
 
         try:
@@ -174,7 +183,9 @@ class UpgradeInformationGatherer(object):
         return data
 
     security.declarePrivate('_get_profile_upgrades')
-    def _get_profile_upgrades(self, profileid, proposed_only=False):
+    def _get_profile_upgrades(self, profileid,
+                              proposed_only=False,
+                              propose_deferrable=True):
         proposed_ids = set()
         upgrades = []
 
@@ -200,6 +211,10 @@ class UpgradeInformationGatherer(object):
             if upgrade['orphan']:
                 upgrade['proposed'] = True
                 upgrade['done'] = False
+
+            upgrade['deferrable'] = self._is_deferrable(upgrade)
+            if upgrade['deferrable'] and upgrade['proposed']:
+                upgrade['proposed'] = propose_deferrable
 
             if 'step' in upgrade:
                 del upgrade['step']
@@ -248,6 +263,23 @@ class UpgradeInformationGatherer(object):
         if not self._is_recordeable(upgrade_step_info):
             return False
         return not self._was_upgrade_executed(profile, upgrade_step_info)
+
+    security.declarePrivate('_is_deferrable')
+    def _is_deferrable(self, upgrade_step_info):
+        step = upgrade_step_info.get('step')
+        if not step:
+            return False
+
+        maybe_ftw_upgrade_step_wrapper = getattr(step, 'handler', None)
+        if not maybe_ftw_upgrade_step_wrapper:
+            return False
+
+        upgrade_step_class = getattr(
+            maybe_ftw_upgrade_step_wrapper, 'handler', None)
+        if not upgrade_step_class:
+            return False
+
+        return bool(getattr(upgrade_step_class, 'deferrable', False))
 
     security.declarePrivate('_is_recordeable')
     def _is_recordeable(self, upgrade_step_info):

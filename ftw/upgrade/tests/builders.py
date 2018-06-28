@@ -1,9 +1,18 @@
 from ftw.builder import builder_registry
 from ftw.builder.utils import serialize_callable
+from ftw.upgrade import UpgradeStep
 from ftw.upgrade.directory import scaffold
 from path import Path
 import inflection
 import os
+
+
+class DeferrableUpgrade(UpgradeStep):
+
+    deferrable = True
+
+    def __call__(self):
+        pass
 
 
 class UpgradeStepBuilder(object):
@@ -52,6 +61,9 @@ class UpgradeStepBuilder(object):
 
         source = serialize_callable(callable_, *to_import)
         return self.with_code(source)
+
+    def as_deferrable(self):
+        return self.calling(DeferrableUpgrade)
 
     def with_directory(self, relative_path):
         """Create a directory in the profile.

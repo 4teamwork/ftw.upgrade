@@ -38,7 +38,6 @@ class Executioner(object):
     security.declarePrivate('install')
     def install(self, data):
         self._register_after_commit_hook()
-
         for profileid, upgradeids in data:
             self._upgrade_profile(profileid, upgradeids)
 
@@ -50,9 +49,9 @@ class Executioner(object):
         self._process_indexing_queue()
 
     security.declarePrivate('install_upgrades_by_api_ids')
-    def install_upgrades_by_api_ids(self, *upgrade_api_ids):
+    def install_upgrades_by_api_ids(self, *upgrade_api_ids, **kwargs):
         gatherer = IUpgradeInformationGatherer(self.portal_setup)
-        upgrades = gatherer.get_upgrades_by_api_ids(*upgrade_api_ids)
+        upgrades = gatherer.get_upgrades_by_api_ids(*upgrade_api_ids, **kwargs)
         data = [(upgrade['profile'], [upgrade['id']]) for upgrade in upgrades]
         return self.install(data)
 

@@ -64,13 +64,18 @@ class PloneSiteAPI(APIView):
         return self._install_upgrades(*upgrades)
 
     @action('POST', rename_params={'profiles': 'profiles:list'})
-    def execute_proposed_upgrades(self, profiles=None):
+    def execute_proposed_upgrades(self, profiles=None, propose_deferrable=True):
         """Executes all proposed upgrades.
         """
         self._require_up_to_date_plone_site()
+        if profiles:
+            self._validate_profile_ids(*profiles)
+        propose_deferrable = parse_bool(propose_deferrable)
+
         api_ids = map(itemgetter('api_id'), self._get_proposed_upgrades(
-            only_profiles=profiles))
-        return self._install_upgrades(*api_ids)
+            only_profiles=profiles, propose_deferrable=propose_deferrable))
+        return self._install_upgrades(
+            *api_ids, propose_deferrable=propose_deferrable)
 
     @action('POST', rename_params={'profiles': 'profiles:list'})
     def execute_profiles(self, profiles, force_reinstall=False):
@@ -157,11 +162,13 @@ class PloneSiteAPI(APIView):
     def _validate_upgrade_ids(self, *api_ids):
         self.gatherer.get_upgrades_by_api_ids(*api_ids)
 
-    def _install_upgrades(self, *api_ids):
+    def _install_upgrades(self, *api_ids, **kwargs):
+        propose_deferrable = kwargs.pop('propose_deferrable', True)
         executioner = IExecutioner(self.portal_setup)
         try:
             with ResponseLogger(self.request.RESPONSE, annotate_result=True):
-                executioner.install_upgrades_by_api_ids(*api_ids)
+                executioner.install_upgrades_by_api_ids(
+                    *api_ids, propose_deferrable=propose_deferrable)
         except Exception, exc:
             raise AbortTransactionWithStreamedResponse(exc)
 

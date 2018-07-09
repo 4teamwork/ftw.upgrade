@@ -82,14 +82,8 @@ class PloneSiteAPI(APIView):
         """Executes a list of profiles, each identified by their ID.
         """
         self._require_up_to_date_plone_site()
-        profile_ids = []
-        for profile in profiles:
-            # Note: profileExists can handle ids with or without 'profile-' at
-            # the start.
-            if not self.portal_setup.profileExists(profile):
-                raise ProfileNotFound(profile)
-            profile_ids.append(profile)
-        return self._install_profiles(*profile_ids,
+        self._validate_profile_ids(*profiles)
+        return self._install_profiles(*profiles,
                                       force_reinstall=force_reinstall)
 
     @jsonify
@@ -161,6 +155,13 @@ class PloneSiteAPI(APIView):
 
     def _validate_upgrade_ids(self, *api_ids):
         self.gatherer.get_upgrades_by_api_ids(*api_ids)
+
+    def _validate_profile_ids(self, *profiles):
+        for profile in profiles:
+            # Note: profileExists can handle ids with or without 'profile-' at
+            # the start.
+            if not self.portal_setup.profileExists(profile):
+                raise ProfileNotFound(profile)
 
     def _install_upgrades(self, *api_ids, **kwargs):
         propose_deferrable = kwargs.pop('propose_deferrable', True)

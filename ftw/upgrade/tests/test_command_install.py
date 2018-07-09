@@ -166,6 +166,13 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 2, 2)))
             self.assertIn('Result: SUCCESS', output)
 
+    def test_install_proposed_upgrades_of_profile_fails_for_invalid_profiles(self):
+        exitcode, output = self.upgrade_script(
+            'install -s plone --proposed the.inexisting.package:default',
+            assert_exitcode=False)
+        self.assertEquals(1, exitcode)
+        self.assertIn('ERROR:', output)
+
     def test_virtual_host_monster_is_configured_by_environment_variable(self):
         os.environ['UPGRADE_PUBLIC_URL'] = 'https://foo.bar.com/baz'
         self.layer['portal'].upgrade_info = PersistentList()

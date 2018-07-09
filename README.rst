@@ -986,7 +986,7 @@ If the upgrade succeeds, the response content will end with "Result: SUCCESS\n".
 Executing selected upgrades
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Selected upgrades can be executing by their API-ID (format: "<dest>@<profileid>").
+Selected upgrades can be executed by their API-ID (format: "<dest>@<profileid>").
 When upgrade groups are used the API-ID is kind of ambiguous and identifies / installs all
 upgrade steps of the same profile with the same target version.
 
@@ -1017,7 +1017,7 @@ Example for executing a selected set of upgrades:
 Execute all proposed upgrades
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Example for exeuting all proposed upgrades of a Plone site:
+Example for executing all proposed upgrades of a Plone site:
 
 .. code:: sh
 

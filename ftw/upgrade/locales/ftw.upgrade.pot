@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2014-11-26 18:27+0000\n"
+"POT-Creation-Date: 2018-07-09 12:53+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "Cyclic dependencies"
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage_plain.pt:201
+#: ./ftw/upgrade/browser/templates/manage_plain.pt:206
 msgid "Install"
 msgstr ""
 
@@ -58,15 +58,19 @@ msgstr ""
 msgid "This upgrade is already installed."
 msgstr ""
 
+#: ./ftw/upgrade/browser/templates/manage_plain.pt:171
+msgid "This upgrade is marked as deferrable."
+msgstr ""
+
 #: ./ftw/upgrade/browser/templates/manage_plain.pt:156
 msgid "This upgrade is not installed yet."
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage_plain.pt:176
+#: ./ftw/upgrade/browser/templates/manage_plain.pt:181
 msgid "This upgrade step was added after later upgrade steps were installed on this site. This is usually a merge error; the timestamp of this upgrade should be increased so that the upgrade step is ordered after already installed upgrades."
 msgstr ""
 
-#: ./ftw/upgrade/browser/templates/manage_plain.pt:171
+#: ./ftw/upgrade/browser/templates/manage_plain.pt:176
 msgid "This upgrade's target version is higher than the profile's filesystem version. Please update the corresponding metadata.xml!"
 msgstr ""
 

@@ -804,6 +804,46 @@ The resulting directory structure should be something like this:
 
 
 
+Deferrable upgrades
+-------------------
+
+Deferrable upgrades are a special type of upgrade that can be omitted on
+demand. They still will be proposed and installed by default but can be
+excluded from installation by setting a flag.
+Deferrable upgrades can be used to decouple upgrades that need not be run right
+now, but only eventually, from the critical upgrade path. This can be
+particularly useful for long running data migrations or for fix-scripts.
+
+Upgrade-steps can be marked as deferrable by setting a class attribute
+``deferrable`` on a subclass of ``UpgradeStep``:
+
+.. code:: python
+
+    # my/package/upgrades/20180709135657_long_running_upgrade/upgrade.py
+
+    from ftw.upgrade import UpgradeStep
+
+    class LongRunningUpgrade(UpgradeStep):
+        """Potentially long running upgrade which is deferrable.
+        """
+        deferrable = True
+
+        def __call__(self):
+            pass
+
+
+When you install upgrades from the command line, you can skip the installation
+of deferred upgrade steps with:
+
+.. code:: sh
+
+    $ bin/upgrade install -s plone --proposed --skip-deferrable
+
+
+When you install upgrades with the ``@@manage-upgrades`` view, deferrable
+upgrade steps show an additional icon and can be deselected manually.
+
+
 JSON API
 ========
 
@@ -901,6 +941,7 @@ Listing all installed Generic Setup profiles with upgrades for a Plone site:
                     "title": "Fix portal_historyidhandler",
                     "outdated_fs_version": false,
                     "orphan": false,
+                    "deferred": false,
                     "dest": "3",
                     "done": true,
                     "source": "2.0",
@@ -930,6 +971,7 @@ Listing a single profile and its upgrades:
                 "title": "Upgrade TinyMCE",
                 "outdated_fs_version": false,
                 "orphan": false,
+                "deferred": false,
                 "dest": "1.1",
                 "done": true,
                 "source": "1.0",
@@ -964,6 +1006,7 @@ Listing all proposed upgrades without the wrapping profile infos:
             "title": "Foo.",
             "outdated_fs_version": false,
             "orphan": true,
+            "deferred": false,
             "dest": "20150114104527",
             "done": false,
             "source": "10000000000000",

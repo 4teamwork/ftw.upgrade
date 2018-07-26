@@ -39,6 +39,8 @@ class UpgradeStep(object):
     implements(IUpgradeStep)
     security = ClassSecurityInformation()
 
+    deferrable = False
+
     def __new__(cls, *args, **kwargs):
         """Let the class act as function since we cannot registry a
         classmethod directly.

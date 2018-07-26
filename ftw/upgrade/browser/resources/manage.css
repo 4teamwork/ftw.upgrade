@@ -60,6 +60,11 @@
   margin-left: 1em;
 }
 
+.upgrade span.upgrade-checkbox {
+  margin-left: 0;
+  width: 6em;
+}
+
 .upgrade span.upgrade-version {
   width: 20em;
 }

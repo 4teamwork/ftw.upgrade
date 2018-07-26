@@ -37,6 +37,42 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             self.assertIn('Result: SUCCESS', output)
 
+    def test_skip_deferrable_upgrades_if_specified(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 1, 1))
+                          .as_deferrable()))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.clear_recorded_upgrades('the.package:default')
+
+            self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+            exitcode, output = self.upgrade_script('install -s plone --proposed --skip-deferrable')
+            self.assertEquals(0, exitcode)
+            transaction.begin()  # sync transaction
+            self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+            self.assertIn('Result: SUCCESS', output)
+
+    def test_install_deferrable_upgrades_by_default(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 1, 1))
+                          .as_deferrable()))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.clear_recorded_upgrades('the.package:default')
+
+            self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+            exitcode, output = self.upgrade_script('install -s plone --proposed')
+            self.assertEquals(0, exitcode)
+            transaction.begin()  # sync transaction
+            self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+            self.assertIn('Result: SUCCESS', output)
+
     def test_install_failure_raises_exitcode(self):
         def failing_upgrade(setup_context):
             raise KeyError('foo')
@@ -129,6 +165,13 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 2, 2)))
             self.assertIn('Result: SUCCESS', output)
+
+    def test_install_proposed_upgrades_of_profile_fails_for_invalid_profiles(self):
+        exitcode, output = self.upgrade_script(
+            'install -s plone --proposed the.inexisting.package:default',
+            assert_exitcode=False)
+        self.assertEquals(1, exitcode)
+        self.assertIn('ERROR:', output)
 
     def test_virtual_host_monster_is_configured_by_environment_variable(self):
         os.environ['UPGRADE_PUBLIC_URL'] = 'https://foo.bar.com/baz'

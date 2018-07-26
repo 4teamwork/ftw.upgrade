@@ -90,6 +90,14 @@ def setup_argparser(commands):
                        type=valid_profile_id,
                        metavar='PROFILE')
 
+    command.add_argument('--skip-deferrable', '-D',
+                         help='Do not propose deferrable upgrades. Only takes '
+                              'effect if specified in combination with '
+                              '--proposed.',
+                         default=False,
+                         dest='skip_deferrable',
+                         action='store_true')
+
 
 @with_api_requestor
 @error_handling
@@ -101,6 +109,8 @@ def install_command(args, requestor):
     if args.proposed is not None:
         action = 'execute_proposed_upgrades'
         params = [('profiles:list', name) for name in args.proposed]
+        if args.skip_deferrable:
+            params.append(('propose_deferrable', False))
     elif args.profiles:
         action = 'execute_profiles'
         params = [('profiles:list', name) for name in set(args.profiles)]

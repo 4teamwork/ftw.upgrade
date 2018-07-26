@@ -61,6 +61,7 @@ class TestListCommand(CommandAndInstanceTestCase):
                          'source': '10000000000000',
                          'dest': '20110101000000',
                          'proposed': True,
+                         'deferrable': False,
                          'done': False,
                          'orphan': True,
                          'outdated_fs_version': False},
@@ -69,6 +70,7 @@ class TestListCommand(CommandAndInstanceTestCase):
                          'source': '20110101000000',
                          'dest': '20120202000000',
                          'proposed': True,
+                         'deferrable': False,
                          'done': False,
                          'orphan': False,
                          'outdated_fs_version': False},
@@ -114,6 +116,7 @@ class TestListCommand(CommandAndInstanceTestCase):
                         "orphan": True,
                         "outdated_fs_version": False,
                         "proposed": True,
+                        "deferrable": False,
                         "source": "10000000000000",
                         "title": "Upgrade."
                         },
@@ -124,8 +127,75 @@ class TestListCommand(CommandAndInstanceTestCase):
                         "orphan": False,
                         "outdated_fs_version": False,
                         "proposed": True,
+                        "deferrable": False,
                         "source": "20110101000000",
                         "title": "Upgrade."
+                        }],
+                json.loads(output))
+
+    def test_deferrable_upgrades_are_annotated_in_list(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 1, 1))
+                          .as_deferrable()))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.clear_recorded_upgrades('the.package:default')
+
+            exitcode, output = self.upgrade_script('list --upgrades -s plone')
+            self.assertEquals(0, exitcode)
+
+            self.assertMultiLineEqual(
+                u'Proposed upgrades:\n'
+                'ID:                                            Title:             \n'
+                '20110101000000@the.package:default DEFERRABLE  DeferrableUpgrade  \n',
+                output)
+
+    def test_orphaned_is_omitted_in_listing_for_deferrable_upgrades(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1)).as_deferrable())
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2012, 2, 2))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='20110101000000')
+            self.clear_recorded_upgrades('the.package:default')
+
+            exitcode, output = self.upgrade_script('list --upgrades -s plone')
+            self.assertEquals(0, exitcode)
+            self.assertMultiLineEqual(
+                'Proposed upgrades:\n'
+                'ID:                                            Title:             \n'
+                '20110101000000@the.package:default DEFERRABLE  DeferrableUpgrade  \n'
+                '20120202000000@the.package:default             Upgrade.           \n',
+                output)
+
+    def test_listing_deferrable_upgrades_as_json(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 1, 1))
+                          .as_deferrable()))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.clear_recorded_upgrades('the.package:default')
+
+            exitcode, output = self.upgrade_script('list --upgrades -s plone --json')
+            self.assertEquals(0, exitcode)
+            self.assert_json_equal(
+                [{
+                        "dest": "20110101000000",
+                        "done": False,
+                        "id": "20110101000000@the.package:default",
+                        "orphan": False,
+                        "outdated_fs_version": False,
+                        "proposed": True,
+                        "deferrable": True,
+                        "source": "10000000000000",
+                        "title": "DeferrableUpgrade"
                         }],
                 json.loads(output))
 

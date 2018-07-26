@@ -78,14 +78,19 @@ def list_command(args, requestor):
 
 
 def format_proposed_upgrades(response):
-    tabledata = []
+    proposed = []
     for upgrade in response.json():
-        tabledata.append(
-            [upgrade_id_with_flags(upgrade, omit_flags=('proposed',)),
-             TERMINAL.bold(upgrade.get('title')),
-             ])
+        is_deferrable = upgrade.get('deferrable', False)
+
+        omit_flags = ('proposed', 'orphan') if is_deferrable else ('proposed',)
+
+        table_row = [upgrade_id_with_flags(upgrade, omit_flags=omit_flags),
+                     TERMINAL.bold(upgrade.get('title')),
+                     ]
+        proposed.append(table_row)
+
     print TERMINAL.bold('Proposed upgrades:')
-    print_table(tabledata, ['ID:', 'Title:'])
+    print_table(proposed, ['ID:', 'Title:'])
 
 
 def format_profiles(response):

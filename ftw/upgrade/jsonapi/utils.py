@@ -236,3 +236,7 @@ def get_system_upgrade_user(context):
         acl_users.userFolderAddUser(
             'system-upgrade', os.urandom(16).encode('hex'), ['Manager'], None)
     return acl_users.getUserById('system-upgrade')
+
+
+def parse_bool(string):
+    return string in ('True', 'true', True)

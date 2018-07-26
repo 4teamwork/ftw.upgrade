@@ -1,5 +1,6 @@
 from datetime import datetime
 from ftw.builder import Builder
+from ftw.upgrade import UpgradeStep
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.gatherer import extend_auto_upgrades_with_human_formatted_date_version
@@ -10,6 +11,15 @@ from Products.CMFPlone.utils import getFSVersionTuple
 from unittest2 import TestCase
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
+
+
+class NotDeferrableUpgrade(UpgradeStep):
+    """Test that attribute value is used, not attribtue presence."""
+
+    deferrable = False
+
+    def __call__(self):
+        pass
 
 
 class TestUpgradeInformationGatherer(UpgradeTestCase):
@@ -225,6 +235,31 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
 
                 self.get_profiles_by_ids()['the.package:default'])
 
+    def test_deferrable_profile_infos(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 1, 1))
+                          .calling(NotDeferrableUpgrade)))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.clear_recorded_upgrades('the.package:default')
+
+            profiles = self.get_profiles_by_ids()
+            profile_info = profiles['the.package:default']
+            upgrade_info = profile_info['upgrades'][0]
+
+            self.assertDictContainsSubset(
+                {'profile': 'the.package:default',
+                 'done': False,
+                 'proposed': True,
+                 'orphan': False,
+                 'deferrable': False,
+                 'outdated_fs_version': False,
+                 },
+                upgrade_info)
+
     def test_upgrade_infos(self):
         self.package.with_profile(
             Builder('genericsetup profile')
@@ -250,8 +285,70 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
                  'done': False,
                  'proposed': True,
                  'orphan': False,
+                 'deferrable': False,
                  'outdated_fs_version': False,
                  'haspath': ('1001',)},
+                upgrade_info)
+
+    def test_upgrade_infos_proposes_deferrable_by_default(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 1, 1))
+                          .as_deferrable()))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.clear_recorded_upgrades('the.package:default')
+            self.assert_gathered_upgrades({
+                    'the.package:default': {
+                        'done': [],
+                        'proposed': ['20110101000000'],
+                        'orphan': []}})
+
+            profiles = self.get_profiles_by_ids()
+            profile_info = profiles['the.package:default']
+            upgrade_info = profile_info['upgrades'][0]
+
+            self.assertDictContainsSubset(
+                {'profile': 'the.package:default',
+                 'done': False,
+                 'proposed': True,
+                 'orphan': False,
+                 'deferrable': True,
+                 'outdated_fs_version': False,
+                 },
+                upgrade_info)
+
+    def test_deferrable_upgrades_are_proposed_when_specified(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 1, 1))
+                          .as_deferrable()))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.clear_recorded_upgrades('the.package:default')
+            self.assert_gathered_upgrades({
+                    'the.package:default': {
+                        'done': [],
+                        'proposed': ['20110101000000'],
+                        'orphan': []}},
+                    propose_deferrable=True)
+
+            profiles = self.get_profiles_by_ids(propose_deferrable=True)
+            profile_info = profiles['the.package:default']
+            upgrade_info = profile_info['upgrades'][0]
+
+            self.assertDictContainsSubset(
+                {'profile': 'the.package:default',
+                 'done': False,
+                 'proposed': True,
+                 'orphan': False,
+                 'deferrable': True,
+                 'outdated_fs_version': False,
+                 },
                 upgrade_info)
 
     def test_orphane_upgrades_are_marked(self):
@@ -379,9 +476,9 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
                               profiles)
         return profiles
 
-    def get_profiles_by_ids(self):
+    def get_profiles_by_ids(self, **kwargs):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        result = gatherer.get_profiles()
+        result = gatherer.get_profiles(**kwargs)
         return dict([(profile['id'], profile) for profile in result])
 
     def assert_outdated_profiles(self, expected_profiles, ignore=()):

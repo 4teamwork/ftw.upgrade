@@ -163,9 +163,14 @@
                                          title="This upgrade is already installed."
                                          i18n:attributes="title" />
 
-                                    <img tal:condition="python: not upgrade['done'] and not upgrade['proposed']"
+                                    <img tal:condition="python: not upgrade['done'] and not upgrade['proposed'] and not upgrade['deferrable']"
                                          tal:attributes="src string:$portal_url/++resource++ftw.upgrade/upgrade-error.png"
                                          title="Something is wrong with this Upgrade step. This upgrade steps seems not to be installed but is not proposed. The target version may be newer than the filesystem profile version."
+                                         i18n:attributes="title" />
+
+                                    <img tal:condition="upgrade/deferrable|nothing"
+                                         tal:attributes="src string:$portal_url/++resource++ftw.upgrade/upgrade-deferrable.png"
+                                         title="This upgrade is marked as deferrable."
                                          i18n:attributes="title" />
 
                                     <img tal:condition="upgrade/outdated_fs_version|nothing"
@@ -173,7 +178,7 @@
                                          title="This upgrade's target version is higher than the profile's filesystem version. Please update the corresponding metadata.xml!"
                                          i18n:attributes="title" />
 
-                                    <img tal:condition="upgrade/orphan|nothing"
+                                    <img tal:condition="python: upgrade['orphan'] and not upgrade['deferrable']"
                                          tal:attributes="src string:$portal_url/++resource++ftw.upgrade/orphan.png"
                                          title="This upgrade step was added after later upgrade steps were installed on this site. This is usually a merge error; the timestamp of this upgrade should be increased so that the upgrade step is ordered after already installed upgrades."
                                          i18n:attributes="title" />

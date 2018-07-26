@@ -1,3 +1,4 @@
+from datetime import datetime
 from ftw.builder import Builder
 from ftw.testbrowser import browsing
 from ftw.testbrowser.pages import statusmessages
@@ -124,6 +125,25 @@ class TestManageUpgrades(UpgradeTestCase):
     def test_manage_plain_view_renders(self, browser):
         browser.login(SITE_OWNER_NAME).open(view='manage-upgrades-plain')
         self.assertTrue(browser.css('input[value="plone.app.discussion:default"]').first)
+
+    @browsing
+    def test_manage_view_pre_selects_deferrable_upgrades(self, browser):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 1, 1))
+                          .as_deferrable()))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.clear_recorded_upgrades('the.package:default')
+            transaction.commit()
+
+            transaction.begin()  # sync transaction
+            browser.login(SITE_OWNER_NAME).open(view='manage-upgrades')
+            deferrable_upgrade_checkbox = browser.css(
+                'input[id|="the.package:default"]').first
+            self.assertTrue(deferrable_upgrade_checkbox.checked)
 
     @browsing
     def test_install(self, browser):

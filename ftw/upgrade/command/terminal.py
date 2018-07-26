@@ -29,6 +29,7 @@ FLAGS = {
     'orphan': TERMINAL.standout(TERMINAL.red('ORPHAN')),
     'outdated_fs_version': TERMINAL.standout(
         TERMINAL.red('FS-VERSION-OUTDATED')),
+    'deferrable': TERMINAL.standout(TERMINAL.blue('DEFERRABLE')),
     'proposed': TERMINAL.blue('proposed')}
 
 

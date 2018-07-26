@@ -2,10 +2,10 @@ Changelog
 =========
 
 
-2.11.2 (unreleased)
+2.12.0 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Allow marking upgrades as deferred so they won't be proposed by default. [deiferni]
 
 
 2.11.1 (2018-04-05)
@@ -22,11 +22,13 @@ Changelog
 - Provide upgrade step handler interfaces and handler class in wrapper. [jone]
 - Do not propose executed upgrades newer than current db version. [jone]
 
+
 2.10.0 (2018-01-08)
 -------------------
 
 - Support installing proposed upgrades of specific Generic Setup profiles.
   Use ``bin/upgrade install --proposed the.package:default``. [jone]
+
 
 2.9.0 (2017-12-14)
 ------------------

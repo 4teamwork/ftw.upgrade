@@ -7,7 +7,7 @@ from ftw.upgrade.tests.base import UpgradeTestCase
 from ftw.upgrade.utils import get_sorted_profile_ids
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces import IMigratingPloneSiteRoot
-from Products.GenericSetup.interfaces import EXTENSION
+from Products.GenericSetup.interfaces import BASE
 from Products.GenericSetup.upgrade import listUpgradeSteps
 from zope.configuration.config import ConfigurationExecutionError
 from zope.interface import implementer
@@ -78,7 +78,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                  'description': '',
                  'path': upgrade_path,
                  'product': 'the.package.upgrades',
-                 'type': EXTENSION,
+                 'type': BASE,
                  'for': IMigratingPloneSiteRoot})
 
     def test_package_modules_is_not_corrupted(self):
@@ -97,7 +97,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                             name='default',
                             title='other.package:default',
                             directory='profiles/default',
-                            provides='Products.GenericSetup.interfaces.EXTENSION')
+                            provides='Products.GenericSetup.interfaces.BASE')
 
             .with_directory('upgrades')
             .with_file('upgrades/__init__.py', 'PACKAGE = "upgrades package"')
@@ -143,7 +143,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                  'path': profile_path,
                  'version': '20110202080000',
                  'product': 'the.package',
-                 'type': EXTENSION,
+                 'type': BASE,
                  'for': None})
 
     def test_profile_version_is_set_to_latest_old_school_profile_version(self):
@@ -175,7 +175,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                  'path': str(profile_path),
                  'version': '1001',
                  'product': 'the.package',
-                 'type': EXTENSION,
+                 'type': BASE,
                  'for': None})
 
     def test_version_set_to_default_when_no_upgrades_defined(self):
@@ -195,7 +195,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                  'path': profile_path,
                  'version': u'10000000000000',
                  'product': 'the.package',
-                 'type': EXTENSION,
+                 'type': BASE,
                  'for': None})
 
     def test_profile_must_not_have_a_metadata_version_defined(self):
@@ -251,7 +251,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                  'path': package.package_path.joinpath('profiles', 'foo'),
                  'version': u'20100101010100',
                  'product': 'the.package',
-                 'type': EXTENSION,
+                 'type': BASE,
                  'for': None})
 
             portal_setup = getToolByName(self.portal, 'portal_setup')

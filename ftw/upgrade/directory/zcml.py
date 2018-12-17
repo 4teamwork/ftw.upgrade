@@ -3,7 +3,7 @@ from ftw.upgrade.directory.wrapper import wrap_upgrade_step
 from ftw.upgrade.exceptions import UpgradeStepConfigurationError
 from operator import attrgetter
 from Products.CMFPlone.interfaces import IMigratingPloneSiteRoot
-from Products.GenericSetup.interfaces import EXTENSION
+from Products.GenericSetup.interfaces import BASE
 from Products.GenericSetup.interfaces import IProfile
 from Products.GenericSetup.registry import _profile_registry
 from Products.GenericSetup.registry import GlobalRegistryStorage
@@ -98,7 +98,7 @@ def upgrade_step_directory_action(profile, dottedname, path,
             description='',
             path=upgrade_info['path'],
             product=dottedname,
-            profile_type=EXTENSION,
+            profile_type=BASE,
             for_=IMigratingPloneSiteRoot)
 
         last_version = upgrade_info['target-version']

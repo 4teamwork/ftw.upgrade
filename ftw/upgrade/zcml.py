@@ -1,6 +1,6 @@
 from ftw.upgrade import UpgradeStep
 from Products.CMFPlone.interfaces import IMigratingPloneSiteRoot
-from Products.GenericSetup.interfaces import EXTENSION
+from Products.GenericSetup.interfaces import BASE
 from Products.GenericSetup.zcml import registerProfile
 from Products.GenericSetup.zcml import upgradeStep
 from zope.configuration.fields import GlobalObject
@@ -53,7 +53,7 @@ def importProfileUpgradeStep(_context, title, profile, source, destination,
     profile_id = "upgrade_to_%s" % destination
     registerProfile(_context, name=profile_id, title=title,
                     description=description, directory=directory,
-                    provides=EXTENSION, for_=IMigratingPloneSiteRoot)
+                    provides=BASE, for_=IMigratingPloneSiteRoot)
 
     if handler is None:
         handler = DefaultUpgradeStep

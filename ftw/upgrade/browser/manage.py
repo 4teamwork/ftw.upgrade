@@ -178,3 +178,7 @@ class ManageUpgradesPlain(ManageUpgrades):
 
     def __getitem__(self, key):
         return self.index.macros[key]
+
+    def __call__(self):
+        self.request.response.setHeader('X-Theme-Disabled', 'true')
+        return super(ManageUpgradesPlain, self).__call__()

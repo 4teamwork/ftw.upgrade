@@ -1,9 +1,10 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
-from Products.CMFCore.utils import getToolByName
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.utils import format_duration
+from ftw.upgrade.utils import get_portal_migration
+from Products.CMFCore.utils import getToolByName
 from zope.component import getAdapter
 from zope.publisher.browser import BrowserView
 import logging
@@ -136,7 +137,7 @@ class ManageUpgrades(BrowserView):
 
     security.declarePrivate('plone_needs_upgrading')
     def plone_needs_upgrading(self):
-        portal_migration = getToolByName(self.context, 'portal_migration')
+        portal_migration = get_portal_migration(self.context)
         return portal_migration.needUpgrading()
 
     security.declarePrivate('_get_upgrades_to_install')

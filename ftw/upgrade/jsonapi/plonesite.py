@@ -10,6 +10,7 @@ from ftw.upgrade.jsonapi.utils import action
 from ftw.upgrade.jsonapi.utils import jsonify
 from ftw.upgrade.jsonapi.utils import parse_bool
 from ftw.upgrade.resource_registries import recook_resources
+from ftw.upgrade.utils import get_portal_migration
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 
@@ -101,7 +102,7 @@ class PloneSiteAPI(APIView):
 
         This is what you would manually do in the @@plone-upgrade view.
         """
-        portal_migration = getToolByName(self.context, 'portal_migration')
+        portal_migration = get_portal_migration(self.context)
         if not portal_migration.needUpgrading():
             return 'Plone Site was already up to date.'
         portal_migration.upgrade(swallow_errors=False)
@@ -112,7 +113,7 @@ class PloneSiteAPI(APIView):
     def plone_upgrade_needed(self):
         """Returns "true" when Plone needs to be upgraded.
         """
-        portal_migration = getToolByName(self.context, 'portal_migration')
+        portal_migration = get_portal_migration(self.context)
         return bool(portal_migration.needUpgrading())
 
     def _refine_profile_info(self, profile):
@@ -183,6 +184,6 @@ class PloneSiteAPI(APIView):
             raise AbortTransactionWithStreamedResponse(exc)
 
     def _require_up_to_date_plone_site(self):
-        portal_migration = getToolByName(self.context, 'portal_migration')
+        portal_migration = get_portal_migration(self.context)
         if portal_migration.needUpgrading():
             raise PloneSiteOutdated()

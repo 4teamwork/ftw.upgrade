@@ -346,5 +346,6 @@ class CommandAndInstanceTestCase(JsonApiTestCase, CommandTestCase):
         return etc1.dirname()
 
     def write_zconf_with_test_instance(self):
-        test_instance_port = os.environ.get('ZSERVER_PORT', 55001)
+        # Determine the port the ZServer layer has picked
+        test_instance_port = self.layer['port']
         self.write_zconf('instance', test_instance_port)

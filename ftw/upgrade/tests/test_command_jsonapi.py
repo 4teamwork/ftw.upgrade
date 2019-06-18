@@ -77,7 +77,7 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
 
     def test_get_api_url(self):
         self.write_zconf_with_test_instance()
-        test_instance_port = os.environ.get('ZSERVER_PORT', 55001)
+        test_instance_port = self.layer['port']
 
         self.assertEqual(
             'http://localhost:{0}/upgrades-api/foo'.format(test_instance_port),
@@ -93,7 +93,7 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
 
     def test_get_api_url_with_public_url(self):
         self.write_zconf_with_test_instance()
-        test_instance_port = os.environ.get('ZSERVER_PORT', 55001)
+        test_instance_port = self.layer['port']
 
         os.environ['UPGRADE_PUBLIC_URL'] = 'http://domain.com'
         self.assertEqual(
@@ -128,7 +128,7 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             get_zope_url()
 
     def test_find_first_running_instance_info(self):
-        test_instance_port = int(os.environ.get('ZSERVER_PORT', 55001))
+        test_instance_port = self.layer['port']
         self.write_zconf('instance1', '1000')
         part2 = self.write_zconf('instance2', test_instance_port)
         self.assertEqual(
@@ -137,7 +137,7 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             get_running_instance(self.layer['root_path']))
 
     def test_find_first_running_instance_info_with_network_interface(self):
-        test_instance_port = int(os.environ.get('ZSERVER_PORT', 55001))
+        test_instance_port = self.layer['port']
         self.write_zconf('instance1', '1000')
         part2 = self.write_zconf('instance2',
                                  '0.0.0.0:{0}'.format(test_instance_port))
@@ -147,7 +147,7 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             get_running_instance(self.layer['root_path']))
 
     def test_find_first_running_instance_info_named_zeoclient(self):
-        test_zeoclient_port = int(os.environ.get('ZSERVER_PORT', 55001))
+        test_zeoclient_port = self.layer['port']
         self.write_zconf('zeoclient1', '1000')
         part2 = self.write_zconf('zeoclient2', test_zeoclient_port)
         self.assertEqual(

@@ -3,7 +3,6 @@ from contextlib import contextmanager
 from copy import deepcopy
 from ftw.upgrade.exceptions import CyclicDependencies
 from path import Path
-from Products.CMFCore.utils import getToolByName
 from zope.component.hooks import getSite
 import logging
 import math
@@ -325,7 +324,24 @@ def log_silencer(logger_name, criteria):
 
 
 def get_portal_migration(context):
-    """Make sure we always acquire the portal_migration tool the same way.
+    """Always use a portal_migration tool wrapped in a RequestContainer.
+
+    The portal_migration tool is registered as a tool utility by Plone. This
+    implies that it can work when fetched "out of thin air" as a utility.
+    However, this is not strictly the case: Some Plone upgrades make use of
+    self.REQUEST (directly or indirectly), which only works if the
+    portal_migration tool is wrapped in a RequestContainer.
+
+    If portal_migration is fetched via getToolByName, it *won't* be wrapped in
+    a RequestContainer, because getToolByName first looks for a utility,
+    and if it finds one, happily returns that.
+
+    Instead, the portal_migration tool needs to be looked up via acquisition
+    (using getattr). This is what Plone itself does in its @@plone-upgrade
+    view, and it will lead to the portal_migration tool having a
+    RequestContainer in its AQ chain.
+
+    Please see 4teamwork/ftw.upgrade#170 for a more in depth explanation.
     """
-    portal_migration = getToolByName(context, 'portal_migration')
+    portal_migration = getattr(context, 'portal_migration')
     return portal_migration

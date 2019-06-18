@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.12.1 (unreleased)
+2.12.1 (2019-06-18)
 -------------------
 
 - Choose actual port used by ZServer layer to run CommandAndInstance tests against. [lgraf]

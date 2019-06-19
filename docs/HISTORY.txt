@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.12.2 (unreleased)
+2.12.2 (2019-06-19)
 -------------------
 
 - Make sure to always use a portal_migration tool wrapped in a RequestContainer.

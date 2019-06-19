@@ -2,7 +2,7 @@ from datetime import datetime
 from ftw.builder import Builder
 from ftw.testbrowser import browsing
 from ftw.upgrade.tests.base import JsonApiTestCase
-from Products.CMFCore.utils import getToolByName
+from ftw.upgrade.utils import get_portal_migration
 from Products.CMFPlone.factory import _DEFAULT_PROFILE
 import re
 import transaction
@@ -366,7 +366,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
 
     @browsing
     def test_execute_upgrades_not_allowed_when_plone_outdated(self, browser):
-        portal_migration = getToolByName(self.layer['portal'], 'portal_migration')
+        portal_migration = get_portal_migration(self.layer['portal'])
         portal_migration.setInstanceVersion('1.0.0')
         transaction.commit()
 

@@ -321,3 +321,27 @@ def log_silencer(logger_name, criteria):
         yield
     finally:
         log.removeFilter(filt)
+
+
+def get_portal_migration(context):
+    """Always use a portal_migration tool wrapped in a RequestContainer.
+
+    The portal_migration tool is registered as a tool utility by Plone. This
+    implies that it can work when fetched "out of thin air" as a utility.
+    However, this is not strictly the case: Some Plone upgrades make use of
+    self.REQUEST (directly or indirectly), which only works if the
+    portal_migration tool is wrapped in a RequestContainer.
+
+    If portal_migration is fetched via getToolByName, it *won't* be wrapped in
+    a RequestContainer, because getToolByName first looks for a utility,
+    and if it finds one, happily returns that.
+
+    Instead, the portal_migration tool needs to be looked up via acquisition
+    (using getattr). This is what Plone itself does in its @@plone-upgrade
+    view, and it will lead to the portal_migration tool having a
+    RequestContainer in its AQ chain.
+
+    Please see 4teamwork/ftw.upgrade#170 for a more in depth explanation.
+    """
+    portal_migration = getattr(context, 'portal_migration')
+    return portal_migration

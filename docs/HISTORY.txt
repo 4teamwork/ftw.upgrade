@@ -5,7 +5,8 @@ Changelog
 2.12.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Make sure to always use a portal_migration tool wrapped in a RequestContainer.
+  (Fixes "AttributeError: REQUEST" on a Plone 5.1.x upgrade) [lgraf]
 
 
 2.12.1 (2019-06-18)

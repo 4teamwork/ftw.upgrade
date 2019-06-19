@@ -1,7 +1,11 @@
+from Acquisition import aq_chain
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
+from ftw.upgrade.utils import get_portal_migration
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import getFSVersionTuple
 from unittest2 import skipIf
+from ZPublisher.BaseRequest import RequestContainer
+from ZPublisher.HTTPRequest import HTTPRequest
 import transaction
 
 
@@ -33,3 +37,10 @@ class TestPloneUpgradeCommand(CommandAndInstanceTestCase):
         self.assertEquals(0, exitcode)
         transaction.begin()  # sync transaction
         self.assertIn(u'Plone Site has been updated.', output)
+
+    def test_portal_migration_tool_is_wrapped_in_request_container(self):
+        portal = self.layer['portal']
+        portal_migration = get_portal_migration(portal)
+
+        self.assertIsInstance(portal_migration.REQUEST, HTTPRequest)
+        self.assertIsInstance(aq_chain(portal_migration)[-1], RequestContainer)

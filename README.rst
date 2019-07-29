@@ -84,7 +84,7 @@ additional buildout part:
 Compatibility
 -------------
 
-Compatible with Plone 4.3.x.
+Compatible with Plone 4.3.x and 5.1.x.
 
 
 Manage upgrades

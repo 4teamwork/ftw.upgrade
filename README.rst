@@ -1145,6 +1145,20 @@ CSS and JavaScript resource bundles can be recooked:
     "OK"
 
 
+Combine bundles
+---------------
+
+CSS and JavaScript bundles can be combined:
+
+.. code:: sh
+
+    $ curl -uadmin:admin -X POST http://localhost:8080/Plone/upgrades-api/combine_bundles
+    "OK"
+
+This is for Plone 5 or higher.
+This runs the same code that runs when you import a profile that makes changes in the resource registries.
+
+
 Import-Profile Upgrade Steps
 ============================
 

@@ -5,7 +5,8 @@ Changelog
 2.12.3 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Added combine_bundles command for Plone 5.
+  This combines JS/CSS bundles together.  [maurits]
 
 
 2.12.2 (2019-06-19)

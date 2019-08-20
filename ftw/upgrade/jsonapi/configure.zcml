@@ -16,6 +16,7 @@
                             execute_proposed_upgrades
                             plone_upgrade
                             plone_upgrade_needed
+                            combine_bundles
                             recook_resources"
         />
 

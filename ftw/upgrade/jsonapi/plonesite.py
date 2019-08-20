@@ -97,6 +97,19 @@ class PloneSiteAPI(APIView):
 
     @jsonify
     @action('POST')
+    def combine_bundles(self):
+        """Combine JS/CSS bundles together.
+
+        Since this is only for Plone 5 or higher, we do the import inline.
+        The imported function was introduced in Plone 5.0.3.
+        """
+        from Products.CMFPlone.resources.browser.combine import combine_bundles
+
+        combine_bundles(self.context)
+        return 'OK'
+
+    @jsonify
+    @action('POST')
     def plone_upgrade(self):
         """Upgrade the Plone Site.
 

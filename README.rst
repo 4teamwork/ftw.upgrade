@@ -695,7 +695,7 @@ Creating an upgrade step
 
 Upgrade steps can be generated with ``ftw.upgrade``'s ``bin/upgrade`` console script.
 The idea is to install this script with buildout using
-`zc.recipe.egg <https://pypi.python.org/pypi/zc.recipe.egg>`_.
+`zc.recipe.egg <https://pypi.org/project/zc.recipe.egg/>`_.
 
 Once installed, upgrade steps can simply be scaffolded with the script:
 
@@ -1274,7 +1274,7 @@ Links
 
 - Github: https://github.com/4teamwork/ftw.upgrade
 - Issues: https://github.com/4teamwork/ftw.upgrade/issues
-- Pypi: http://pypi.python.org/pypi/ftw.upgrade
+- Pypi: https://pypi.org/project/ftw.upgrade/
 - Continuous integration: https://jenkins.4teamwork.ch/search?q=ftw.upgrade
 
 

@@ -17,7 +17,13 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
         self.assert_json_equal(
             {'api_version': 'v1',
              'actions':
-                 [{'description': ('Executes a list of profiles, each '
+                 [{'description': 'Combine JS/CSS bundles together. Since this '
+                   'is only for Plone 5 or higher, we do the import inline. The '
+                   'imported function was introduced in Plone 5.0.3.',
+                   'name': 'combine_bundles',
+                   'request_method': 'POST',
+                   'required_params': []},
+                  {'description': ('Executes a list of profiles, each '
                                    'identified by their ID.'),
                    'name': 'execute_profiles',
                    'request_method': 'POST',

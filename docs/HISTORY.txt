@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.12.3 (unreleased)
+2.13.0 (2019-08-22)
 -------------------
 
 - Added combine_bundles command for Plone 5.

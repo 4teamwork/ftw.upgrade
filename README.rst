@@ -695,7 +695,7 @@ Creating an upgrade step
 
 Upgrade steps can be generated with ``ftw.upgrade``'s ``bin/upgrade`` console script.
 The idea is to install this script with buildout using
-`zc.recipe.egg <https://pypi.python.org/pypi/zc.recipe.egg>`_.
+`zc.recipe.egg <https://pypi.org/project/zc.recipe.egg/>`_.
 
 Once installed, upgrade steps can simply be scaffolded with the script:
 
@@ -1145,6 +1145,20 @@ CSS and JavaScript resource bundles can be recooked:
     "OK"
 
 
+Combine bundles
+---------------
+
+CSS and JavaScript bundles can be combined:
+
+.. code:: sh
+
+    $ curl -uadmin:admin -X POST http://localhost:8080/Plone/upgrades-api/combine_bundles
+    "OK"
+
+This is for Plone 5 or higher.
+This runs the same code that runs when you import a profile that makes changes in the resource registries.
+
+
 Import-Profile Upgrade Steps
 ============================
 
@@ -1274,7 +1288,7 @@ Links
 
 - Github: https://github.com/4teamwork/ftw.upgrade
 - Issues: https://github.com/4teamwork/ftw.upgrade/issues
-- Pypi: http://pypi.python.org/pypi/ftw.upgrade
+- Pypi: https://pypi.org/project/ftw.upgrade/
 - Continuous integration: https://jenkins.4teamwork.ch/search?q=ftw.upgrade
 
 

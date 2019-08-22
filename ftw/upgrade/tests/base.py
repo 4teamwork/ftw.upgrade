@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from DateTime import DateTime
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.testbrowser import browser
@@ -126,6 +127,21 @@ class UpgradeTestCase(TestCase):
         yield
         self.assertNotEqual(resources, get_resources(),
                             'Resurces are not recooked.')
+
+    @contextmanager
+    def assert_bundles_combined(self):
+        # Note: this is for Plone 5.
+
+        def get_timestamp():
+            timestamp_file = self.portal.portal_resources.resource_overrides.production['timestamp.txt']
+            # The data contains text, which should be a DateTime.
+            # Convert it to an actual DateTime object so we can be sure when comparing it.
+            return DateTime(timestamp_file.data)
+
+        timestamp = get_timestamp()
+        yield
+        self.assertLess(timestamp, get_timestamp(),
+                        'Timestamp has not been updated.')
 
     def setup_logging(self):
         self.log = StringIO()

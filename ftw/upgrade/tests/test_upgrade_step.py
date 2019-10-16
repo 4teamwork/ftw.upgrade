@@ -150,9 +150,11 @@ class TestUpgradeStep(UpgradeTestCase):
         class Step(UpgradeStep):
             def __call__(self):
                 ctool = self.getToolByName('portal_catalog')
-                name = 'rights'
+                name = 'modified'
+                testcase.assertEqual(1, ctool._catalog.getIndex(name).indexSize())
+                self.catalog_remove_index(name)
 
-                self.catalog_add_index(name, 'FieldIndex')
+                self.catalog_add_index(name, 'DateIndex')
                 testcase.assertEqual(0, ctool._catalog.getIndex(name).indexSize())
                 self.catalog_rebuild_index(name)
                 testcase.assertEqual(1, ctool._catalog.getIndex(name).indexSize())
@@ -169,9 +171,11 @@ class TestUpgradeStep(UpgradeTestCase):
         class Step(UpgradeStep):
             def __call__(self):
                 ctool = self.getToolByName('portal_catalog')
-                name = 'rights'
+                name = 'modified'
+                testcase.assertEqual(1, ctool._catalog.getIndex(name).indexSize())
+                self.catalog_remove_index(name)
 
-                self.catalog_add_index(name, 'FieldIndex')
+                self.catalog_add_index(name, 'DateIndex')
                 testcase.assertEqual(0, ctool._catalog.getIndex(name).indexSize())
 
                 self.catalog_reindex_objects({'portal_type': 'Folder'})

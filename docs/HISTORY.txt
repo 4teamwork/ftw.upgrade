@@ -5,7 +5,9 @@ Changelog
 2.13.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Added ``--allow-outdated`` option to ``install`` command.
+  This allows installing upgrades or profiles on a not up-to-date site.
+  Fixes `issue 182 <https://github.com/4teamwork/ftw.upgrade/issues/182>`.
 
 
 2.13.0 (2019-08-22)

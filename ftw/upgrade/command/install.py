@@ -98,6 +98,15 @@ def setup_argparser(commands):
                          dest='skip_deferrable',
                          action='store_true')
 
+    command.add_argument('--allow-outdated',
+                         help='Allow installing on outdated Plone site. '
+                              'By default we do not allow this, '
+                              'because it is better to first run the '
+                              'plone_upgrade command.',
+                         default=False,
+                         dest='allow_outdated',
+                         action='store_true')
+
 
 @with_api_requestor
 @error_handling
@@ -119,6 +128,8 @@ def install_command(args, requestor):
     else:
         action = 'execute_upgrades'
         params = [('upgrades:list', name) for name in set(args.upgrades)]
+    if args.allow_outdated:
+        params.append(('allow_outdated', True))
 
     with closing(requestor.POST(action, params=params,
                                 stream=True)) as response:

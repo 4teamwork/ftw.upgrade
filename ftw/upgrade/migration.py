@@ -436,10 +436,7 @@ class InplaceMigrator(object):
 
         if IRichText.providedBy(field) \
            and not IRichTextValue.providedBy(value):
-            if not value:
-                return None
-            else:
-                return recurse(field.fromUnicode(value))
+            return recurse(field.fromUnicode(value))
 
         if INamedField.providedBy(field) and value is not None \
            and not isinstance(value, field._type):

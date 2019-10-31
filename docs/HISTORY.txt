@@ -5,7 +5,7 @@ Changelog
 2.14.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Inplace migrator: do not create empty RichTextValue objects, use None istead. [djowett-ftw]
 
 
 2.14.0 (2019-10-31)

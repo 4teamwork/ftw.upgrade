@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.13.1 (unreleased)
+2.14.0 (2019-10-31)
 -------------------
 
 - Added ``--allow-outdated`` option to ``install`` command.

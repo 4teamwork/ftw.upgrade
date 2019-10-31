@@ -56,19 +56,22 @@ class PloneSiteAPI(APIView):
             self._get_proposed_upgrades(propose_deferrable=propose_deferrable))
 
     @action('POST', rename_params={'upgrades': 'upgrades:list'})
-    def execute_upgrades(self, upgrades):
+    def execute_upgrades(self, upgrades, allow_outdated=False):
         """Executes a list of upgrades, each identified by the upgrade ID
         in the form "[dest-version]@[profile ID]".
         """
-        self._require_up_to_date_plone_site()
+        if not allow_outdated:
+            self._require_up_to_date_plone_site()
         self._validate_upgrade_ids(*upgrades)
         return self._install_upgrades(*upgrades)
 
     @action('POST', rename_params={'profiles': 'profiles:list'})
-    def execute_proposed_upgrades(self, profiles=None, propose_deferrable=True):
+    def execute_proposed_upgrades(self, profiles=None, propose_deferrable=True,
+            allow_outdated=False):
         """Executes all proposed upgrades.
         """
-        self._require_up_to_date_plone_site()
+        if not allow_outdated:
+            self._require_up_to_date_plone_site()
         if profiles:
             self._validate_profile_ids(*profiles)
         propose_deferrable = parse_bool(propose_deferrable)
@@ -79,10 +82,12 @@ class PloneSiteAPI(APIView):
             *api_ids, propose_deferrable=propose_deferrable)
 
     @action('POST', rename_params={'profiles': 'profiles:list'})
-    def execute_profiles(self, profiles, force_reinstall=False):
+    def execute_profiles(self, profiles, force_reinstall=False,
+            allow_outdated=False):
         """Executes a list of profiles, each identified by their ID.
         """
-        self._require_up_to_date_plone_site()
+        if not allow_outdated:
+            self._require_up_to_date_plone_site()
         self._validate_profile_ids(*profiles)
         return self._install_profiles(*profiles,
                                       force_reinstall=force_reinstall)

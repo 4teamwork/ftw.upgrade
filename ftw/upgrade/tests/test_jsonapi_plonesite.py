@@ -372,16 +372,56 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
 
     @browsing
     def test_execute_upgrades_not_allowed_when_plone_outdated(self, browser):
-        portal_migration = get_portal_migration(self.layer['portal'])
-        portal_migration.setInstanceVersion('1.0.0')
-        transaction.commit()
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))
+                          .named('The first upgrade step')))
 
-        with self.expect_api_error(status=400,
-                                   message='Plone site outdated',
-                                   details='The Plone site is outdated and needs to'
-                                   ' be upgraded first using the regular Plone'
-                                   ' upgrading tools.'):
-            self.api_request('POST', 'execute_upgrades', {'upgrades:list': 'foo@bar:default'})
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.clear_recorded_upgrades('the.package:default')
+            portal_migration = get_portal_migration(self.layer['portal'])
+            portal_migration.setInstanceVersion('1.0.0')
+            transaction.commit()
+            self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+
+            with self.expect_api_error(
+                    status=400,
+                    message='Plone site outdated',
+                    details='The Plone site is outdated and needs to'
+                    ' be upgraded first using the regular Plone'
+                    ' upgrading tools.'):
+                self.api_request(
+                    'POST',
+                    'execute_upgrades',
+                    {'upgrades:list': '20110101000000@the.package:default'})
+            self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+
+    @browsing
+    def test_execute_upgrades_explicitly_allowed_even_on_outdated_plone(self, browser):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))
+                          .named('The first upgrade step')))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1')
+            self.clear_recorded_upgrades('the.package:default')
+            portal_migration = get_portal_migration(self.layer['portal'])
+            portal_migration.setInstanceVersion('1.0.0')
+            transaction.commit()
+            self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+
+            self.api_request(
+                'POST',
+                'execute_upgrades',
+                {'upgrades:list': '20110101000000@the.package:default',
+                 'allow_outdated': True})
+            self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
+            self.assertEqual(
+                ['UPGRADE STEP the.package:default: The first upgrade step.'],
+                re.findall(r'UPGRADE STEP.*', browser.contents))
+            self.assertIn('Result: SUCCESS', browser.contents)
 
     @browsing
     def test_execute_proposed_upgrades(self, browser):

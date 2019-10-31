@@ -7,7 +7,7 @@ Changelog
 
 - Added ``--allow-outdated`` option to ``install`` command.
   This allows installing upgrades or profiles on a not up-to-date site.
-  Fixes `issue 182 <https://github.com/4teamwork/ftw.upgrade/issues/182>`.
+  Fixes `issue 182 <https://github.com/4teamwork/ftw.upgrade/issues/182>`. [maurits]
 
 
 2.13.0 (2019-08-22)

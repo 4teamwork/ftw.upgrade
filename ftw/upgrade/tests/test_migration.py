@@ -212,6 +212,26 @@ class TestInplaceMigrator(UpgradeTestCase):
         self.assertEqual('<p>Some Text</p>', page.text.output)
         self.assertEqual('published', self.review_state(page))
 
+    def test_migrate_empty_richtextfield_to_dexterity(self):
+        self.grant('Manager')
+
+        no_text_page = create(Builder('page')
+                              .titled(u'No Text Page')
+                              .having(text=u'')
+                              .in_state('published'))
+
+        self.assertFalse(IDexterityContent.providedBy(no_text_page))
+        self.assertTrue(IBaseObject.providedBy(no_text_page))
+        self.assertEqual(u'', no_text_page.getText())
+
+        self.install_profile('plone.app.contenttypes:default')
+        InplaceMigrator('Document').migrate_object(no_text_page)
+
+        no_text_page = self.portal.get('no-text-page')
+        self.assertFalse(IBaseObject.providedBy(no_text_page))
+        self.assertTrue(IDexterityContent.providedBy(no_text_page))
+        self.assertNotIsInstance(no_text_page.text, RichTextValue)
+
     def test_migrate_archetypes_file_to_dexterity(self):
         self.grant('Manager')
 

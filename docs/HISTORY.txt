@@ -5,7 +5,8 @@ Changelog
 2.14.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Migrate empty values in RichTextFields correctly.
+  Fixes `https://github.com/4teamwork/izug.refegovservice/issues/2`. [djowett-ftw]
 
 
 2.14.0 (2019-10-31)

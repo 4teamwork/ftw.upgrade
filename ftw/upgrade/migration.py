@@ -193,6 +193,7 @@ class InplaceMigrator(object):
             self.add_relations_to_relation_catalog,
             self.migrate_properties,
             self.migrate_constrain_types_configuration,
+            self.update_creators,
         )
         self.additional_steps = additional_steps
         self.final_steps = (
@@ -555,6 +556,13 @@ class InplaceMigrator(object):
             filter(isallowed, old_ct.getLocallyAllowedTypes()))
         new_ct.setImmediatelyAddableTypes(
             filter(isallowed, old_ct.getImmediatelyAddableTypes()))
+
+    def update_creators(self, old_object, new_object):
+        """When the dublin core behavior is active, the creators are migrated already.
+        But when the dublin core behavior is missing, we need to fix the creators list here.
+        """
+        if old_object.listCreators() != new_object.listCreators():
+            new_object.setCreators(old_object.listCreators())
 
     def update_creation_date(self, old_object, new_object):
         new_object.creation_date = (

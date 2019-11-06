@@ -1,3 +1,5 @@
+from AccessControl import getSecurityManager
+from AccessControl.SecurityManagement import setSecurityManager
 from contextlib import contextmanager
 from DateTime import DateTime
 from ftw.builder import Builder
@@ -14,6 +16,7 @@ from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
 from ftw.upgrade.tests.helpers import verbose_logging
 from operator import itemgetter
 from path import Path
+from plone.app.testing import login
 from plone.app.testing import setRoles
 from plone.app.testing import SITE_OWNER_NAME
 from plone.app.testing import TEST_USER_ID
@@ -49,6 +52,41 @@ class UpgradeTestCase(TestCase):
     def grant(self, *roles):
         setRoles(self.portal, TEST_USER_ID, list(roles))
         transaction.commit()
+
+    def login(self, user, browser=None):
+        if hasattr(user, 'getUserName'):
+            userid = user.getUserName()
+        else:
+            userid = user
+
+        security_manager = getSecurityManager()
+        if userid == SITE_OWNER_NAME:
+            login(self.layer['app'], userid)
+        else:
+            login(self.portal, userid)
+
+        if browser is not None:
+            browser_auth_headers = [
+                item for item in browser.session_headers
+                if item[0] == 'Authorization'
+            ]
+            browser.login(userid)
+
+        transaction.commit()
+
+        @contextmanager
+        def login_context_manager():
+            try:
+                yield
+            finally:
+                setSecurityManager(security_manager)
+                if browser is not None:
+                    browser.clear_request_header('Authorization')
+                    [browser.append_request_header(name, value)
+                     for (name, value) in browser_auth_headers]
+                transaction.commit()
+
+        return login_context_manager()
 
     @property
     def directory(self):

@@ -16,6 +16,7 @@ from ftw.upgrade.tests.base import UpgradeTestCase
 from operator import attrgetter
 from plone.app.relationfield.behavior import IRelatedItems
 from plone.app.testing import login
+from plone.app.testing import SITE_OWNER_NAME
 from plone.app.textfield import RichTextValue
 from plone.dexterity.interfaces import IDexterityContent
 from plone.portlets.interfaces import IPortletAssignmentMapping
@@ -383,7 +384,37 @@ class TestInplaceMigrator(UpgradeTestCase):
 
         self.grant('Manager')
         self.install_profile('plone.app.contenttypes:default')
-        InplaceMigrator('Folder').migrate_object(folder)
+        with self.login(SITE_OWNER_NAME):
+            InplaceMigrator('Folder').migrate_object(folder)
+
+        folder = self.portal.get('the-folder')
+        self.assertTrue(IDexterityContent.providedBy(folder))
+        self.assertEquals('john.doe', folder.Creator())
+        self.assertEquals('peter.pan', folder.getOwner().getId())
+
+    def test_migrate_ownership_no_IOwner(self):
+        john = create(Builder('user').named('John', 'Doe').with_roles('Manager'))
+        peter = create(Builder('user').named('Peter', 'Pan').with_roles('Manager'))
+
+        login(self.portal, john.getId())
+        folder = create(Builder('folder').titled(u'The Folder'))
+        folder.changeOwnership(peter.getUser())
+
+        self.assertTrue(IBaseObject.providedBy(folder))
+        self.assertEquals('john.doe', folder.Creator())
+        self.assertEquals('peter.pan', folder.getOwner().getId())
+
+        self.grant('Manager')
+        self.install_profile('plone.app.contenttypes:default')
+
+        # The creators list behaves differently when the dublin core
+        # behavior is used.
+        self.portal.portal_types['Folder'].behaviors = tuple(
+            name for name in self.portal.portal_types['Folder'].behaviors
+            if not (name == 'plone.dublincore' or 'IDublinCore' in name
+                    or name == 'plone.ownership'or 'IOwnership' in name))
+        with self.login(SITE_OWNER_NAME):
+            InplaceMigrator('Folder', options=IGNORE_UNMAPPED_FIELDS).migrate_object(folder)
 
         folder = self.portal.get('the-folder')
         self.assertTrue(IDexterityContent.providedBy(folder))

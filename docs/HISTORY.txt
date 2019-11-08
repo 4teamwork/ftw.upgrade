@@ -5,6 +5,8 @@ Changelog
 2.14.1 (unreleased)
 -------------------
 
+- Migrate creators even when dublin core behaviors are not enabled. [jone]
+
 - Migrate empty values in RichTextFields correctly.
   Fixes `https://github.com/4teamwork/izug.refegovservice/issues/2`. [djowett-ftw]
 

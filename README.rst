@@ -184,8 +184,8 @@ Updating objects with progress logging
 --------------------------------------
 
 Since an upgrade step often updates a set of objects indexed in the catalog,
-there is a useful helper method combining querying the catalog with the
-`ProgressLogger` (see below).
+there is a useful helper method `self.objects()` which combines querying the
+catalog with the `ProgressLogger` (see below).
 The catalog is queried unrestricted so that we handle all the objects.
 
 Here is an example for updating all objects of a particular type:

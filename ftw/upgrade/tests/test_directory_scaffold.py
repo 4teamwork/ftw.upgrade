@@ -1,7 +1,7 @@
 from datetime import datetime
 from ftw.testing import freeze
 from ftw.upgrade.directory.scaffold import UpgradeStepCreator
-from unittest2 import TestCase
+from unittest import TestCase
 import os.path
 import re
 import shutil

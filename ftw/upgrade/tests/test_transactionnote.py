@@ -1,5 +1,5 @@
 from ftw.upgrade.transactionnote import TransactionNote
-from unittest2 import TestCase
+from unittest import TestCase
 import transaction
 
 

@@ -8,7 +8,7 @@ from ftw.upgrade.tests.helpers import capture_streams
 from ftw.upgrade.tests.helpers import chdir
 from path import Path
 from StringIO import StringIO
-from unittest2 import TestCase
+from unittest import TestCase
 
 
 LAYER = TempDirectoryLayer(bases=(BUILDER_LAYER, ),

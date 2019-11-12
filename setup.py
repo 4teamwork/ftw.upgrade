@@ -4,7 +4,6 @@ import os
 version = '2.14.2.dev0'
 
 tests_require = [
-    'mocker',
     'ftw.testing >= 1.8.1',
     'ftw.testbrowser',
     'ftw.builder >= 1.6.0',

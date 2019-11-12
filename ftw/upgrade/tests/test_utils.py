@@ -110,23 +110,24 @@ class TestSizedGenerator(TestCase):
 class TestSortedProfileIds(MockTestCase):
 
     def test_dependencies_resolved(self):
-        portal_setup = self.mocker.mock()
-        self.expect(portal_setup.listProfileInfo()).result([
-                {'id': 'baz',
-                 'dependencies': [
-                        'profile-foo',
-                        'profile-bar']},
+        listProfileInfo = self.mock()
+        listProfileInfo.return_value = [
+            {'id': 'baz',
 
-                {'id': 'foo'},
-
-                {'id': 'bar',
-                 'dependencies': ['profile-foo']}]).count(1, 2)
-
-        self.replay()
+             'dependencies': [
+                 'profile-foo',
+                 'profile-bar']},
+            {'id': 'foo'},
+            {'id': 'bar',
+             'dependencies': ['profile-foo']}
+        ]
+        portal_setup = self.create_dummy()
+        portal_setup.listProfileInfo = listProfileInfo
 
         self.assertEqual(
             ['foo', 'bar', 'baz'],
-            get_sorted_profile_ids(portal_setup))
+            get_sorted_profile_ids(portal_setup)
+        )
 
     def test_root_profiles_are_ordered_by_profile_name(self):
         """In the this example the profiles "baz" and "xy"
@@ -135,33 +136,32 @@ class TestSortedProfileIds(MockTestCase):
         However, we want a cosistent ordern and therefore
         order those root nodes by name.
         """
-        portal_setup = self.mocker.mock()
-        self.expect(portal_setup.listProfileInfo()).result([
-                {'id': 'baz',
-                 'dependencies': [
-                        'profile-foo']},
-                {'id': 'foo'},
-                {'id': 'xy'}]).count(1, 2)
-
-        self.replay()
+        listProfileInfo = self.mock()
+        listProfileInfo.return_value = [
+            {'id': 'baz',
+             'dependencies': ['profile-foo']},
+            {'id': 'foo'},
+            {'id': 'xy'}
+        ]
+        portal_setup = self.create_dummy()
+        portal_setup.listProfileInfo = listProfileInfo
 
         self.assertEqual(
             ['foo', 'baz', 'xy'],
             get_sorted_profile_ids(portal_setup))
 
     def test_cyclic_dependencies(self):
-        portal_setup = self.mocker.mock()
-        self.expect(portal_setup.listProfileInfo()).result([
-                {'id': 'foo',
-                 'dependencies': ['profile-bar']},
-
-                {'id': 'bar',
-                 'dependencies': ['profile-foo']},
-
-                {'id': 'baz',
-                 'dependencies': []}]).count(1, 2)
-
-        self.replay()
+        listProfileInfo = self.mock()
+        listProfileInfo.return_value = [
+            {'id': 'foo',
+             'dependencies': ['profile-bar']},
+            {'id': 'bar',
+             'dependencies': ['profile-foo']},
+            {'id': 'baz',
+             'dependencies': []}
+        ]
+        portal_setup = self.create_dummy()
+        portal_setup.listProfileInfo = listProfileInfo
 
         with self.assertRaises(CyclicDependencies) as cm:
             get_sorted_profile_ids(portal_setup)

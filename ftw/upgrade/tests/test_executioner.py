@@ -7,7 +7,7 @@ from ftw.upgrade.indexing import HAS_INDEXING
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.tests.base import UpgradeTestCase
 from Products.CMFCore.utils import getToolByName
-from unittest2 import skipIf
+from unittest import skipIf
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
 import transaction

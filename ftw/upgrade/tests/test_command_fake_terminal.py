@@ -1,6 +1,6 @@
 from ftw.upgrade.command.terminal import FakeTerminal
 from ftw.upgrade.command.terminal import TERMINAL
-from unittest2 import TestCase
+from unittest import TestCase
 
 
 class TestFakeTerminal(TestCase):

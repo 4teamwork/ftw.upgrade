@@ -27,7 +27,7 @@ from Products.CMFPlone.interfaces.constrains import ENABLED
 from Products.CMFPlone.interfaces.constrains import IConstrainTypes
 from Products.CMFPlone.interfaces.constrains import ISelectableConstrainTypes
 from Products.CMFPlone.utils import getFSVersionTuple
-from unittest2 import skipIf
+from unittest import skipIf
 from zope.annotation import IAnnotations
 from zope.component import getMultiAdapter
 from zope.component import getUtility

@@ -16,7 +16,7 @@ from plone.app.testing import TEST_USER_ID
 from plone.browserlayer.utils import register_layer
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import getFSVersionTuple
-from unittest2 import skipIf
+from unittest import skipIf
 from zope.interface import alsoProvides
 from zope.interface import Interface
 from zope.interface.verify import verifyClass

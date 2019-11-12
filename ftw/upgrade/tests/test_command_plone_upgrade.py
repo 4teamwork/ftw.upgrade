@@ -3,7 +3,7 @@ from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from ftw.upgrade.utils import get_portal_migration
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import getFSVersionTuple
-from unittest2 import skipIf
+from unittest import skipIf
 from ZPublisher.BaseRequest import RequestContainer
 from ZPublisher.HTTPRequest import HTTPRequest
 import transaction

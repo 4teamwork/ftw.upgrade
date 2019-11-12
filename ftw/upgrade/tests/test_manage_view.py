@@ -7,7 +7,7 @@ from ftw.upgrade.tests.base import UpgradeTestCase
 from plone.app.testing import SITE_OWNER_NAME
 from Products.CMFCore.utils import getToolByName
 from StringIO import StringIO
-from unittest2 import TestCase
+from unittest import TestCase
 import logging
 import re
 import transaction

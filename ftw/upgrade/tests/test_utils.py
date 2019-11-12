@@ -8,7 +8,7 @@ from ftw.upgrade.utils import get_tempfile_authentication_directory
 from ftw.upgrade.utils import SizedGenerator
 from ftw.upgrade.utils import subject_from_docstring
 from ftw.upgrade.utils import topological_sort
-from unittest2 import TestCase
+from unittest import TestCase
 import stat
 
 

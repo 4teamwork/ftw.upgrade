@@ -1,6 +1,6 @@
 from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
 from ftw.upgrade.utils import SavepointIterator
-from unittest2 import TestCase
+from unittest import TestCase
 import os
 import transaction
 

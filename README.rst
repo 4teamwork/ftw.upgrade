@@ -24,22 +24,22 @@ Features
 
 * **Managing upgrades**: Provides an advanced view for upgrading
   third-party Plone packages using Generic Setup.
-  It allows to upgrade multiple packages at once with an easy to use user
+  It enables upgrading multiple packages at once with an easy to use user
   interface.
   By resolving the dependency graph it is able to optimize the upgrade
   step order so that the upgrade is hassle free.
 
 * **Writing upgrades**: The package provides a base upgrade class with
-  various helpers for tasks often done in upgrades.
+  various helpers for common upgrade tasks.
 
 * **Upgrade directories with less ZCML**: By registering a directory
-  as upgrade-directory, no more ZCML is needed for each upgrade step.
+  as upgrade-directory, no additional ZCML is needed for each upgrade step.
   By using a timestamp as version number we have less (merge-) conflicts
   and less error potential.
 
-* **Import profile upgrade steps**: Some times an upgrade step does simply
-  import an upgrade step generic setup profile, especially made for this
-  upgrade step. A new ZCML directive makes this much simpler.
+* **Import profile upgrade steps**: Sometimes an upgrade step consists
+  solely of importing a purpose-made generic setup profile.  A new
+  ``upgrade-step:importProfile`` ZCML directive makes this much simpler.
 
 
 Installation
@@ -106,11 +106,12 @@ view fails for some reason.
 The bin/upgrade script
 ======================
 
-Refer to the `console script installation`_ section how to install ``bin/upgrade``.
+Refer to the `Installing ftw.upgrade's console script`_ section for instructions on how
+to install ``bin/upgrade``.
 
-The ``bin/upgrade`` console script allows to manage upgrades on the filesystem (creating
-new upgrades, changing upgrade order) as well as interacting with an installed Plone
-site and list profiles and upgrades and install upgrades.
+The ``bin/upgrade`` console script enables management of upgrades on the filesystem
+(creating new upgrades, changing upgrade order) as well as interacting with an installed
+Plone site, listing profiles and upgrades and installing upgrades.
 
 Some examples:
 
@@ -160,7 +161,7 @@ Example upgrade step definition (defined in a ``upgrades.py``):
            self.catalog_rebuild_index(index_name)
 
 
-Registration in ``configure.zcml`` (assume its in the same directory):
+Registration in ``configure.zcml`` (assuming it's in the same directory):
 
 .. code:: xml
 
@@ -203,7 +204,7 @@ Here is an example for updating all objects of a particular type:
                obj.setExcludeFromNav(True)
 
 
-When running the upgrade step you'll have a progress log::
+When running the upgrade step you'll be shown a progress log::
 
     INFO ftw.upgrade STARTING Enable exclude from navigation for files
     INFO ftw.upgrade 1 of 10 (10%): Enable exclude from navigation for files
@@ -256,11 +257,11 @@ The ``UpgradeStep`` class has various helper functions:
     Adds a new index to the ``portal_catalog`` tool.
 
 ``self.catalog_remove_index(name)``
-    Removes an index to from ``portal_catalog`` tool.
+    Removes an index from the ``portal_catalog`` tool.
 
 ``self.actions_remove_action(category, action_id)``
-    Removes an action identified by ``action_id`` from
-    the ``portal_actions`` tool from a particulary ``category``.
+    Removes an action identified by ``action_id`` within the given
+    ``category`` from the ``portal_actions`` tool.
 
 ``self.catalog_unrestricted_get_object(brain)``
     Returns the unrestricted object of a brain.
@@ -291,14 +292,14 @@ The ``UpgradeStep`` class has various helper functions:
     by ``portal_type`` with the action id ``action_id``.
 
 ``self.set_property(context, key, value, data_type='string')``
-    Set a property with the key ``value`` and the value ``value``
-    on the ``context`` safely.
+    Safely set a property with the key ``key`` and the value ``value``
+    on the given ``context``.
     The property is created with the type ``data_type`` if it does not exist.
 
 ``self.add_lines_to_property(context, key, lines)``
     Updates a property with key ``key`` on the object ``context``
     adding ``lines``.
-    The property is expected to by of type "lines".
+    The property is expected to be of type "lines".
     If the property does not exist it is created.
 
 ``self.setup_install_profile(profileid, steps=None)``
@@ -311,7 +312,7 @@ The ``UpgradeStep`` class has various helper functions:
 
 ``self.install_upgrade_profile(steps=None)``
     Installs the generic setup profile associated with this upgrade step.
-    Profile may be associated to upgrade steps by using either the
+    The profile may be associated to upgrade steps by using either the
     ``upgrade-step:importProfile`` or the ``upgrade-step:directory`` directive.
 
 ``self.is_profile_installed(profileid)``
@@ -331,7 +332,7 @@ The ``UpgradeStep`` class has various helper functions:
 ``self.remove_broken_browserlayer(name, dottedname)``
     Removes a browser layer registration whose interface can't be imported any
     more from the persistent registry.
-    Messages like these on instance boot time can be an indication for this
+    Messages like these on instance boot time can be an indication of this
     problem:
     ``WARNING OFS.Uninstalled Could not import class 'IMyProductSpecific' from
     module 'my.product.interfaces'``
@@ -339,7 +340,7 @@ The ``UpgradeStep`` class has various helper functions:
 ``self.update_security(obj, reindex_security=True)``
     Update the security of a single object (checkboxes in manage_access).
     This is usefuly in combination with the ``ProgressLogger``.
-    It is possible to not reindex the object security in the catalog
+    It is possible to skip reindexing the object security in the catalog
     (``allowedRolesAndUsers``). This speeds up the update but should only be disabled
     when there are no changes for the ``View`` permission.
 
@@ -348,10 +349,10 @@ The ``UpgradeStep`` class has various helper functions:
     This is useful when updating a bunch of workflows and you want to make sure
     that the object security is updated properly.
 
-    The update is done by doing as few as possibly by only searching for
+    The update done is kept as small as possible by only searching for
     types which might have this workflow. It does support placeful workflow policies.
 
-    For speeding up you can pass ``reindex_security=False``, but you need to make
+    To further speed this up you can pass ``reindex_security=False``, but you need to make
     sure you did not change any security relevant permissions (only ``View`` needs
     ``reindex_security=True`` for default Plone).
 
@@ -382,7 +383,7 @@ When an upgrade step is taking a long time to complete (e.g. while performing a 
 administrator needs to have information about the progress of the update. It is also important to have
 continuous output for avoiding proxy timeouts when accessing Zope through a webserver / proxy.
 
-With the ``ProgressLogger`` it is very easy to log the progress:
+The ``ProgressLogger`` makes logging progress very easy:
 
 .. code:: python
 
@@ -419,7 +420,7 @@ When the workflow is changed for a content type, the workflow state is
 reset to the init state of new workflow for every existing object of this
 type. This can be really annoying.
 
-The `WorkflowChainUpdater` takes care of setting every object to the right
+The `WorkflowChainUpdater` takes care of setting every object to the correct
 state after changing the chain (the workflow for the type):
 
 .. code:: python
@@ -525,11 +526,11 @@ Inplace Migrator
 
 The inplace migrator provides a fast and easy way for migrating content in
 upgrade steps.
-It can be used for example for migration from Archetypes to Dexterity.
+It can be used for example to migrate from Archetypes to Dexterity.
 
 The difference between Plone's standard migration and the inplace migration
 is that the standard migration creates a new sibling and moves the children
-and the inplace migration simply replaces the objects within the tree an
+and the inplace migration simply replaces the objects within the tree and
 attaches the children to the new parent.
 This is a much faster approach since no move / rename events are fired.
 
@@ -568,7 +569,7 @@ Example usage:
 **Options:**
 
 The options are binary flags: multiple options can be or-ed.
-Exmaple:
+Example:
 
 .. code:: python
 
@@ -646,7 +647,7 @@ Setting up an upgrade directory
 - Create the configured upgrade step directory (e.g. ``my/package/upgrades``) and put an
   empty ``__init__.py`` in this directory (prevents some python import warnings).
 
-- Remove the version from the ``metadata.xml`` of the profile for which the upgrade step
+- Remove the version from the ``metadata.xml`` of the profile for which this upgrade step
   directory is configured (e.g. ``my/package/profiles/default/metadata.xml``):
 
 .. code:: xml
@@ -713,7 +714,7 @@ path to the upgrades directory using the ``--path`` argument.
     The
     `create-upgrade <https://github.com/4teamwork/ftw.upgrade/blob/master/scripts/create-upgrade>`_
     script helps you create upgrade steps in any directory (also when not named ``upgrades``).
-    Download it and place it somewhere in your ``PATH``, cd in the directory and create an upgrade
+    Download it and place it somewhere in your ``PATH``, cd into the directory and create an upgrade
     step: ``create-upgrade add_control_panel_action``.
 
 If you would like to have colorized output in the terminal, you can install
@@ -749,7 +750,7 @@ Creating an upgrade step manually
 
     $ mkdir my/package/upgrades/20141218093045_add_controlpanel_action
 
-- Next, create the upgrade step code in an ``upgrade.py`` in the just created directory.
+- Next, create the upgrade step code in an ``upgrade.py`` in the above directory.
   This file needs to be created, otherwise the upgrade step is not registered.
 
 .. code:: python
@@ -1083,7 +1084,7 @@ default profile, but it is fine to install an uninstall profile.
 
 Note that we do nothing with the ``portal_quickinstaller``.  So if you
 install an uninstall profile, you may still see the product as
-installed.  But for default profiles everything goes as you would
+installed.  But for default profiles everything works as you would
 expect.
 
 Example for installing PloneFormGen (which was not installed yet) and
@@ -1162,16 +1163,16 @@ This runs the same code that runs when you import a profile that makes changes i
 Import-Profile Upgrade Steps
 ============================
 
-Sometimes an upgrade simply imports a little Generic Setup profile, which is only
-made for this upgrade step. Doing such upgrade steps are often much simpler than doing
+Sometimes an upgrade step consists solely of importing a purpose-made generic setup
+profile. Creating such upgrade steps are often much simpler than doing
 the change in python, because we can simply copy the necessary parts of the new
 default generic setup profile into the upgrade step profile.
 
-Normally, for doing this, we have to register an upgrade step and a Generic Setup
+Normally to do this, we would have to register an upgrade step and a Generic Setup
 profile and write an upgrade step handler importing the profile.
 
-ftw.upgrade makes this much simpler by providing an ``importProfile`` ZCML direvtive
-especially for this specific use case.
+ftw.upgrade makes this much simpler by providing an ``importProfile`` ZCML directive
+specifically for this use case.
 
 Example ``configure.zcml`` meant to be placed in your ``upgrades`` sub-package:
 
@@ -1213,7 +1214,7 @@ IPostUpgrade adapter
 
 By registering an ``IPostUpgrade`` adapter it is possible to run custom code
 after running upgrades.
-All adapters are executed after each time upgrades were run, not depending on
+All adapters are executed after each time upgrades were run, regardless of
 which upgrades are run.
 The name of the adapters should be the profile of the package, so that
 ``ftw.upgrade`` is able to execute the adapters in order of the GS dependencies.

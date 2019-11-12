@@ -259,7 +259,7 @@ class UpgradeStep(object):
     security.declarePrivate('add_lines_to_property')
     def add_lines_to_property(self, context, key, lines):
         """Updates a property with key ``key`` on the object ``context``
-        adding ``lines``. The property is expected to by of type "lines".
+        adding ``lines``. The property is expected to be of type "lines".
         If the property does not exist it is created.
         """
 

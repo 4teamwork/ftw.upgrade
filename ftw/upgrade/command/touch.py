@@ -13,7 +13,7 @@ DOCS = """
 {t.bold}DESCRIPTION:{t.normal}
     Update the order of upgrades on the filesystem by changing the \
 timestamps of the upgrades. \
-This does only work with new-style upgrades created with the "create" \
+This only works with new-style upgrades created with the "create" \
 command and used with the "upgrade-step:directory" \
 directive.
 

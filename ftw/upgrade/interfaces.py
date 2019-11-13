@@ -151,7 +151,7 @@ class IUpgradeStep(Interface):
 
     def add_lines_to_property(context, key, lines):
         """Updates a property with key ``key`` on the object ``context``
-        adding ``lines``. The property is expected to by of type "lines".
+        adding ``lines``. The property is expected to be of type "lines".
         If the property does not exist it is created.
         """
 

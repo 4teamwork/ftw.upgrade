@@ -38,7 +38,7 @@ Features
   and less error potential.
 
 * **Import profile upgrade steps**: Sometimes an upgrade step consists
-  solely of importing a purpose-made generic setup profile.  A new
+  solely of importing a purpose-made generic setup profile. A new
   ``upgrade-step:importProfile`` ZCML directive makes this much simpler.
 
 
@@ -58,7 +58,7 @@ Installation
 - Go to Site Setup of your Plone site and activate the ``ftw.upgrade`` add-on.
 
 
-.. _console script installation:
+.. _`console script installation`:
 
 Installing ftw.upgrade's console script
 ---------------------------------------
@@ -106,7 +106,7 @@ view fails for some reason.
 The bin/upgrade script
 ======================
 
-Refer to the `Installing ftw.upgrade's console script`_ section for instructions on how
+Refer to the `console script installation`_ section for instructions on how
 to install ``bin/upgrade``.
 
 The ``bin/upgrade`` console script enables management of upgrades on the filesystem
@@ -186,7 +186,7 @@ Updating objects with progress logging
 
 Since an upgrade step often updates a set of objects indexed in the catalog,
 there is a useful helper method `self.objects()` which combines querying the
-catalog with the `ProgressLogger` (see below).
+catalog with the `Progress Logger`_.
 The catalog is queried unrestricted so that we handle all the objects.
 
 Here is an example for updating all objects of a particular type:

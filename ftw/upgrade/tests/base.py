@@ -22,9 +22,9 @@ from plone.app.testing import SITE_OWNER_NAME
 from plone.app.testing import TEST_USER_ID
 from plone.app.testing import TEST_USER_PASSWORD
 from Products.CMFCore.utils import getToolByName
+from six import StringIO
 from six.moves import map
 from six.moves import zip
-from StringIO import StringIO
 from unittest import TestCase
 from zope.component import getMultiAdapter
 from zope.component import queryAdapter

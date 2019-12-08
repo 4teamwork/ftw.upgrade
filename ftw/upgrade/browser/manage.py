@@ -58,7 +58,7 @@ class ResponseLogger(object):
         if isinstance(line, six.text_type):
             line = line.encode('utf8')
 
-        line = line.replace('<', '&lt;').replace('>', '&gt;')
+        line = line.replace(b'<', b'&lt;').replace(b'>', b'&gt;')
 
         self.response.write(line)
         self.response.flush()

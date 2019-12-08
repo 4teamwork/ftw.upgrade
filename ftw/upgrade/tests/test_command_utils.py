@@ -7,7 +7,7 @@ from ftw.upgrade.command.utils import find_package_namespace_path
 from ftw.upgrade.tests.helpers import capture_streams
 from ftw.upgrade.tests.helpers import chdir
 from path import Path
-from StringIO import StringIO
+from six import StringIO
 from unittest import TestCase
 
 

@@ -6,7 +6,7 @@ from ftw.upgrade.browser.manage import ResponseLogger
 from ftw.upgrade.tests.base import UpgradeTestCase
 from plone.app.testing import SITE_OWNER_NAME
 from Products.CMFCore.utils import getToolByName
-from StringIO import StringIO
+from six import BytesIO
 from unittest import TestCase
 
 import logging
@@ -17,7 +17,7 @@ import transaction
 class TestResponseLogger(TestCase):
 
     def test_logging(self):
-        response = StringIO()
+        response = BytesIO()
 
         with ResponseLogger(response):
             logging.error('foo')
@@ -25,22 +25,22 @@ class TestResponseLogger(TestCase):
 
         response.seek(0)
         self.assertEqual(
-            ['foo', u'bar'],
-            response.read().strip().split('\n'))
+            [b'foo', b'bar'],
+            response.read().strip().split(b'\n'))
 
     def test_logged_tags_get_escaped(self):
-        response = StringIO()
+        response = BytesIO()
 
         with ResponseLogger(response):
             logging.error('ERROR: Something at <TextBlock at /bla/blub>')
 
         response.seek(0)
         self.assertEqual(
-            ['ERROR: Something at &lt;TextBlock at /bla/blub&gt;'],
-            response.read().strip().split('\n'))
+            [b'ERROR: Something at &lt;TextBlock at /bla/blub&gt;'],
+            response.read().strip().split(b'\n'))
 
     def test_logging_exceptions(self):
-        response = StringIO()
+        response = BytesIO()
 
         with self.assertRaises(KeyError):
             with ResponseLogger(response):
@@ -49,21 +49,21 @@ class TestResponseLogger(TestCase):
         response.seek(0)
         output = response.read().strip()
         # Dynamically replace paths so that it works on all machines
-        output = re.sub(r'(File ").*(ftw/upgrade/.*")',
-                        r'\1/.../\2', output)
-        output = re.sub(r'(line )\d*', r'line XX', output)
+        output = re.sub(rb'(File ").*(ftw/upgrade/.*")',
+                        rb'\1/.../\2', output)
+        output = re.sub(rb'(line )\d*', rb'line XX', output)
 
         self.assertEqual(
-            ['FAILED',
-             'Traceback (most recent call last):',
-             '  File "/.../ftw/upgrade/tests/'
-             'test_manage_view.py", line XX, in test_logging_exceptions',
-             "    raise KeyError('foo')",
-             "KeyError: 'foo'"],
-            output.split('\n'))
+            [b'FAILED',
+             b'Traceback (most recent call last):',
+             b'  File "/.../ftw/upgrade/tests/'
+             b'test_manage_view.py", line XX, in test_logging_exceptions',
+             b"    raise KeyError('foo')",
+             b"KeyError: 'foo'"],
+            output.split(b'\n'))
 
     def test_annotate_result_on_success(self):
-        response = StringIO()
+        response = BytesIO()
 
         with ResponseLogger(response, annotate_result=True):
             logging.error('foo')
@@ -71,11 +71,11 @@ class TestResponseLogger(TestCase):
 
         response.seek(0)
         self.assertEqual(
-            ['foo', u'bar', 'Result: SUCCESS'],
-            response.read().strip().split('\n'))
+            [b'foo', b'bar', b'Result: SUCCESS'],
+            response.read().strip().split(b'\n'))
 
     def test_annotate_result_on_error(self):
-        response = StringIO()
+        response = BytesIO()
 
         with self.assertRaises(KeyError):
             with ResponseLogger(response, annotate_result=True):
@@ -84,19 +84,19 @@ class TestResponseLogger(TestCase):
         response.seek(0)
         output = response.read().strip()
         # Dynamically replace paths so that it works on all machines
-        output = re.sub(r'(File ").*(ftw/upgrade/.*")',
-                        r'\1/.../\2', output)
-        output = re.sub(r'(line )\d*', r'line XX', output)
+        output = re.sub(rb'(File ").*(ftw/upgrade/.*")',
+                        rb'\1/.../\2', output)
+        output = re.sub(rb'(line )\d*', rb'line XX', output)
 
         self.assertEqual(
-            ['FAILED',
-             'Traceback (most recent call last):',
-             '  File "/.../ftw/upgrade/tests/'
-             'test_manage_view.py", line XX, in test_annotate_result_on_error',
-             "    raise KeyError('foo')",
-             "KeyError: 'foo'",
-             'Result: FAILURE'],
-            output.split('\n'))
+            [b'FAILED',
+             b'Traceback (most recent call last):',
+             b'  File "/.../ftw/upgrade/tests/'
+             b'test_manage_view.py", line XX, in test_annotate_result_on_error',
+             b"    raise KeyError('foo')",
+             b"KeyError: 'foo'",
+             b'Result: FAILURE'],
+            output.split(b'\n'))
 
 
 class TestManageUpgrades(UpgradeTestCase):

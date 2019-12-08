@@ -16,7 +16,7 @@ from Products.GenericSetup.upgrade import _upgrade_registry
 from zope.component import adapts
 from zope.component import getAdapters
 from zope.interface import alsoProvides
-from zope.interface import implements
+from zope.interface import implementer
 
 import logging
 import time
@@ -26,9 +26,9 @@ import transaction
 logger = logging.getLogger('ftw.upgrade')
 
 
+@implementer(IExecutioner)
 class Executioner(object):
 
-    implements(IExecutioner)
     adapts(ISetupTool)
     security = ClassSecurityInformation()
 

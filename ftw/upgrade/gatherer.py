@@ -15,7 +15,7 @@ from six.moves import map
 from zope.component import adapts
 from zope.component import getMultiAdapter
 from zope.deprecation import deprecated
-from zope.interface import implements
+from zope.interface import implementer
 
 
 def flatten_upgrades(upgrades):
@@ -93,8 +93,8 @@ def extend_auto_upgrades_with_human_formatted_date_version(profiles):
     return profiles
 
 
+@implementer(IUpgradeInformationGatherer)
 class UpgradeInformationGatherer(object):
-    implements(IUpgradeInformationGatherer)
     adapts(ISetupTool)
 
     security = ClassSecurityInformation()

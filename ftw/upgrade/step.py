@@ -21,7 +21,7 @@ from zope.browser.interfaces import IBrowserView
 from zope.event import notify
 from zope.interface import directlyProvidedBy
 from zope.interface import directlyProvides
-from zope.interface import implements
+from zope.interface import implementer
 from zope.interface import Interface
 from zope.publisher.interfaces.browser import IBrowserRequest
 
@@ -39,8 +39,8 @@ except ImportError:
 LOG = logging.getLogger('ftw.upgrade')
 
 
+@implementer(IUpgradeStep)
 class UpgradeStep(object):
-    implements(IUpgradeStep)
     security = ClassSecurityInformation()
 
     deferrable = False

@@ -1,4 +1,5 @@
 from ftw.upgrade.command.terminal import TERMINAL
+
 import argparse
 import os
 import pydoc
@@ -24,7 +25,7 @@ def setup_argparser(commands):
     command.set_defaults(func=help_command)
 
     command.add_argument('command', nargs='?',
-                         choices=get_commands(commands.container).keys(),
+                         choices=list(get_commands(commands.container).keys()),
                          help='Command to describe.')
 
 
@@ -35,7 +36,7 @@ def help_command(args):
         if os.system('(less -R) 2>/dev/null') == 0:
             return pydoc.pipepager(parser.format_help(), cmd='less -R')
     else:
-        print parser.format_help()
+        print(parser.format_help())
 
 
 def get_commands(parser):

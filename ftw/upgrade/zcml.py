@@ -6,6 +6,7 @@ from Products.GenericSetup.zcml import upgradeStep
 from zope.configuration.fields import GlobalObject
 from zope.configuration.fields import Path
 from zope.interface import Interface
+
 import zope.schema
 
 

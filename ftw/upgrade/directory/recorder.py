@@ -6,6 +6,8 @@ from zope.component import adapts
 from zope.interface import implements
 from zope.interface import Interface
 
+import six
+
 
 ANNOTATION_KEY = 'ftw.upgrade:recorder'
 
@@ -46,7 +48,7 @@ class UpgradeStepRecorder(object):
         if profilename.startswith('profile-'):
             profilename = profilename[len('profile-'):]
 
-        if not isinstance(profilename, unicode):
+        if not isinstance(profilename, six.text_type):
             profilename = profilename.decode('utf-8')
 
         return profilename

@@ -29,4 +29,4 @@ def setup_argparser(commands):
 @error_handling
 def sites_command(args, requestor):
     response = requestor.GET('current_user')
-    print 'Authenticated as "{0}".'.format(response.json())
+    print('Authenticated as "{0}".'.format(response.json()))

@@ -7,7 +7,9 @@ from ftw.upgrade.utils import get_portal_migration
 from Products.CMFCore.utils import getToolByName
 from zope.component import getAdapter
 from zope.publisher.browser import BrowserView
+
 import logging
+import six
 import time
 import traceback
 
@@ -53,7 +55,7 @@ class ResponseLogger(object):
 
     security.declarePrivate('write')
     def write(self, line):
-        if isinstance(line, unicode):
+        if isinstance(line, six.text_type):
             line = line.encode('utf8')
 
         line = line.replace('<', '&lt;').replace('>', '&gt;')
@@ -131,7 +133,7 @@ class ManageUpgrades(BrowserView):
         gatherer = getAdapter(gstool, IUpgradeInformationGatherer)
         try:
             return gatherer.get_profiles()
-        except CyclicDependencies, exc:
+        except CyclicDependencies as exc:
             self.cyclic_dependencies = exc.cyclic_dependencies
             return []
 

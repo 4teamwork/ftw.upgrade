@@ -6,6 +6,7 @@ from ftw.upgrade.tests.helpers import no_logging_threads
 from persistent.list import PersistentList
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
+
 import os
 import sys
 import transaction

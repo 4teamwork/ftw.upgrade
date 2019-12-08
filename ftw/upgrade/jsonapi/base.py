@@ -7,6 +7,7 @@ from ftw.upgrade.jsonapi.utils import jsonify
 from zope.interface import implements
 from zope.publisher.browser import BrowserView
 from zope.publisher.interfaces import IPublishTraverse
+
 import re
 
 

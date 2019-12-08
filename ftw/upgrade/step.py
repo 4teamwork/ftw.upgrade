@@ -1,5 +1,6 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
-from Acquisition import aq_base, aq_parent
+from Acquisition import aq_base
+from Acquisition import aq_parent
 from ftw.upgrade.events import ClassMigratedEvent
 from ftw.upgrade.exceptions import NoAssociatedProfileError
 from ftw.upgrade.helpers import update_security_for
@@ -23,8 +24,10 @@ from zope.interface import directlyProvides
 from zope.interface import implements
 from zope.interface import Interface
 from zope.publisher.interfaces.browser import IBrowserRequest
+
 import logging
 import re
+import six
 
 
 try:
@@ -454,7 +457,7 @@ class UpgradeStep(object):
         """
 
         if getattr(workflow_names, '__iter__', None) is None or \
-                isinstance(workflow_names, (str, unicode)):
+                isinstance(workflow_names, (str, six.text_type)):
             raise ValueError(
                 '"workflows" must be a list of workflow names.')
 

@@ -1,7 +1,7 @@
 from Acquisition import aq_inner
 from Acquisition import aq_parent
-from DateTime import DateTime
 from datetime import datetime
+from DateTime import DateTime
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade import UpgradeStep
@@ -20,6 +20,7 @@ from unittest import skipIf
 from zope.interface import alsoProvides
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
+
 import pkg_resources
 
 
@@ -966,11 +967,12 @@ class TestUpgradeStep(UpgradeTestCase):
                 permission, str(obj)))
 
     def get_not_acquired_permissions_of(self, obj):
-        acquired_permissions = filter(
-            lambda item: not item.get('acquire'),
-            obj.permission_settings())
+        acquired_permissions = [
+            item for item in obj.permission_settings()
+            if not item.get('acquire')
+        ]
 
-        return map(lambda item: item.get('name'), acquired_permissions)
+        return [item.get('name') for item in acquired_permissions]
 
     def get_allowed_roles_and_users_for(self, obj):
         processQueue()  # trigger async indexing

@@ -1,7 +1,8 @@
 from ftw.upgrade.transactionnote import TransactionNote
+from six.moves import range
 from unittest import TestCase
-import transaction
 
+import transaction
 
 
 class TestTransactionNote(TestCase):

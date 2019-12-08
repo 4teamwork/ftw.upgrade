@@ -1,8 +1,11 @@
 from datetime import datetime
 from ftw.builder import Builder
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
+from six.moves import map
+
 import json
 import re
+import six
 
 
 class TestListCommand(CommandAndInstanceTestCase):
@@ -27,8 +30,8 @@ class TestListCommand(CommandAndInstanceTestCase):
             exitcode, output = self.upgrade_script('list --profiles -s plone')
             self.assertEquals(0, exitcode)
 
-            normalized_output = map(unicode.strip,
-                                    re.sub(r' +', ' ', output).splitlines())
+            normalized_output = list(map(six.text_type.strip,
+                                         re.sub(r' +', ' ', output).splitlines()))
             self.assertIn('Installed profiles:', normalized_output)
             self.assertIn('the.package:default'
                           ' 2 proposed 1 orphan'
@@ -240,7 +243,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             decoded = json.loads(output)
             self.assertEqual(len(decoded), 1)
             # The Plone site id is used as key.
-            self.assertEqual(decoded.keys(), ['/plone'])
+            self.assertEqual(list(decoded.keys()), ['/plone'])
             self.assertTrue(isinstance(decoded['/plone'], list))
 
     def test_all_sites_argument_no_json(self):

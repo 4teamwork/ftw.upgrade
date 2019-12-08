@@ -27,4 +27,4 @@ def setup_argparser(commands):
 @with_api_requestor
 @error_handling
 def recook_command(args, requestor):
-    print requestor.POST('recook_resources').json()
+    print(requestor.POST('recook_resources').json())

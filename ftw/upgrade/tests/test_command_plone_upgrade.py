@@ -6,6 +6,7 @@ from Products.CMFPlone.utils import getFSVersionTuple
 from unittest import skipIf
 from ZPublisher.BaseRequest import RequestContainer
 from ZPublisher.HTTPRequest import HTTPRequest
+
 import transaction
 
 

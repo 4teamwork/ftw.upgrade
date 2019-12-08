@@ -11,8 +11,10 @@ from ftw.upgrade.jsonapi.utils import jsonify
 from ftw.upgrade.jsonapi.utils import parse_bool
 from ftw.upgrade.resource_registries import recook_resources
 from ftw.upgrade.utils import get_portal_migration
+from functools import reduce
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
+from six.moves import map
 
 
 class PloneSiteAPI(APIView):
@@ -34,7 +36,7 @@ class PloneSiteAPI(APIView):
     def list_profiles(self):
         """Returns a list of all installed profiles.
         """
-        return map(self._refine_profile_info, self.gatherer.get_profiles())
+        return list(map(self._refine_profile_info, self.gatherer.get_profiles()))
 
     @jsonify
     @action('GET')
@@ -42,8 +44,8 @@ class PloneSiteAPI(APIView):
         """Returns a list of profiles with proposed upgrade steps.
         The upgrade steps of each profile only include proposed upgrades.
         """
-        return map(self._refine_profile_info,
-                   self.gatherer.get_profiles(proposed_only=True))
+        return list(map(self._refine_profile_info,
+                        self.gatherer.get_profiles(proposed_only=True)))
 
     @jsonify
     @action('GET')
@@ -51,9 +53,9 @@ class PloneSiteAPI(APIView):
         """Returns a list of proposed upgrades.
         """
         propose_deferrable = parse_bool(propose_deferrable)
-        return map(
+        return list(map(
             self._refine_upgrade_info,
-            self._get_proposed_upgrades(propose_deferrable=propose_deferrable))
+            self._get_proposed_upgrades(propose_deferrable=propose_deferrable)))
 
     @action('POST', rename_params={'upgrades': 'upgrades:list'})
     def execute_upgrades(self, upgrades, allow_outdated=False):
@@ -76,8 +78,8 @@ class PloneSiteAPI(APIView):
             self._validate_profile_ids(*profiles)
         propose_deferrable = parse_bool(propose_deferrable)
 
-        api_ids = map(itemgetter('api_id'), self._get_proposed_upgrades(
-            only_profiles=profiles, propose_deferrable=propose_deferrable))
+        api_ids = list(map(itemgetter('api_id'), self._get_proposed_upgrades(
+            only_profiles=profiles, propose_deferrable=propose_deferrable)))
         return self._install_upgrades(
             *api_ids, propose_deferrable=propose_deferrable)
 
@@ -141,8 +143,8 @@ class PloneSiteAPI(APIView):
                 'db_version': profile['db_version'],
                 'fs_version': profile['version'],
                 'outdated_fs_version': False,
-                'upgrades': map(self._refine_upgrade_info,
-                                profile['upgrades'])}
+                'upgrades': list(map(self._refine_upgrade_info,
+                                     profile['upgrades']))}
 
     def _refine_upgrade_info(self, upgrade):
         keys = ('title', 'proposed', 'deferrable', 'done', 'orphan',
@@ -156,8 +158,10 @@ class PloneSiteAPI(APIView):
         return values
 
     def _get_profile_info(self, profileid):
-        profiles = filter(lambda profile: profile['id'] == profileid,
-                          self.gatherer.get_profiles())
+        profiles = [
+            profile for profile in self.gatherer.get_profiles()
+            if profile['id'] == profileid
+        ]
         if len(profiles) == 0:
             raise ProfileNotAvailable(profileid)
         else:
@@ -167,7 +171,8 @@ class PloneSiteAPI(APIView):
         profiles = self.gatherer.get_profiles(proposed_only=True,
                                               propose_deferrable=propose_deferrable)
         if only_profiles:
-            profiles = filter(lambda profile: profile['id'] in only_profiles, profiles)
+            profiles = [
+                profile for profile in profiles if profile['id'] in only_profiles]
         if not profiles:
             return []
         return reduce(list.__add__, map(itemgetter('upgrades'), profiles))
@@ -189,7 +194,7 @@ class PloneSiteAPI(APIView):
             with ResponseLogger(self.request.RESPONSE, annotate_result=True):
                 executioner.install_upgrades_by_api_ids(
                     *api_ids, propose_deferrable=propose_deferrable)
-        except Exception, exc:
+        except Exception as exc:
             raise AbortTransactionWithStreamedResponse(exc)
 
     def _install_profiles(self, *profile_ids, **options):
@@ -198,7 +203,7 @@ class PloneSiteAPI(APIView):
             with ResponseLogger(self.request.RESPONSE, annotate_result=True):
                 executioner.install_profiles_by_profile_ids(
                     *profile_ids, **options)
-        except Exception, exc:
+        except Exception as exc:
             raise AbortTransactionWithStreamedResponse(exc)
 
     def _require_up_to_date_plone_site(self):

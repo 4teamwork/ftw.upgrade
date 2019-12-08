@@ -1,7 +1,7 @@
-from ftw.upgrade.tests.base import CommandTestCase
 from datetime import datetime
 from ftw.builder import Builder
 from ftw.builder import create
+from ftw.upgrade.tests.base import CommandTestCase
 
 
 class TestTouchCommand(CommandTestCase):

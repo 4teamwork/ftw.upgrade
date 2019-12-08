@@ -1,7 +1,9 @@
-from StringIO import StringIO
 from ftw.upgrade.progresslogger import ProgressLogger
+from six.moves import range
+from StringIO import StringIO
 from time import sleep
 from unittest import TestCase
+
 import logging
 
 
@@ -38,7 +40,7 @@ class TestProgressLogger(TestCase):
 
         with self.assertRaises(ValueError):
 
-            data = range(5)
+            data = list(range(5))
 
             with ProgressLogger('Bar', data, logger=self.logger,
                                 timeout=timeout) as step:
@@ -56,7 +58,7 @@ class TestProgressLogger(TestCase):
                          self.read_log())
 
     def test_accepts_iterable_object(self):
-        items = range(5)
+        items = list(range(5))
 
         with ProgressLogger('Foo', items, logger=self.logger) as step:
             for _item in items:
@@ -68,7 +70,7 @@ class TestProgressLogger(TestCase):
                          self.read_log())
 
     def test_acts_as_iterable_wrapper(self):
-        items = range(5)
+        items = list(range(5))
 
         result = []
 
@@ -85,7 +87,7 @@ class TestProgressLogger(TestCase):
             'Iterating over the progresslogger yields the original items.')
 
     def test_current_item_is_printed_when_logger_exits_unexpectedly(self):
-        items = range(5)
+        items = list(range(5))
 
         with self.assertRaises(ValueError):
             for item in ProgressLogger('Foo', items, logger=self.logger):

@@ -10,6 +10,7 @@ from Products.CMFCore.utils import getToolByName
 from unittest import skipIf
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
+
 import transaction
 
 
@@ -96,7 +97,7 @@ class TestExecutioner(UpgradeTestCase):
 
             self.assertIn(
                 'notification_hook',
-                [f.func_name for f in hook_funcs],
+                [f.__name__ for f in hook_funcs],
                 'Our notification_hook should be registered')
 
             transaction.commit()

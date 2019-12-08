@@ -260,8 +260,11 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                  u'the.package:baz',
                  u'the.package:bar',
                  u'the.package:foo'],
-                filter(lambda profile_id: profile_id.startswith('the.package:'),
-                       get_sorted_profile_ids(portal_setup)))
+                [
+                    profile_id for profile_id
+                    in get_sorted_profile_ids(portal_setup)
+                    if profile_id.startswith('the.package:')
+                ])
 
     def test_handler_step_provides_interfaces_implemented_by_upgrade_step_class(self):
         code = '\n'.join((

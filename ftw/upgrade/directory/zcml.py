@@ -13,6 +13,7 @@ from Products.GenericSetup.upgrade import UpgradeStep
 from zope.configuration.fields import Path
 from zope.configuration.fields import Tokens
 from zope.interface import Interface
+
 import os
 import zope.schema
 
@@ -109,8 +110,8 @@ def upgrade_step_directory_action(profile, dottedname, path,
 
 
 def find_start_version(profile):
-    upgrades = _upgrade_registry.getUpgradeStepsForProfile(profile).values()
-    upgrades = sorted(upgrades, key=attrgetter('dest'))
+    upgrades = list(_upgrade_registry.getUpgradeStepsForProfile(profile).values())
+    upgrades.sort(key=attrgetter('dest'))
     if len(upgrades) > 0:
         return upgrades[-1].dest
     else:

@@ -11,6 +11,8 @@ from plone.app.testing import TEST_USER_PASSWORD
 from Products.CMFPlone.utils import safe_unicode
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
+from six.moves import map
+
 import os
 
 

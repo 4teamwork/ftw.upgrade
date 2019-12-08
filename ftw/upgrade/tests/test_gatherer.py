@@ -472,8 +472,10 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
         result = gatherer.get_profiles()
         profiles = [profile['id'] for profile in result]
         if filter_package:
-            profiles = filter(lambda profile: profile.startswith(filter_package),
-                              profiles)
+            profiles = [
+                profile for profile in profiles
+                if profile.startswith(filter_package)
+            ]
         return profiles
 
     def get_profiles_by_ids(self, **kwargs):

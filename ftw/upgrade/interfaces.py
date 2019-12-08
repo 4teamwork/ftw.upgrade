@@ -4,7 +4,8 @@
 
 
 from zope.component.interfaces import IObjectEvent
-from zope.interface import Interface, Attribute
+from zope.interface import Attribute
+from zope.interface import Interface
 
 
 class IUpgradeLayer(Interface):

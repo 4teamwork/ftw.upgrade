@@ -1,8 +1,10 @@
+from __future__ import print_function
 from ftw.upgrade.command.terminal import TERMINAL
 from ftw.upgrade.command.utils import find_egginfo
 from ftw.upgrade.command.utils import find_package_namespace_path
 from ftw.upgrade.directory.scaffold import UpgradeStepCreator
 from path import Path
+
 import argparse
 import sys
 
@@ -59,13 +61,13 @@ def create_command(args):
         upgrades_directory = default_upgrades_directory()
 
     if upgrades_directory is None:
-        print >>sys.stderr, 'ERROR: Please provide the path to ' + \
-            'the upgrades directory with --path.'
+        print('ERROR: Please provide the path to '
+              'the upgrades directory with --path.', file=sys.stderr)
         sys.exit(1)
 
     creator = UpgradeStepCreator(upgrades_directory)
     upgrade_step_directory = creator.create(args.title)
-    print 'Created upgrade step at:', upgrade_step_directory
+    print('Created upgrade step at:', upgrade_step_directory)
 
 
 def upgrades_path(path):
@@ -86,12 +88,11 @@ def default_upgrades_directory():
     package_namespace_path = find_package_namespace_path(egginfo)
     upgrades_dirs = tuple(package_namespace_path.walkdirs('upgrades'))
     if len(upgrades_dirs) == 0:
-        print >>sys.stderr, 'WARNING: no "upgrades" directory could be found.'
+        print('WARNING: no "upgrades" directory could be found.', file=sys.stderr)
         return None
 
     if len(upgrades_dirs) > 1:
-        print >>sys.stderr, 'WARNING: more than one "upgrades"' + \
-            ' directory found.'
+        print('WARNING: more than one "upgrades" directory found.', file=sys.stderr)
         return None
 
     return upgrades_dirs[0]

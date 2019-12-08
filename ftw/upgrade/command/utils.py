@@ -1,5 +1,7 @@
-from StringIO import StringIO
+from __future__ import print_function
 from path import Path
+from StringIO import StringIO
+
 import contextlib
 import os
 import sys
@@ -8,7 +10,8 @@ import sys
 def find_egginfo(path=None):
     path = path or Path(os.getcwd())
     if not path or path == '/':
-        print >>sys.stderr, 'WARNING: no *.egg-info directory could be found.'
+        print('WARNING: no *.egg-info directory could be found.',
+              file=sys.stderr)
         return None
 
     egginfos = path.dirs('*.egg-info')
@@ -16,8 +19,8 @@ def find_egginfo(path=None):
         return find_egginfo(path.dirname())
 
     if len(egginfos) > 1:
-        print >>sys.stderr, 'WARNING: more than one *.egg-info' + \
-            ' directory found.'
+        print('WARNING: more than one *.egg-info directory found.',
+              file=sys.stderr)
         return None
 
     return egginfos[0]

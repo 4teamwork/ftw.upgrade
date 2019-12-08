@@ -5,6 +5,7 @@ from ftw.builder import create
 from ftw.upgrade.directory.scanner import Scanner
 from ftw.upgrade.exceptions import UpgradeStepDefinitionError
 from ftw.upgrade.tests.base import UpgradeTestCase
+from six.moves import map
 
 
 class TestDirectoryScanner(UpgradeTestCase):
@@ -26,9 +27,9 @@ class TestDirectoryScanner(UpgradeTestCase):
                                   .named('remove the action'))
 
         with self.scanned() as upgrade_infos:
-            map(lambda info: (info.__delitem__('path'),
-                              info.__delitem__('callable')),
-                upgrade_infos)
+            list(map(lambda info: (info.__delitem__('path'),
+                                   info.__delitem__('callable')),
+                     upgrade_infos))
 
             self.maxDiff = None
             self.assertEqual(

@@ -1,9 +1,13 @@
+from __future__ import print_function
 from datetime import datetime
 from datetime import timedelta
 from ftw.upgrade.command.terminal import TERMINAL
 from ftw.upgrade.directory.scaffold import DATETIME_FORMAT
 from ftw.upgrade.directory.scanner import UPGRADESTEP_DATETIME_REGEX
 from path import Path
+from six.moves import filter
+from six.moves import map
+
 import argparse
 import re
 import sys
@@ -74,10 +78,10 @@ def touch_command(args):
                                     args.after_path,
                                     args.before_path))))
     if len(parents) > 1:
-        print >>sys.stderr, 'ERORR: All paths must be in the same directory,', \
-            'got:'
+        print('ERROR: All paths must be in the same directory, got:',
+              file=sys.stderr)
         for parent in parents:
-            print '-', parent
+            print('-', parent)
         sys.exit(1)
 
     new_date = find_new_date(args)
@@ -86,7 +90,7 @@ def touch_command(args):
         args.path.name)
     new_path = args.path.dirname().joinpath(new_name)
     args.path.rename(new_path)
-    print 'New path:', new_path
+    print('New path:', new_path)
 
 
 def upgrade_step_path(path):
@@ -111,9 +115,9 @@ def find_new_date(args):
         return datetime.now()
 
     upgrades = sorted(
-        filter(None,
-               map(path_to_datetime,
-                   Path(args.path.dirname()).glob('*/upgrade.py'))))
+        [_f for _f in map(path_to_datetime,
+                          Path(args.path.dirname()).glob('*/upgrade.py'))
+         if _f])
     upgrades.remove(path_to_datetime(args.path))
 
     if after and upgrades[-1] == after:

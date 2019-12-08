@@ -8,7 +8,10 @@ from ftw.upgrade.utils import get_tempfile_authentication_directory
 from ftw.upgrade.utils import SizedGenerator
 from ftw.upgrade.utils import subject_from_docstring
 from ftw.upgrade.utils import topological_sort
+from six.moves import map
+from six.moves import range
 from unittest import TestCase
+
 import stat
 
 
@@ -78,9 +81,8 @@ class TestFindCyclicDependencies(TestCase):
             )
 
         self.assertEquals(
-            [set(('foo',
-                  'bar'))],
-            map(set, find_cyclic_dependencies(dependencies)))
+            [set(('foo', 'bar'))],
+            list(map(set, find_cyclic_dependencies(dependencies))))
 
     def test_indirect_cyclic_dependencies(self):
         dependencies = (
@@ -90,10 +92,8 @@ class TestFindCyclicDependencies(TestCase):
             )
 
         self.assertEquals(
-            [set(('foo',
-                  'bar',
-                  'baz'))],
-            map(set, find_cyclic_dependencies(dependencies)))
+            [set(('foo', 'bar', 'baz'))],
+            list(map(set, find_cyclic_dependencies(dependencies))))
 
 
 class TestSizedGenerator(TestCase):

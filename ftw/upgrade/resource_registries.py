@@ -11,8 +11,7 @@ def recook_resources():
 
     # Plone 5: clear all bundles
     registry = getUtility(IRegistry)
-    for key in filter(
-            lambda key: (key.startswith('plone.bundles/')
-                         and key.endswith('.last_compilation')),
-            registry.records.keys()):
+    for key in [key for key in registry.records.keys()
+                if (key.startswith('plone.bundles/')
+                    and key.endswith('.last_compilation'))]:
         registry[key] = None

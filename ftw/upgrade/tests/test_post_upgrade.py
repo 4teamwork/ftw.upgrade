@@ -1,6 +1,7 @@
 from ftw.builder import Builder
 from ftw.upgrade.interfaces import IPostUpgrade
 from ftw.upgrade.tests.base import UpgradeTestCase
+from six.moves import map
 from zope.interface import Interface
 
 
@@ -61,8 +62,9 @@ class TestPostUpgrade(UpgradeTestCase):
                                              provided=IPostUpgrade,
                                              name=profile_id)
 
-            map(register_post_component_adapter,
-                ('the.package:addon', 'the.package:product', 'the.package:customization'))
+            list(map(register_post_component_adapter,
+                     ('the.package:addon', 'the.package:product',
+                      'the.package:customization')))
 
             self.assertEquals([], execution_order)
             self.install_profile_upgrades('the.package:customization')

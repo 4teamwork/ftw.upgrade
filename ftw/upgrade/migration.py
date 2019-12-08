@@ -1,4 +1,3 @@
-from Products.CMFPlone.utils import getFSVersionTuple
 from Acquisition import aq_base
 from Acquisition import aq_inner
 from Acquisition import aq_parent
@@ -23,6 +22,9 @@ from plone.uuid.interfaces import IUUID
 from Products.Archetypes.interfaces import IBaseObject
 from Products.Archetypes.interfaces import IComputedField
 from Products.CMFPlone.interfaces import constrains
+from Products.CMFPlone.utils import getFSVersionTuple
+from six.moves import filter
+from six.moves import map
 from z3c.relationfield.event import _setRelation
 from z3c.relationfield.interfaces import IRelation
 from z3c.relationfield.relation import create_relation
@@ -35,8 +37,10 @@ from zope.intid.interfaces import IIntIds
 from zope.keyreference.interfaces import IKeyReference
 from zope.lifecycleevent import ObjectModifiedEvent
 from zope.schema import getFieldsInOrder
+
 import logging
 import pkg_resources
+import six
 
 
 try:
@@ -204,13 +208,13 @@ class InplaceMigrator(object):
         )
 
     def migrate_object(self, old_object):
-        map(lambda func: func(old_object),
-            self.steps_before_clone)
+        list(map(lambda func: func(old_object),
+                 self.steps_before_clone))
         new_object = self.clone_object(old_object)
-        map(lambda func: func(old_object, new_object),
-            list(self.steps_after_clone) +
-            list(self.additional_steps) +
-            list(self.final_steps))
+        list(map(lambda func: func(old_object, new_object),
+                 list(self.steps_after_clone)
+                 + list(self.additional_steps)
+                 + list(self.final_steps)))
         return new_object
 
     def dump_and_remove_references(self, old_object):
@@ -333,7 +337,7 @@ class InplaceMigrator(object):
             annotations[UNMAPPED_FIELDS_BACKUP_ANN_KEY].update(not_mapped)
 
         elif not_mapped:
-            raise FieldsNotMappedError(not_mapped.keys(),
+            raise FieldsNotMappedError(list(not_mapped.keys()),
                                        old_object.portal_type,
                                        new_object.portal_type,
                                        new_field_map)
@@ -390,7 +394,7 @@ class InplaceMigrator(object):
             return recurse(value.decode('utf-8'))
 
         if isinstance(value, list):
-            return map(recurse, value)
+            return list(map(recurse, value))
 
         if isinstance(value, tuple):
             return tuple(map(recurse, value))
@@ -431,14 +435,14 @@ class InplaceMigrator(object):
             return recurse(value.decode('utf-8'))
 
         if isinstance(value, list):
-            return map(recurse, value)
+            return list(map(recurse, value))
 
         if isinstance(value, tuple):
             return tuple(map(recurse, value))
 
-        relation_fields = filter(IRelation.providedBy,
-                                 (field, getattr(field, 'value_type', None)))
-        if relation_fields and isinstance(value, unicode):
+        relation_fields = list(filter(
+            IRelation.providedBy, (field, getattr(field, 'value_type', None))))
+        if relation_fields and isinstance(value, six.text_type):
             target = uuidToObject(value)
             return create_relation('/'.join(target.getPhysicalPath()))
 
@@ -515,7 +519,7 @@ class InplaceMigrator(object):
     def add_relations_to_relation_catalog(self, old_object, new_object):
         for behavior_interface, name, relation in extract_relations(
                 new_object):
-            if isinstance(relation, (str, unicode)):
+            if isinstance(relation, (str, six.text_type)):
                 # We probably got a UID, but we are working with intids
                 # and can not do anything with it, so we skip it.
                 LOG.warning('Got a invalid relation ({!r}), which is not '
@@ -556,13 +560,13 @@ class InplaceMigrator(object):
         if old_mode != constrains.ENABLED:
             return
 
-        allowed_types = map(methodcaller('getId'),
-                            new_ct.getDefaultAddableTypes())
+        allowed_types = list(map(methodcaller('getId'),
+                                 new_ct.getDefaultAddableTypes()))
         isallowed = allowed_types.__contains__
         new_ct.setLocallyAllowedTypes(
-            filter(isallowed, old_ct.getLocallyAllowedTypes()))
+            list(filter(isallowed, old_ct.getLocallyAllowedTypes())))
         new_ct.setImmediatelyAddableTypes(
-            filter(isallowed, old_ct.getImmediatelyAddableTypes()))
+            list(filter(isallowed, old_ct.getImmediatelyAddableTypes())))
 
     def update_creators(self, old_object, new_object):
         """When the dublin core behavior is active, the creators are migrated already.

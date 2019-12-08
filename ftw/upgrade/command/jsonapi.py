@@ -1,9 +1,11 @@
+from __future__ import print_function
 from ftw.upgrade.utils import get_tempfile_authentication_directory
 from path import Path
 from requests.auth import AuthBase
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
+
 import cgi
 import hashlib
 import hmac
@@ -14,6 +16,7 @@ import requests
 import socket
 import sys
 import tempfile
+
 
 logger = logging.getLogger('ftw.upgrade')
 
@@ -68,7 +71,7 @@ class TempfileAuth(AuthBase):
         self.authfile.flush()
         # Make sure the file is readable by the group, so that the service
         # user running Zope can read it even when it is not the creator.
-        Path(self.authfile.name).chmod(0640)
+        Path(self.authfile.name).chmod(0o640)
 
     def _get_temp_directory(self):
         relative_to = self.relative_to or sys.argv[0]
@@ -112,9 +115,9 @@ def with_api_requestor(func):
         auth_value = args.auth or default_auth
         if auth_value:
             if len(auth_value.split(':')) != 2:
-                print ('ERROR: Invalid authentication information '
-                       '"{0}".'.format(auth_value))
-                print 'A string of form "<username>:<password>" is required.'
+                print('ERROR: Invalid authentication information '
+                      '"{0}".'.format(auth_value))
+                print('A string of form "<username>:<password>" is required.')
                 sys.exit(1)
             auth = HTTPBasicAuth(*auth_value.split(':'))
         else:
@@ -133,23 +136,23 @@ def error_handling(func):
         try:
             return func(*args, **kwargs)
         except NoRunningInstanceFound:
-            print 'ERROR: No running Plone instance detected.'
+            print('ERROR: No running Plone instance detected.')
             sys.exit(1)
-        except HTTPError, exc:
+        except HTTPError as exc:
             try:
                 response = exc.response
                 mimetype = cgi.parse_header(
                     response.headers.get('Content-Type'))[0]
                 if mimetype == 'application/json':
-                    print ': '.join(response.json())
-                    print '>', exc.request.url
-                    print '<', response.status_code, response.reason
+                    print(': '.join(response.json()))
+                    print('>', exc.request.url)
+                    print('<', response.status_code, response.reason)
                     sys.exit(1)
 
                 raise
 
-            except Exception, subexc:
-                print 'Exception while rendering error:', subexc
+            except Exception as subexc:
+                print('Exception while rendering error:', subexc)
                 raise exc
 
     func_wrapper.__name__ = func.__name__
@@ -236,8 +239,8 @@ def get_plone_site_by_args(args, requestor):
     if getattr(args, 'pick_site', False):
         sites = get_sites(requestor)
         if len(sites) != 1:
-            print 'ERROR: --pick-site is ambiguous:'
-            print 'Expected exactly one site, found', len(sites)
+            print('ERROR: --pick-site is ambiguous:')
+            print('Expected exactly one site, found', len(sites))
             sys.exit(1)
         site = sites[0]['path']
         setattr(args, 'picked_site', site)
@@ -245,7 +248,7 @@ def get_plone_site_by_args(args, requestor):
     if getattr(args, 'last_site', False):
         sites = get_sites(requestor)
         if len(sites) == 0:
-            print 'ERROR: No Plone site found.'
+            print('ERROR: No Plone site found.')
             sys.exit(1)
         site = sites[-1]['path']
         setattr(args, 'picked_site', site)
@@ -253,7 +256,7 @@ def get_plone_site_by_args(args, requestor):
     if getattr(args, 'all_sites', None):
         sites = get_sites(requestor)
         if len(sites) == 0:
-            print 'ERROR: No Plone site found.'
+            print('ERROR: No Plone site found.')
             sys.exit(1)
         # Get and update site index stored in the arguments.  This is used for
         # iterating over the sites one by one.

@@ -5,11 +5,13 @@ from ftw.upgrade.interfaces import IRecordableHandler
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.utils import get_sorted_profile_ids
+from functools import reduce
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import normalize_version
 from Products.GenericSetup.upgrade import UpgradeStep
+from six.moves import map
 from zope.component import adapts
 from zope.component import getMultiAdapter
 from zope.deprecation import deprecated
@@ -120,11 +122,12 @@ class UpgradeInformationGatherer(object):
     security.declarePrivate('get_upgrades_by_api_ids')
     def get_upgrades_by_api_ids(self, *api_ids, **kwargs):
         propose_deferrable = kwargs.pop('propose_deferrable', True)
-        upgrades = filter(lambda upgrade: upgrade['api_id'] in api_ids,
-                          reduce(list.__add__,
-                                 map(itemgetter('upgrades'),
-                                     self.get_profiles(
-                                        propose_deferrable=propose_deferrable))))
+        upgrades = [
+            upgrade for upgrade
+            in reduce(list.__add__, map(itemgetter('upgrades'),
+                      self.get_profiles(propose_deferrable=propose_deferrable)))
+            if upgrade['api_id'] in api_ids
+        ]
 
         missing_api_ids = (set(api_ids)
                            - set(map(itemgetter('api_id'), upgrades)))
@@ -172,7 +175,7 @@ class UpgradeInformationGatherer(object):
                 del profile_info['for']
             data.update(profile_info)
 
-        except KeyError, exc:
+        except KeyError as exc:
             if exc.args and exc.args[0] == profileid:
                 # package was removed - profile is no longer available.
                 return {'upgrades': []}

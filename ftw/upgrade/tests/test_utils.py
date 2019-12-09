@@ -12,6 +12,7 @@ from six.moves import map
 from six.moves import range
 from unittest import TestCase
 
+import six
 import stat
 
 
@@ -166,8 +167,8 @@ class TestSortedProfileIds(MockTestCase):
         with self.assertRaises(CyclicDependencies) as cm:
             get_sorted_profile_ids(portal_setup)
 
-        self.assertEqual([('foo', 'bar')],
-                         cm.exception.cyclic_dependencies)
+        six.assertCountEqual(
+            self, ('foo', 'bar'), cm.exception.cyclic_dependencies[0])
 
         self.assertEqual([('foo', 'bar'), ('bar', 'foo')],
                          cm.exception.dependencies)

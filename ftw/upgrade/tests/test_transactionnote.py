@@ -28,7 +28,7 @@ class TestTransactionNote(TestCase):
 
     def test_description_is_removed_when_note_gets_too_long(self):
         # Transaction note size is limited to 65535 characters
-        description = 'A' * (65535 / 2)
+        description = 'A' * (65535 // 2)
 
         note = TransactionNote()
         note.add_upgrade('my.package:default', ('1000',), description)
@@ -52,7 +52,7 @@ class TestTransactionNote(TestCase):
         transaction.get().note('Some notes..')
 
         note = TransactionNote()
-        for destination in range(1, (65535 / len(profileid)) + 2):
+        for destination in range(1, (65535 // len(profileid)) + 2):
             note.add_upgrade(profileid, (str(destination),), '')
         note.set_transaction_note()
 

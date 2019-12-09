@@ -267,7 +267,7 @@ class TestGetTempfileAuthenticationDirectory(TestCase):
     def setUp(self):
         self.buildoutdir = self.layer['temp_directory']
         self.buildoutdir.joinpath('bin').mkdir()
-        self.buildoutdir.joinpath('bin', 'buildout').write_bytes('')
+        self.buildoutdir.joinpath('bin', 'buildout').write_bytes(b'')
         self.buildoutdir.joinpath('var').mkdir()
 
     def test_directory_is_created(self):

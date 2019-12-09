@@ -7,6 +7,7 @@ from ftw.testing import freeze
 from ftw.upgrade.migration import BACKUP_AND_IGNORE_UNMAPPED_FIELDS
 from ftw.upgrade.migration import DISABLE_FIELD_AUTOMAPPING
 from ftw.upgrade.migration import FieldsNotMappedError
+from ftw.upgrade.migration import IBaseObject
 from ftw.upgrade.migration import IGNORE_DEFAULT_IGNORE_FIELDS
 from ftw.upgrade.migration import IGNORE_STANDARD_FIELD_MAPPING
 from ftw.upgrade.migration import IGNORE_UNMAPPED_FIELDS
@@ -21,7 +22,6 @@ from plone.app.textfield import RichTextValue
 from plone.dexterity.interfaces import IDexterityContent
 from plone.portlets.interfaces import IPortletAssignmentMapping
 from plone.portlets.interfaces import IPortletManager
-from Products.Archetypes.interfaces import IBaseObject
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces.constrains import ENABLED
 from Products.CMFPlone.interfaces.constrains import IConstrainTypes

@@ -6,7 +6,6 @@ from ftw.upgrade.helpers import update_security_for
 from functools import partial
 from operator import methodcaller
 from persistent.mapping import PersistentMapping
-from plone.app.blob.interfaces import IBlobWrapper
 from plone.app.relationfield.event import extract_relations
 from plone.app.textfield import IRichText
 from plone.app.textfield import IRichTextValue
@@ -19,8 +18,6 @@ from plone.namedfile.interfaces import INamedBlobImageField
 from plone.namedfile.interfaces import INamedField
 from plone.uuid.interfaces import IMutableUUID
 from plone.uuid.interfaces import IUUID
-from Products.Archetypes.interfaces import IBaseObject
-from Products.Archetypes.interfaces import IComputedField
 from Products.CMFPlone.interfaces import constrains
 from Products.CMFPlone.utils import getFSVersionTuple
 from six.moves import filter
@@ -42,6 +39,26 @@ import logging
 import pkg_resources
 import six
 
+
+try:
+    pkg_resources.get_distribution('Products.Archetypes')
+except pkg_resources.DistributionNotFound:
+    class IBaseObject(Interface):
+        pass
+
+    class IComputedField(Interface):
+        pass
+else:
+    from Products.Archetypes.interfaces import IBaseObject
+    from Products.Archetypes.interfaces import IComputedField
+
+try:
+    pkg_resources.get_distribution('plone.app.blob')
+except pkg_resources.DistributionNotFound:
+    class IBlobWrapper(Interface):
+        pass
+else:
+    from plone.app.blob.interfaces import IBlobWrapper
 
 try:
     pkg_resources.get_distribution('archetypes.referencebrowserwidget')

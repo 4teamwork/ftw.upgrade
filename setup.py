@@ -15,13 +15,14 @@ tests_require = [
     'zope.configuration',
     'zc.recipe.egg',
     'transaction',
-    'Products.ATContentTypes',
     'Products.CMFPlacefulWorkflow',
     ]
 
 extras_require = {
     'colors': ['blessed <= 1.9.5'],
-    'tests': tests_require}
+    'tests': tests_require,
+    'test_archetypes': ['Products.ATContentTypes'],
+}
 
 setup(name='ftw.upgrade',
       version=version,

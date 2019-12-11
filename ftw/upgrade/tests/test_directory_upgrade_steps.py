@@ -44,6 +44,26 @@ class TestDirectoryUpgradeSteps(UpgradeTestCase):
                 'Expected upgrade steps to be marked as installed'
                 ' after importing profile.')
 
+    def test_installing_profile_does_not_mark_upgrade_step_as_installed_on_partial_import(self):
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_upgrade(Builder('ftw upgrade step')
+                                                .to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            recorder = getMultiAdapter((self.portal, 'the.package:default'),
+                                       IUpgradeStepRecorder)
+            self.assertFalse(
+                recorder.is_installed('20110101000000'),
+                'Expected upgrade steps to not be marked as installed'
+                ' before importing profile.')
+
+            self.portal_setup.runImportStepFromProfile('profile-the.package:default', 'typeinfo')
+
+            self.assertFalse(
+                recorder.is_installed('20110101000000'),
+                'Expected upgrade steps to not be marked as installed'
+                ' because of a partial import.')
+
     def test_associated_upgrade_step_profile_is_imported(self):
         class AddTestAction(UpgradeStep):
             def __call__(self):

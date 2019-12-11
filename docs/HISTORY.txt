@@ -5,7 +5,7 @@ Changelog
 2.14.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Do not mark upgrade steps as installed when not doing a full import. [jone]
 
 
 2.14.1 (2019-11-08)

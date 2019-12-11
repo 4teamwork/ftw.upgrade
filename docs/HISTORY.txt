@@ -5,6 +5,8 @@ Changelog
 2.14.2 (unreleased)
 -------------------
 
+- Add context manager for disabling upgrade step marking. [jone]
+
 - Do not mark upgrade steps as installed when not doing a full import. [jone]
 
 

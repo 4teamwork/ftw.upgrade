@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.14.2 (unreleased)
+2.15.0 (2019-12-12)
 -------------------
 
 - Add context manager for disabling upgrade step marking. [jone]

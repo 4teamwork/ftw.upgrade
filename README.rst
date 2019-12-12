@@ -1283,6 +1283,35 @@ In order for this to work properly you should configure your ZODB cache sizes co
 (`zodb-cache-size-bytes` or `zodb-cache-size`).
 
 
+Prevent ftw.upgrade from marking upgrades as installed
+======================================================
+
+``ftw.upgrade`` automatically marks all upgrade steps of a profile as installed when
+the full profile is imported. This is important for the initial installation.
+
+In certain situations you may want to import the profile but not mark the upgrade steps
+as installed. For example this could be done in a big migration project where the default
+migration path cannot be followed.
+
+You can do that like this for all generic setup profiles:
+
+.. code:: python
+
+    from ftw.upgrade.directory.subscribers import no_upgrade_step_marking
+
+    with no_upgrade_step_marking():
+        # install profile with portal_setup
+
+or for certain generic setup profiles:
+
+.. code:: python
+
+    from ftw.upgrade.directory.subscribers import no_upgrade_step_marking
+
+    with no_upgrade_step_marking('my.package:default'):
+        # install profile with portal_setup
+
+
 
 Links
 =====

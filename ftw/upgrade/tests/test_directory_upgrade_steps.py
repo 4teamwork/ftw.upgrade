@@ -1,6 +1,7 @@
 from datetime import datetime
 from ftw.builder import Builder
 from ftw.upgrade import UpgradeStep
+from ftw.upgrade.directory.subscribers import no_upgrade_step_marking
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.tests.base import UpgradeTestCase
@@ -43,6 +44,63 @@ class TestDirectoryUpgradeSteps(UpgradeTestCase):
                 recorder.is_installed('20110101000000'),
                 'Expected upgrade steps to be marked as installed'
                 ' after importing profile.')
+
+    def test_installing_profile_does_not_mark_upgrade_step_as_installed_on_partial_import(self):
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_upgrade(Builder('ftw upgrade step')
+                                                .to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            recorder = getMultiAdapter((self.portal, 'the.package:default'),
+                                       IUpgradeStepRecorder)
+            self.assertFalse(
+                recorder.is_installed('20110101000000'),
+                'Expected upgrade steps to not be marked as installed'
+                ' before importing profile.')
+
+            self.portal_setup.runImportStepFromProfile('profile-the.package:default', 'typeinfo')
+
+            self.assertFalse(
+                recorder.is_installed('20110101000000'),
+                'Expected upgrade steps to not be marked as installed'
+                ' because of a partial import.')
+
+    def test_context_manager_for_disabling_upgrade_step_marking(self):
+        self.package.with_profile(Builder('genericsetup profile')
+                                  .with_upgrade(Builder('ftw upgrade step')
+                                                .to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            recorder = getMultiAdapter((self.portal, 'the.package:default'),
+                                       IUpgradeStepRecorder)
+            self.assertFalse(
+                recorder.is_installed('20110101000000'),
+                'Expected upgrade steps to not be marked as installed'
+                ' before importing profile.')
+
+            with no_upgrade_step_marking():
+                self.install_profile('the.package:default')
+
+            self.assertFalse(
+                recorder.is_installed('20110101000000'),
+                'Expected upgrade steps to not be marked as installed'
+                ' because marking is prevented for all profiles.')
+
+            with no_upgrade_step_marking('the.package:default'):
+                self.install_profile('the.package:default')
+
+            self.assertFalse(
+                recorder.is_installed('20110101000000'),
+                'Expected upgrade steps to not be marked as installed'
+                ' because marking is prevented for this profile.')
+
+            with no_upgrade_step_marking('OTHER.package:default'):
+                self.install_profile('the.package:default')
+
+            self.assertTrue(
+                recorder.is_installed('20110101000000'),
+                'Expected upgrade steps to be marked as installed'
+                ' because it is only prevented for other profiles.')
 
     def test_associated_upgrade_step_profile_is_imported(self):
         class AddTestAction(UpgradeStep):

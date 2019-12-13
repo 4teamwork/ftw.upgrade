@@ -1,4 +1,3 @@
-from Products.CMFPlone.utils import getFSVersionTuple
 from Acquisition import aq_base
 from Acquisition import aq_inner
 from Acquisition import aq_parent
@@ -23,11 +22,14 @@ from plone.uuid.interfaces import IUUID
 from Products.Archetypes.interfaces import IBaseObject
 from Products.Archetypes.interfaces import IComputedField
 from Products.CMFPlone.interfaces import constrains
+from Products.CMFPlone.utils import getFSVersionTuple
 from z3c.relationfield.event import _setRelation
 from z3c.relationfield.interfaces import IRelation
 from z3c.relationfield.relation import create_relation
+from zc.relation.interfaces import ICatalog
 from zope.annotation import IAnnotations
 from zope.component import getUtility
+from zope.component import queryUtility
 from zope.container.contained import notifyContainerModified
 from zope.event import notify
 from zope.interface import Interface
@@ -191,6 +193,7 @@ class InplaceMigrator(object):
             self.migrate_intid,
             self.migrate_field_values,
             self.add_relations_to_relation_catalog,
+            self.update_reverse_relations,
             self.migrate_properties,
             self.migrate_constrain_types_configuration,
             self.update_creators,
@@ -516,6 +519,20 @@ class InplaceMigrator(object):
                 continue
 
             _setRelation(new_object, name, relation)
+
+    def update_reverse_relations(self, old_object, new_object):
+        relation_catalog = queryUtility(ICatalog, None)
+        if relation_catalog is None:
+            return
+
+        intids = getUtility(IIntIds)
+        for relation in relation_catalog.findRelations({'to_id': intids.getId(new_object)}):
+            relation_catalog.unindex(relation)
+            relation_catalog.index_doc(intids.getId(relation), relation)
+
+        for relation in relation_catalog.findRelations({'from_id': intids.getId(new_object)}):
+            relation_catalog.unindex(relation)
+            relation_catalog.index_doc(intids.getId(relation), relation)
 
     def migrate_properties(self, old_object, new_object):
         for item in old_object.propertyMap():

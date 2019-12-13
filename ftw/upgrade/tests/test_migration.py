@@ -28,9 +28,13 @@ from Products.CMFPlone.interfaces.constrains import IConstrainTypes
 from Products.CMFPlone.interfaces.constrains import ISelectableConstrainTypes
 from Products.CMFPlone.utils import getFSVersionTuple
 from unittest import skipIf
+from z3c.relationfield.event import _setRelation
+from z3c.relationfield.relation import RelationValue
+from zc.relation.interfaces import ICatalog
 from zope.annotation import IAnnotations
 from zope.component import getMultiAdapter
 from zope.component import getUtility
+from zope.intid.interfaces import IIntIds
 
 
 def todt(date):
@@ -480,6 +484,38 @@ class TestInplaceMigrator(UpgradeTestCase):
         self.assertEquals([foo],
                           map(attrgetter('to_object'),
                               IRelatedItems(bar).relatedItems))
+
+    def test_zc_reverse_relation(self):
+        """We might migrate an AT object to DX, for which already a relation from another
+        DX object exists. In this case there is an entry in the zc.relation catalog.
+        """
+        from Products.Archetypes.interfaces.base import IBaseContent
+
+        self.install_profile('plone.app.relationfield:default')
+        intids = getUtility(IIntIds)
+        relation_catalog = getUtility(ICatalog)
+        self.assertNotIn(IBaseContent, tuple(relation_catalog._name_TO_mapping['to_interfaces_flattened']))
+        self.assertNotIn(IDexterityContent, tuple(relation_catalog._name_TO_mapping['to_interfaces_flattened']))
+
+        self.grant('Manager')
+
+        foo = create(Builder('folder').titled(u'Foo'))
+        bar = create(Builder('document').titled(u'Bar'))
+        # make relation foo -> bar
+        _setRelation(foo, 'test', RelationValue(intids.getId(bar)))
+
+        # we now have an AT interface indexed for bar
+        self.assertIn(IBaseContent, tuple(relation_catalog._name_TO_mapping['to_interfaces_flattened']))
+        self.assertNotIn(IDexterityContent, tuple(relation_catalog._name_TO_mapping['to_interfaces_flattened']))
+
+        # migrate bar
+        self.install_profile('plone.app.contenttypes:default')
+        relation_catalog = getUtility(ICatalog)
+        map(InplaceMigrator('Document').migrate_object, (bar,))
+
+        # we now have a DX interface indexed for bar, no AT interface naymore
+        self.assertNotIn(IBaseContent, tuple(relation_catalog._name_TO_mapping['to_interfaces_flattened']))
+        self.assertIn(IDexterityContent, tuple(relation_catalog._name_TO_mapping['to_interfaces_flattened']))
 
     def get_catalog_indexdata_for(self, obj):
         catalog = getToolByName(obj, 'portal_catalog')

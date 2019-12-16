@@ -15,6 +15,7 @@ from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.ActionInformation import ActionInformation
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ProgressHandler import ZLogHandler
+from zExceptions import NotFound
 from zope.browser.interfaces import IBrowserView
 from zope.event import notify
 from zope.interface import directlyProvidedBy
@@ -154,9 +155,9 @@ class UpgradeStep(object):
         """
         try:
             return self.portal.unrestrictedTraverse(brain.getPath())
-        except (AttributeError, KeyError):
-            LOG.warning('The object of the brain with rid {!r} does no longer'
-                        ' exist at the path {!r}; removing the brain.'.format(
+        except (AttributeError, KeyError, NotFound):
+            LOG.warning('The object of the brain with rid {!r} no longer'
+                        ' exists at the path {!r}; removing the brain.'.format(
                             brain.getRID(), brain.getPath()))
             catalog = self.getToolByName('portal_catalog')
             catalog.uncatalog_object(brain.getPath())

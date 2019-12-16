@@ -237,7 +237,7 @@ The ``UpgradeStep`` class has various helper functions:
     In order to disable savepoints completely, you can use ``savepoints=False``.
 
     This method will remove matching brains from the catalog when they are broken
-    because the object of the brain does no longer exist.
+    because the object of the brain no longer exists.
     The progress logger will not compensate for the skipped objects and terminate
     before reaching 100%.
 

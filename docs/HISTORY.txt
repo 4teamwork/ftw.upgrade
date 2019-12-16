@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.15.1 (unreleased)
+2.15.1 (2019-12-16)
 -------------------
 
 - Cleanup broken catalog brains on `NotFound`. [jone]

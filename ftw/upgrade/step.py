@@ -156,8 +156,8 @@ class UpgradeStep(object):
         try:
             return self.portal.unrestrictedTraverse(brain.getPath())
         except (AttributeError, KeyError, NotFound):
-            LOG.warning('The object of the brain with rid {!r} does no longer'
-                        ' exist at the path {!r}; removing the brain.'.format(
+            LOG.warning('The object of the brain with rid {!r} no longer'
+                        ' exists at the path {!r}; removing the brain.'.format(
                             brain.getRID(), brain.getPath()))
             catalog = self.getToolByName('portal_catalog')
             catalog.uncatalog_object(brain.getPath())

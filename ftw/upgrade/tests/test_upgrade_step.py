@@ -258,7 +258,7 @@ class TestUpgradeStep(UpgradeTestCase):
 
     def test_catalog_unrestricted_get_object_removes_dead_brains(self):
         """From time to time there are brains in the catalog for which the
-        object does no longer exist.
+        object no longer exists.
         This can happen because of bugs such as when a "deleted"-event-subscriber
         indexes the object.
 
@@ -285,7 +285,7 @@ class TestUpgradeStep(UpgradeTestCase):
                     'Should return None in order to work well with .objects()')
 
                 testcase.assertIn(
-                    "The object of the brain with rid {!r} does no longer exist"
+                    "The object of the brain with rid {!r} no longer exists"
                     " at the path '/plone/folder'; removing the brain.".format(
                         brain.getRID()),
                     testcase.get_log())
@@ -333,7 +333,7 @@ class TestUpgradeStep(UpgradeTestCase):
 
     def test_catalog_unrestricted_search_filters_nonexisting_objects(self):
         """From time to time there are brains in the catalog for which the
-        object does no longer exist.
+        object no longer exists.
         This can happen because of bugs such as when a "deleted"-event-subscriber
         indexes the object.
 

@@ -11,6 +11,7 @@ import imp
 import inspect
 import os.path
 import re
+import six
 
 
 UPGRADESTEP_DATETIME_REGEX = re.compile(r'^.*/?(\d{14})[^/]*/upgrade.py$')
@@ -89,8 +90,7 @@ class Scanner(object):
                 continue
 
             title = subject_from_docstring(inspect.getdoc(value) or name)
-            if isinstance(title, str):
-                title = title.decode('utf-8')
+            title = six.ensure_text(title)
             yield (title, value)
 
     def _load_upgrades_directory(self):

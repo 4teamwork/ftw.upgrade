@@ -206,7 +206,7 @@ def perform_tempfile_authentication(context, request):
 
 
 def validate_tempfile_authentication_header_value(header_value):
-    if not re.match('^tmp\w{6}:\w{64}', header_value):
+    if not re.match('^tmp\w{6,8}:\w{64}', header_value):
         raise ValueError(
             'tempfile auth: invalid x-ftw.upgrade-tempfile-auth header value.')
 

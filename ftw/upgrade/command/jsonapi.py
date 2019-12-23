@@ -1,4 +1,5 @@
 from __future__ import print_function
+from binascii import hexlify
 from ftw.upgrade.utils import get_tempfile_authentication_directory
 from path import Path
 from requests.auth import AuthBase
@@ -62,8 +63,8 @@ class TempfileAuth(AuthBase):
 
     def _generate_tempfile(self):
         directory = self._get_temp_directory()
-        self.authhash = hmac.new(os.urandom(32).encode('hex'),
-                                 os.urandom(32).encode('hex'),
+        self.authhash = hmac.new(hexlify(os.urandom(32)),
+                                 hexlify(os.urandom(32)),
                                  hashlib.sha256).hexdigest()
         self.authfile = tempfile.NamedTemporaryFile(
             dir=directory)

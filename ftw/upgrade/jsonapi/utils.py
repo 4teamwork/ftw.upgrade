@@ -3,6 +3,7 @@ from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import SpecialUsers
 from Acquisition import aq_inner
 from Acquisition import aq_parent
+from binascii import hexlify
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.jsonapi.exceptions import AbortTransactionWithStreamedResponse
@@ -235,7 +236,7 @@ def get_system_upgrade_user(context):
     acl_users = context.acl_users
     if not acl_users.getUserById('system-upgrade'):
         acl_users.userFolderAddUser(
-            'system-upgrade', os.urandom(16).encode('hex'), ['Manager'], None)
+            'system-upgrade', hexlify(os.urandom(16)), ['Manager'], None)
     return acl_users.getUserById('system-upgrade')
 
 

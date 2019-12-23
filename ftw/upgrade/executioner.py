@@ -168,22 +168,12 @@ class Executioner(object):
         portal = portal_url.getPortalObject()
         adapters = list(getAdapters((portal, portal.REQUEST), IPostUpgrade))
 
-        def _sorter(a, b):
-            name_a = a[0]
-            name_b = b[0]
-
-            if name_a not in profile_order and name_b not in profile_order:
-                return 0
-
-            elif name_a not in profile_order:
+        def sort_key(item):
+            name = item[0]
+            if name not in profile_order:
                 return -1
-
-            elif name_b not in profile_order:
-                return 1
-
             else:
-                return cmp(profile_order.index(name_a),
-                           profile_order.index(name_b))
+                return profile_order.index(name)
 
-        adapters.sort(_sorter)
+        adapters.sort(key=sort_key)
         return [adapter for name, adapter in adapters]

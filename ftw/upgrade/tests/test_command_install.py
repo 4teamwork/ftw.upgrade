@@ -3,11 +3,13 @@ from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from ftw.upgrade.tests.helpers import no_logging_threads
+from imp import reload
 from persistent.list import PersistentList
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
 
 import os
+import six
 import sys
 import transaction
 
@@ -119,12 +121,16 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             # we need to make the system implementation support utf-8 characters.
             # It's the easiest way to just temporarily change the system encoding.
             system_encoding = sys.getdefaultencoding()
-            reload(sys)
-            sys.setdefaultencoding('utf-8')
+            changed_defaultencoding = False
+            if six.PY2 and system_encoding != 'utf-8':
+                reload(sys)
+                sys.setdefaultencoding('utf-8')
+                changed_defaultencoding = True
             try:
                 exitcode, output = self.upgrade_script('install -s plone --proposed')
             finally:
-                sys.setdefaultencoding(system_encoding)
+                if changed_defaultencoding:
+                    sys.setdefaultencoding(system_encoding)
 
             self.assertEquals(0, exitcode, output)
 

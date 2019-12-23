@@ -137,8 +137,7 @@ def install_command(args, requestor):
     with closing(requestor.POST(action, params=params,
                                 stream=True)) as response:
         for line in response.iter_lines(chunk_size=30):
-            if isinstance(line, six.text_type):
-                line = line.encode('utf-8')
+            line = six.ensure_str(line)
 
             print(line)
 

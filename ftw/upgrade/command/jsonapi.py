@@ -14,6 +14,7 @@ import logging
 import os
 import re
 import requests
+import six
 import socket
 import sys
 import tempfile
@@ -68,7 +69,7 @@ class TempfileAuth(AuthBase):
                                  hashlib.sha256).hexdigest()
         self.authfile = tempfile.NamedTemporaryFile(
             dir=directory)
-        self.authfile.write(self.authhash)
+        self.authfile.write(six.ensure_binary(self.authhash))
         self.authfile.flush()
         # Make sure the file is readable by the group, so that the service
         # user running Zope can read it even when it is not the creator.

@@ -182,7 +182,7 @@ class UpgradeTestCase(TestCase):
             timestamp_file = self.portal.portal_resources.resource_overrides.production['timestamp.txt']
             # The data contains text, which should be a DateTime.
             # Convert it to an actual DateTime object so we can be sure when comparing it.
-            return DateTime(timestamp_file.data)
+            return DateTime(timestamp_file.data.decode('utf8'))
 
         timestamp = get_timestamp()
         yield

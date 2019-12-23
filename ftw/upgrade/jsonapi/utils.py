@@ -126,7 +126,7 @@ def jsonify(func):
             return result
 
         response.setHeader('Content-Type', 'application/json; charset=utf-8')
-        return json.dumps(result, indent=4, encoding='utf-8') + '\n'
+        return json.dumps(result, indent=4) + '\n'
 
     json_wrapper.__doc__ = func.__doc__
     json_wrapper.__name__ = func.__name__

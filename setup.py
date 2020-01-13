@@ -3,6 +3,16 @@ import os
 
 version = '2.15.2.dev0'
 
+if sys.version_info[0] == 2:
+    pyversion_requires = [
+        'setuptools < 45',
+        'more-itertools < 6.0'
+    ]
+else:
+    pyversion_requires = [
+        'setuptools'
+    ]
+
 tests_require = [
     'ftw.testing >= 1.8.1',
     'ftw.testbrowser',
@@ -58,7 +68,6 @@ setup(name='ftw.upgrade',
         'inflection',
         'path.py >= 6.2',
         'requests',
-        'setuptools',
         'tarjan',
 
         # Zope
@@ -78,7 +87,7 @@ setup(name='ftw.upgrade',
         'plone.browserlayer',
         'Products.CMFCore',
         'Products.CMFPlone',
-        ],
+        ] + pyversion_requires,
 
       tests_require=tests_require,
       extras_require=extras_require,

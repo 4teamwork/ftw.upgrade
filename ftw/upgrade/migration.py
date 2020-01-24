@@ -259,11 +259,18 @@ class InplaceMigrator(object):
 
         old_key = IKeyReference(old_object)
         new_key = IKeyReference(new_object)
-        uid = self._intids.ids[old_key]
+        try:
+            uid = self._intids.ids[old_key]
+        except KeyError:
+            # Key was missing in catalog
+            uid = self._intids.register(new_object)
+            LOG.info('Add previously unregistered object to IIntIds catalog %s', new_object)
+        else:
+            del self._intids.ids[old_key]
+        finally:
+            self._intids.refs[uid] = new_key
+            self._intids.ids[new_key] = uid
 
-        self._intids.refs[uid] = new_key
-        self._intids.ids[new_key] = uid
-        del self._intids.ids[old_key]
 
     def migrate_attributes(self, old_object, new_object):
         old_object = aq_base(old_object)

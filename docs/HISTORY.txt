@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.15.2 (unreleased)
+2.15.2 (2020-01-27)
 -------------------
 
 - Fix missing values in IntIds catalog as we go within migrate_intid(). [djowett-ftw]

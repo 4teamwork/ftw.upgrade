@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-2.15.3 (unreleased)
+2.16.0 (2020-02-14)
 -------------------
 
 - Allow additional indexes to be reindexed in the WorkflowChainUpdater. [tinagerber]

@@ -13,12 +13,13 @@ LOG = logging.getLogger('ftw.upgrade.WorkflowChainUpdater')
 class WorkflowChainUpdater(object):
 
     def __init__(self, objects, review_state_mapping, update_security=True,
-                 migrate_workflow_history=True, transition_mapping=None):
+                 migrate_workflow_history=True, transition_mapping=None, indexes=None):
         self.objects = tuple(objects)
         self.review_state_mapping = review_state_mapping
         self.update_security = update_security
         self.migrate_workflow_history = migrate_workflow_history
         self.transition_mapping = transition_mapping or {}
+        self.indexes = list(indexes or []) + ['review_state']
         self.started = False
         self.wfs_and_states_before = None
 
@@ -109,7 +110,7 @@ class WorkflowChainUpdater(object):
 
             if self.update_security:
                 update_security_for(obj, reindex_security=True)
-                obj.reindexObject(idxs=['review_state'])
+                obj.reindexObject(idxs=self.indexes)
 
     def _get_workflow_id_for(self, context, wftool):
         workflows = wftool.getWorkflowsFor(context)

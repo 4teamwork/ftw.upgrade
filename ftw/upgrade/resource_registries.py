@@ -5,8 +5,13 @@ from zope.component.hooks import getSite
 
 
 def recook_resources():
+    site = getSite()
     for name in ('portal_css', 'portal_javascripts'):
-        registry = getToolByName(getSite(), name)
+        try:
+            registry = getToolByName(site, name)
+        except AttributeError:
+            # Plone 5.2+ without the old-style resource registries
+            continue
         registry.cookResources()
 
     # Plone 5: clear all bundles

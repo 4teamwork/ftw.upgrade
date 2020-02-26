@@ -5,6 +5,9 @@ Changelog
 2.16.1 (unreleased)
 -------------------
 
+- Do not cook resources in ``portal_css`` and ``portal_javascripts`` when these tools do not exist.
+  This is needed for Plone 5.2.  [maurits]
+
 - Start on Plone 5.2 support by also looking for the instance port number in ``wsgi.ini``.  [maurits]
 
 

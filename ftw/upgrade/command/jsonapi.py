@@ -212,11 +212,19 @@ def get_running_instance(buildout_path):
 
 
 def find_instance_zconfs(buildout_path):
-    return sorted(buildout_path.glob('parts/*/etc/zope.conf'))
+    return sorted(
+        buildout_path.glob('parts/*/etc/zope.conf')
+        + buildout_path.glob('parts/*/etc/wsgi.ini')
+    )
 
 
 def get_instance_port(zconf):
+    # zope.conf
     match = re.search(r'\saddress ([\d.]*:)?(\d+)', zconf.text())
+    if match:
+        return int(match.group(2))
+    # wsgi.ini
+    match = re.search(r'\slisten = ([\d.]*:)?(\d+)', zconf.text())
     if match:
         return int(match.group(2))
     return None

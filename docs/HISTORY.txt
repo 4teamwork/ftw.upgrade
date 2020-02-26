@@ -5,7 +5,7 @@ Changelog
 2.16.1 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Start on Plone 5.2 support by also looking for the instance port number in ``wsgi.ini``.  [maurits]
 
 
 2.16.0 (2020-02-14)

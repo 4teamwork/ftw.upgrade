@@ -6,6 +6,7 @@ Changelog
 ------------------
 
 - Add support for Plone 5.2 and Python 3. [buchi]
+- Also look for the instance port number in ``wsgi.ini``.  [maurits]
 
 
 2.16.0 (2020-02-14)

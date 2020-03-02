@@ -165,9 +165,9 @@ class UpgradeTestCase(TestCase):
     def assert_resources_recooked(self):
         def get_resources():
             doc = lxml.html.fromstring(self.portal())
-            return list(map(str.strip, map(lxml.html.tostring,
+            return list(map(str.strip, map(six.ensure_str, map(lxml.html.tostring,
                             doc.xpath('//link[@rel="stylesheet"][@href]'
-                                      ' | //script[@src]'))))
+                                      ' | //script[@src]')))))
 
         resources = get_resources()
         yield

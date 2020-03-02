@@ -168,7 +168,7 @@ class UpgradeCommand(object):
                     break
             if getattr(args, 'json', False):
                 # Pretty print the output of all sites.
-                print((json.dumps(info, indent=4, encoding='utf-8')))
+                print((json.dumps(info, indent=4)))
         else:
             args.func(args)
 

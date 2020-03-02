@@ -104,4 +104,4 @@ class Scanner(object):
         except ImportError:
             pass
         else:
-            imp.load_module(self.dottedname, fp, pathname, description)
+            imp.load_module(self.dottedname, fp, str(pathname), description)

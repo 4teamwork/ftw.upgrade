@@ -106,19 +106,25 @@ class TestManageUpgrades(UpgradeTestCase):
         self.portal_url = self.layer['portal'].portal_url()
         self.portal = self.layer['portal']
 
+    def assertEqualURL(self, first, second, msg=None):
+        # WebOb generates requests that always contain the port even for the
+        # default port 80.
+        return self.assertEqual(
+            first.replace(':80', ''), second.replace(':80', ''), msg)
+
     @browsing
     def test_registered_in_controlpanel(self, browser):
         browser.login(SITE_OWNER_NAME).open(view='overview-controlpanel')
         link = browser.css('#content').find('Upgrades').first
-        self.assertEqual(self.portal_url + '/@@manage-upgrades', link.attrib['href'])
+        self.assertEqualURL(self.portal_url + '/@@manage-upgrades', link.attrib['href'])
 
     @browsing
     def test_manage_view_renders(self, browser):
         browser.login(SITE_OWNER_NAME).open(view='manage-upgrades')
 
         up_link = browser.css('#content').find('Up to Site Setup').first
-        self.assertEqual(self.portal_url + '/@@overview-controlpanel',
-                         up_link.attrib['href'])
+        self.assertEqualURL(self.portal_url + '/@@overview-controlpanel',
+                            up_link.attrib['href'])
 
         self.assertTrue(browser.css('input[value="plone.app.discussion:default"]').first)
 

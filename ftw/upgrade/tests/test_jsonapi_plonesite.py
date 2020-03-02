@@ -563,9 +563,9 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
     @browsing
     def test_plone_upgrade_needed(self, browser):
         self.api_request('GET', 'plone_upgrade_needed')
-        self.assertEquals('false', browser.contents.strip())
+        self.assertEquals(False, browser.json)
 
         self.portal_setup.setLastVersionForProfile(_DEFAULT_PROFILE, '4')
         transaction.commit()
         self.api_request('GET', 'plone_upgrade_needed')
-        self.assertEquals('true', browser.contents.strip())
+        self.assertEquals(True, browser.json)

@@ -5,6 +5,8 @@ from ftw.upgrade.command.jsonapi import error_handling
 from ftw.upgrade.command.jsonapi import with_api_requestor
 from ftw.upgrade.command.terminal import TERMINAL
 
+import six
+
 
 DOCS = """
 {t.bold}DESCRIPTION:{t.normal}
@@ -38,4 +40,4 @@ def sites_command(args, requestor):
         print(response.text)
     else:
         for site in response.json():
-            print(site['path'].ljust(20), site['title'].encode('utf-8'))
+            print(site['path'].ljust(20), six.ensure_str(site['title']))

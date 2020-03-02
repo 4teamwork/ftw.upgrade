@@ -115,17 +115,17 @@ class ManageUpgrades(BrowserView):
         response = self.request.RESPONSE
         response.setHeader('Content-Type', 'text/html')
         response.setHeader('Transfer-Encoding', 'chunked')
-        response.write('<html>')
-        response.write('<body>')
-        response.write('  ' * getattr(response, 'http_chunk_size', 100))
-        response.write('<pre>')
+        response.write(b'<html>')
+        response.write(b'<body>')
+        response.write(b'  ' * getattr(response, 'http_chunk_size', 100))
+        response.write(b'<pre>')
 
         with ResponseLogger(self.request.RESPONSE):
             self.install()
 
-        response.write('</pre>')
-        response.write('</body>')
-        response.write('</html>')
+        response.write(b'</pre>')
+        response.write(b'</body>')
+        response.write(b'</html>')
 
     security.declarePrivate('get_data')
     def get_data(self):

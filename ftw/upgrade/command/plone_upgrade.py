@@ -34,8 +34,8 @@ def setup_argparser(commands):
 
 # expected output
 expected = (
-    u'Plone Site was already up to date.',
-    u'Plone Site has been updated.')
+    b'Plone Site was already up to date.',
+    b'Plone Site has been updated.')
 
 
 @with_api_requestor

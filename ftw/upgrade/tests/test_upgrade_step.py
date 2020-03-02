@@ -485,7 +485,7 @@ class TestUpgradeStep(UpgradeTestCase):
                 testcase.assertEqual(('foo', 'bar', 'baz'),
                                      self.portal.getProperty(key))
 
-                self.set_property(self.portal, key, ('foo'))
+                self.set_property(self.portal, key, ('foo',))
                 testcase.assertEqual(('foo',),
                                      self.portal.getProperty(key))
 
@@ -682,20 +682,20 @@ class TestUpgradeStep(UpgradeTestCase):
                     'Products.CMFPlacefulWorkflow:CMFPlacefulWorkflow'))
 
     def test_uninstall_product(self):
-        quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
-        quickinstaller.installProduct('CMFPlacefulWorkflow')
-
-        def installed_products():
-            for product in quickinstaller.listInstalledProducts():
-                yield product['id']
+        quickinstaller = get_installer(self.portal, self.portal.REQUEST)
+        quickinstaller.install_product('CMFPlacefulWorkflow')
 
         class Step(UpgradeStep):
             def __call__(self):
                 self.uninstall_product('CMFPlacefulWorkflow')
 
-        self.assertIn('CMFPlacefulWorkflow', installed_products())
+        self.assertTrue(
+            quickinstaller.is_product_installed('CMFPlacefulWorkflow'),
+            'CMFPlacefulWorkflow should be installed')
         Step(self.portal_setup)
-        self.assertNotIn('CMFPlacefulWorkflow', installed_products())
+        self.assertFalse(
+            quickinstaller.is_product_installed('CMFPlacefulWorkflow'),
+            'CMFPlacefulWorkflow should not be installed')
 
     def test_migrate_class(self):
         folder = create(Builder('folder'))

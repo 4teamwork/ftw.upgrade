@@ -10,6 +10,7 @@ from Products.CMFCore.utils import getToolByName
 from unittest import skipIf
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
+from Products.CMFPlone.utils import getFSVersionTuple
 
 import transaction
 
@@ -115,6 +116,7 @@ class TestExecutioner(UpgradeTestCase):
             with self.assert_resources_recooked():
                 self.install_profile_upgrades('the.package:default')
 
+    @skipIf(getFSVersionTuple() > (5, 1), 'QuickInstaller has been deprecated in Plone 5.1')
     def test_updates_quickinstaller_version(self):
         quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
 

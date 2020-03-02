@@ -15,6 +15,7 @@ from plone.portlets.interfaces import IPortletManagerRenderer
 from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.ActionInformation import ActionInformation
 from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.utils import get_installer
 from Products.ZCatalog.ProgressHandler import ZLogHandler
 from zExceptions import NotFound
 from zope.browser.interfaces import IBrowserView
@@ -343,16 +344,16 @@ class UpgradeStep(object):
     def is_product_installed(self, product_name):
         """Check whether a product is installed.
         """
-        quickinstaller = self.getToolByName('portal_quickinstaller')
-        return quickinstaller.isProductInstallable(product_name) and \
-            quickinstaller.isProductInstalled(product_name)
+        quickinstaller = get_installer(self.portal, self.portal.REQUEST)
+        return quickinstaller.is_product_installable(product_name) and \
+            quickinstaller.is_product_installed(product_name)
 
     security.declarePrivate('uninstall_product')
     def uninstall_product(self, product_name):
         """Uninstalls a product using the quick installer.
         """
-        quickinstaller = self.getToolByName('portal_quickinstaller')
-        quickinstaller.uninstallProducts([product_name])
+        quickinstaller = get_installer(self.portal, self.portal.REQUEST)
+        quickinstaller.uninstall_product(product_name)
 
     security.declarePrivate('migrate_class')
     def migrate_class(self, obj, new_class):

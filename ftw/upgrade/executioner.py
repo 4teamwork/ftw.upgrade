@@ -11,6 +11,7 @@ from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
 from ftw.upgrade.utils import optimize_memory_usage
 from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.utils import get_installer
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import _upgrade_registry
 from zope.component import adapts
@@ -123,15 +124,15 @@ class Executioner(object):
         except KeyError:
             return
 
-        quickinstaller = getToolByName(self.portal_setup,
-                                       'portal_quickinstaller')
+        quickinstaller = get_installer(
+            self.portal_setup, self.portal_setup.REQUEST)
         product = profileinfo['product']
-        if not quickinstaller.isProductInstalled(product):
+        if not quickinstaller.is_product_installed(product):
             return
 
-        version = quickinstaller.getProductVersion(product)
-        if version:
-            quickinstaller.get(product).installedversion = version
+        # version = quickinstaller.get_product_version(product)
+        # if version:
+        #     quickinstaller.get(product).installedversion = version
 
     security.declarePrivate('_do_upgrade')
     def _do_upgrade(self, profileid, upgradeid):

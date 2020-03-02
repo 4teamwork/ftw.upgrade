@@ -20,8 +20,13 @@ from unittest import skipIf
 from zope.interface import alsoProvides
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
+from Products.CMFPlone.utils import get_installer
 
 import pkg_resources
+
+ALLOWED_ROLES_AND_USERS_PERMISSION = 'View'
+if getFSVersionTuple() > (5, 2):
+    ALLOWED_ROLES_AND_USERS_PERMISSION = 'Access contents information'
 
 
 class IMyProductLayer(Interface):
@@ -836,7 +841,8 @@ class TestUpgradeStep(UpgradeTestCase):
                           self.get_allowed_roles_and_users_for(folder))
         folder.reindexObjectSecurity()
 
-        folder.manage_permission('View', roles=['Reader'], acquire=False)
+        folder.manage_permission(
+            ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
 
         self.assertEquals(['Reader'],
@@ -859,7 +865,8 @@ class TestUpgradeStep(UpgradeTestCase):
         self.assertEquals(['Anonymous'],
                           self.get_allowed_roles_and_users_for(folder))
 
-        folder.manage_permission('View', roles=['Reader'], acquire=False)
+        folder.manage_permission(
+            ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
 
         self.assertEquals(['Reader'],
@@ -894,7 +901,8 @@ class TestUpgradeStep(UpgradeTestCase):
                                 to_workflow='plone_workflow')
         folder = create(Builder('folder').in_state('published'))
 
-        folder.manage_permission('View', roles=['Reader'], acquire=False)
+        folder.manage_permission(
+            ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
         self.assertEquals(['Reader'],
                           self.get_allowed_roles_and_users_for(folder))

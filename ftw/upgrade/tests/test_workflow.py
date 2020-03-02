@@ -5,6 +5,11 @@ from ftw.upgrade.tests.base import WorkflowTestCase
 from ftw.upgrade.workflow import WorkflowChainUpdater
 from ftw.upgrade.workflow import WorkflowSecurityUpdater
 from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.utils import getFSVersionTuple
+
+ALLOWED_ROLES_AND_USERS_PERMISSION = 'View'
+if getFSVersionTuple() > (5, 2):
+    ALLOWED_ROLES_AND_USERS_PERMISSION = 'Access contents information'
 
 
 class TestWorkflowChainUpdater(WorkflowTestCase):
@@ -221,7 +226,8 @@ class TestWorkflowSecurityUpdater(WorkflowTestCase):
         self.set_workflow_chain(for_type='Folder',
                                 to_workflow='folder_workflow')
         folder = create(Builder('folder'))
-        folder.manage_permission('View', roles=['Reader'], acquire=False)
+        folder.manage_permission(
+            ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
         self.assertEquals(['Reader'],
                           self.get_allowed_roles_and_users(for_object=folder))

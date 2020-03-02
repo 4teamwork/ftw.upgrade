@@ -2,6 +2,12 @@ from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.helpers import update_security_for
 from ftw.upgrade.tests.base import WorkflowTestCase
+from Products.CMFPlone.utils import getFSVersionTuple
+
+
+ALLOWED_ROLES_AND_USERS_PERMISSION = 'View'
+if getFSVersionTuple() > (5, 2):
+    ALLOWED_ROLES_AND_USERS_PERMISSION = 'Access contents information'
 
 
 class TestUpdateSecurity(WorkflowTestCase):
@@ -40,7 +46,8 @@ class TestUpdateSecurity(WorkflowTestCase):
                           self.get_allowed_roles_and_users(folder))
         folder.reindexObjectSecurity()
 
-        folder.manage_permission('View', roles=['Reader'], acquire=False)
+        folder.manage_permission(
+            ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
 
         self.assertEquals(['Reader'],
@@ -60,7 +67,8 @@ class TestUpdateSecurity(WorkflowTestCase):
         self.assertEquals(['Anonymous'],
                           self.get_allowed_roles_and_users(folder))
 
-        folder.manage_permission('View', roles=['Reader'], acquire=False)
+        folder.manage_permission(
+            ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
 
         self.assertEquals(['Reader'],

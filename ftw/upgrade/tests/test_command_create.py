@@ -2,6 +2,8 @@ from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.tests.base import CommandTestCase
 
+import six
+
 
 class TestCreateCommand(CommandTestCase):
 
@@ -20,7 +22,7 @@ class TestCreateCommand(CommandTestCase):
                 upgrades_dir.listdir()))
 
         step_path, = upgrades_dir.listdir()
-        self.assertRegexpMatches(step_path.name, r'^\d{14}_add_controlpanel_action$')
+        six.assertRegex(self, step_path.name, r'^\d{14}_add_controlpanel_action$')
 
         code_path = step_path.joinpath('upgrade.py')
         self.assertTrue(code_path.exists(), 'upgrade.py is missing')
@@ -62,8 +64,8 @@ class TestCreateCommand(CommandTestCase):
 
         upgrades_dir = package.package_path.joinpath('upgrades')
         step_path, = upgrades_dir.listdir()
-        self.assertRegexpMatches(step_path.name,
-                                 r'^\d{14}_update_ftw_upgrade_to_version_3$')
+        six.assertRegex(
+            self, step_path.name, r'^\d{14}_update_ftw_upgrade_to_version_3$')
 
         code_path = step_path.joinpath('upgrade.py')
         self.assertTrue(code_path.exists(), 'upgrade.py is missing')

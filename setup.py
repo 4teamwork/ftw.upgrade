@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 import os
 
-version = '2.16.1.dev0'
+version = '3.0.0.dev0'
 
 tests_require = [
-    'ftw.testing >= 1.8.1',
-    'ftw.testbrowser',
-    'ftw.builder >= 1.6.0',
+    'ftw.testing >= 2.0.0.dev0',
+    'ftw.testbrowser >= 2.1.0.dev0',
+    'ftw.builder >= 2.0.0.dev0',
     'plone.testing',
     'plone.app.testing',
     'plone.app.intid',
@@ -36,6 +36,10 @@ setup(name='ftw.upgrade',
         'Framework :: Plone',
         'Framework :: Plone :: 4.3',
         'Framework :: Plone :: 5.1',
+        'Framework :: Plone :: 5.2',
+        'Programming Language :: Python',
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.7",
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU General Public License (GPL)',
         'Programming Language :: Python',

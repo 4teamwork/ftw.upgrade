@@ -49,9 +49,9 @@ class TestResponseLogger(TestCase):
         response.seek(0)
         output = response.read().strip()
         # Dynamically replace paths so that it works on all machines
-        output = re.sub(rb'(File ").*(ftw/upgrade/.*")',
-                        rb'\1/.../\2', output)
-        output = re.sub(rb'(line )\d*', rb'line XX', output)
+        output = re.sub(br'(File ").*(ftw/upgrade/.*")',
+                        br'\1/.../\2', output)
+        output = re.sub(br'(line )\d*', br'line XX', output)
 
         self.assertEqual(
             [b'FAILED',
@@ -84,9 +84,9 @@ class TestResponseLogger(TestCase):
         response.seek(0)
         output = response.read().strip()
         # Dynamically replace paths so that it works on all machines
-        output = re.sub(rb'(File ").*(ftw/upgrade/.*")',
-                        rb'\1/.../\2', output)
-        output = re.sub(rb'(line )\d*', rb'line XX', output)
+        output = re.sub(br'(File ").*(ftw/upgrade/.*")',
+                        br'\1/.../\2', output)
+        output = re.sub(br'(line )\d*', br'line XX', output)
 
         self.assertEqual(
             [b'FAILED',

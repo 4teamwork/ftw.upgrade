@@ -66,10 +66,10 @@ class TestPostUpgrade(UpgradeTestCase):
                      ('the.package:addon', 'the.package:product',
                       'the.package:customization')))
 
-            self.assertEquals([], execution_order)
+            self.assertEqual([], execution_order)
             self.install_profile_upgrades('the.package:customization')
 
-            self.assertEquals(['the.package:addon',
-                               'the.package:product',
-                               'the.package:customization'],
-                              execution_order)
+            self.assertEqual(['the.package:addon',
+                              'the.package:product',
+                              'the.package:customization'],
+                             execution_order)

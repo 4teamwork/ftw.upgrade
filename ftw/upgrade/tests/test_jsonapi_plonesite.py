@@ -140,7 +140,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                                    message='Method Not Allowed',
                                    details='Action requires GET'):
             self.api_request('POST', 'get_profile', {'profileid': 'the.package:default'})
-        self.assertEquals('GET', browser.headers.get('allow'))
+        self.assertEqual('GET', browser.headers.get('allow'))
 
     @browsing
     def test_get_unkown_profile_returns_error(self, browser):
@@ -369,7 +369,7 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
                                    message='Method Not Allowed',
                                    details='Action requires POST'):
             self.api_request('GET', 'execute_upgrades', {'upgrades:list': 'foo@bar:default'})
-        self.assertEquals('POST', browser.headers.get('allow'))
+        self.assertEqual('POST', browser.headers.get('allow'))
 
     @browsing
     def test_execute_upgrades_not_allowed_when_plone_outdated(self, browser):
@@ -563,9 +563,9 @@ class TestPloneSiteJsonApi(JsonApiTestCase):
     @browsing
     def test_plone_upgrade_needed(self, browser):
         self.api_request('GET', 'plone_upgrade_needed')
-        self.assertEquals(False, browser.json)
+        self.assertEqual(False, browser.json)
 
         self.portal_setup.setLastVersionForProfile(_DEFAULT_PROFILE, '4')
         transaction.commit()
         self.api_request('GET', 'plone_upgrade_needed')
-        self.assertEquals(True, browser.json)
+        self.assertEqual(True, browser.json)

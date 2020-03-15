@@ -244,7 +244,7 @@ class WorkflowTestCase(TestCase):
             review_state = wftool.getInfoFor(obj, 'review_state')
             got[obj] = review_state
 
-        self.assertEquals(
+        self.assertEqual(
             expected, got, 'Unexpected workflow states')
 
     def set_workflow_chain(self, for_type, to_workflow):
@@ -255,7 +255,7 @@ class WorkflowTestCase(TestCase):
     def assertSecurityIsUpToDate(self):
         wftool = getToolByName(self.portal, 'portal_workflow')
         updated_objects = wftool.updateRoleMappings()
-        self.assertEquals(
+        self.assertEqual(
             0, updated_objects,
             'Expected all objects to have an up to date security, but'
             ' there were some which were not up to date.')

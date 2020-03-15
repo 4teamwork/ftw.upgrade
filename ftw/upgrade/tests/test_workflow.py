@@ -76,7 +76,7 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
             self.set_workflow_chain(for_type='Folder',
                                     to_workflow='plone_workflow')
 
-        self.assertEquals(
+        self.assertEqual(
             ['Anonymous'],
             self.get_allowed_roles_and_users(for_object=container))
 
@@ -190,7 +190,7 @@ class TestWorkflowChainUpdater(WorkflowTestCase):
     def assert_workflow_history_length(self, context, length):
         wftool = getToolByName(self.layer['portal'], 'portal_workflow')
         history = wftool.getInfoFor(context, 'review_history')
-        self.assertEquals(
+        self.assertEqual(
             length, len(history),
             'Workflow history length is wrong.\n{0}'.format(history))
 
@@ -229,17 +229,17 @@ class TestWorkflowSecurityUpdater(WorkflowTestCase):
         folder.manage_permission(
             ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
-        self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users(for_object=folder))
+        self.assertEqual(['Reader'],
+                         self.get_allowed_roles_and_users(for_object=folder))
 
         updater = WorkflowSecurityUpdater()
         updater.update(['folder_workflow'], reindex_security=False)
-        self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users(for_object=folder))
+        self.assertEqual(['Reader'],
+                         self.get_allowed_roles_and_users(for_object=folder))
 
         updater.update(['folder_workflow'], reindex_security=True)
-        self.assertEquals(['Anonymous'],
-                          self.get_allowed_roles_and_users(for_object=folder))
+        self.assertEqual(['Anonymous'],
+                         self.get_allowed_roles_and_users(for_object=folder))
 
     def test_respects_placeful_workflows_when_updating(self):
         container = create(Builder('folder'))

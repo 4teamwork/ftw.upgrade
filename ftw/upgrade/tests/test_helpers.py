@@ -42,21 +42,21 @@ class TestUpdateSecurity(WorkflowTestCase):
         folder = create(Builder('folder')
                         .in_state('published'))
 
-        self.assertEquals(['Anonymous'],
-                          self.get_allowed_roles_and_users(folder))
+        self.assertEqual(['Anonymous'],
+                         self.get_allowed_roles_and_users(folder))
         folder.reindexObjectSecurity()
 
         folder.manage_permission(
             ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
 
-        self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users(folder))
+        self.assertEqual(['Reader'],
+                         self.get_allowed_roles_and_users(folder))
 
         update_security_for(folder)
 
-        self.assertEquals(['Anonymous'],
-                          self.get_allowed_roles_and_users(folder))
+        self.assertEqual(['Anonymous'],
+                         self.get_allowed_roles_and_users(folder))
 
     def test_without_reindexing_security(self):
         self.set_workflow_chain(for_type='Folder',
@@ -64,17 +64,17 @@ class TestUpdateSecurity(WorkflowTestCase):
         folder = create(Builder('folder')
                         .in_state('published'))
 
-        self.assertEquals(['Anonymous'],
-                          self.get_allowed_roles_and_users(folder))
+        self.assertEqual(['Anonymous'],
+                         self.get_allowed_roles_and_users(folder))
 
         folder.manage_permission(
             ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
 
-        self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users(folder))
+        self.assertEqual(['Reader'],
+                         self.get_allowed_roles_and_users(folder))
 
         update_security_for(folder, reindex_security=False)
 
-        self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users(folder))
+        self.assertEqual(['Reader'],
+                         self.get_allowed_roles_and_users(folder))

@@ -265,7 +265,7 @@ class TestInplaceMigrator(UpgradeTestCase):
         InplaceMigrator('Folder', {'title': 'description'},
                         ignore_fields=['description']).migrate_object(folder)
         folder = self.portal.get(folder.getId())
-        self.assertEquals(u'The Title', folder.Description())
+        self.assertEqual(u'The Title', folder.Description())
 
     def test_DISABLE_FIELD_AUTOMAPPING_flag(self):
         """When disabling field automapping we expect unmaped fields.
@@ -304,7 +304,7 @@ class TestInplaceMigrator(UpgradeTestCase):
                 options=DISABLE_FIELD_AUTOMAPPING | BACKUP_AND_IGNORE_UNMAPPED_FIELDS)
             .migrate_object(folder))
 
-        self.assertEquals(
+        self.assertEqual(
             {'nextPreviousEnabled': False,
              'description': u'A very fancy folder.',
              'contributors': (),
@@ -380,8 +380,8 @@ class TestInplaceMigrator(UpgradeTestCase):
         folder.changeOwnership(peter.getUser())
 
         self.assertTrue(IBaseObject.providedBy(folder))
-        self.assertEquals('john.doe', folder.Creator())
-        self.assertEquals('peter.pan', folder.getOwner().getId())
+        self.assertEqual('john.doe', folder.Creator())
+        self.assertEqual('peter.pan', folder.getOwner().getId())
 
         self.grant('Manager')
         self.install_profile('plone.app.contenttypes:default')
@@ -390,8 +390,8 @@ class TestInplaceMigrator(UpgradeTestCase):
 
         folder = self.portal.get('the-folder')
         self.assertTrue(IDexterityContent.providedBy(folder))
-        self.assertEquals('john.doe', folder.Creator())
-        self.assertEquals('peter.pan', folder.getOwner().getId())
+        self.assertEqual('john.doe', folder.Creator())
+        self.assertEqual('peter.pan', folder.getOwner().getId())
 
     def test_migrate_ownership_no_IOwner(self):
         john = create(Builder('user').named('John', 'Doe').with_roles('Manager'))
@@ -402,8 +402,8 @@ class TestInplaceMigrator(UpgradeTestCase):
         folder.changeOwnership(peter.getUser())
 
         self.assertTrue(IBaseObject.providedBy(folder))
-        self.assertEquals('john.doe', folder.Creator())
-        self.assertEquals('peter.pan', folder.getOwner().getId())
+        self.assertEqual('john.doe', folder.Creator())
+        self.assertEqual('peter.pan', folder.getOwner().getId())
 
         self.grant('Manager')
         self.install_profile('plone.app.contenttypes:default')
@@ -419,8 +419,8 @@ class TestInplaceMigrator(UpgradeTestCase):
 
         folder = self.portal.get('the-folder')
         self.assertTrue(IDexterityContent.providedBy(folder))
-        self.assertEquals('john.doe', folder.Creator())
-        self.assertEquals('peter.pan', folder.getOwner().getId())
+        self.assertEqual('john.doe', folder.Creator())
+        self.assertEqual('peter.pan', folder.getOwner().getId())
 
     def test_migrate_object_position(self):
         self.grant('Manager')
@@ -429,11 +429,11 @@ class TestInplaceMigrator(UpgradeTestCase):
         two = create(Builder('folder').titled(u'Two').within(container))
         three = create(Builder('folder').titled(u'Three').within(container))
 
-        self.assertEquals(
+        self.assertEqual(
             [0, 1, 2],
             list(map(container.getObjectPosition, ('one', 'two', 'three'))))
         container.moveObjectsByDelta(['three'], -1)
-        self.assertEquals(
+        self.assertEqual(
             [0, 2, 1],
             list(map(container.getObjectPosition, ('one', 'two', 'three'))))
 
@@ -444,7 +444,7 @@ class TestInplaceMigrator(UpgradeTestCase):
         InplaceMigrator('Folder').migrate_object(one)
         container = self.portal.get('container')
 
-        self.assertEquals(
+        self.assertEqual(
             [0, 2, 1],
             list(map(container.getObjectPosition, ('one', 'two', 'three'))))
 
@@ -456,17 +456,17 @@ class TestInplaceMigrator(UpgradeTestCase):
                          .within(folder)
                          .in_manager('plone.rightcolumn'))
 
-        self.assertEquals({'plone.leftcolumn': [],
-                           'plone.rightcolumn': [portlet]},
-                          self.get_portlets_for(folder))
+        self.assertEqual({'plone.leftcolumn': [],
+                          'plone.rightcolumn': [portlet]},
+                         self.get_portlets_for(folder))
 
         self.install_profile('plone.app.contenttypes:default')
         InplaceMigrator('Folder').migrate_object(folder)
 
         folder = self.portal.get('the-folder')
-        self.assertEquals({'plone.leftcolumn': [],
-                           'plone.rightcolumn': [portlet]},
-                          self.get_portlets_for(folder))
+        self.assertEqual({'plone.leftcolumn': [],
+                          'plone.rightcolumn': [portlet]},
+                         self.get_portlets_for(folder))
 
     def test_migrate_relations(self):
         self.grant('Manager')
@@ -475,8 +475,8 @@ class TestInplaceMigrator(UpgradeTestCase):
         bar = create(Builder('folder').titled(u'Bar')
                      .having(relatedItems=[foo]))
 
-        self.assertEquals([foo], bar.getRelatedItems())
-        self.assertEquals([bar], foo.getBackReferences())
+        self.assertEqual([foo], bar.getRelatedItems())
+        self.assertEqual([bar], foo.getBackReferences())
 
         self.install_profile('plone.app.contenttypes:default')
         list(map(InplaceMigrator('Folder').migrate_object, (foo, bar)))
@@ -484,7 +484,7 @@ class TestInplaceMigrator(UpgradeTestCase):
         foo = self.portal.get('foo')
         bar = self.portal.get('bar')
 
-        self.assertEquals(
+        self.assertEqual(
             [foo],
             list(map(attrgetter('to_object'), IRelatedItems(bar).relatedItems)))
 
@@ -513,7 +513,7 @@ class TestInplaceMigrator(UpgradeTestCase):
                     ctypes.getImmediatelyAddableTypes())}
 
     def set_constraintypes_config(self, obj, config):
-        self.assertEquals(
+        self.assertEqual(
             {'mode', 'locally allowed', 'immediately addable'},
             set(config))
 

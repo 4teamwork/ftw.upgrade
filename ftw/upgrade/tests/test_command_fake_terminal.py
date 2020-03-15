@@ -12,41 +12,41 @@ class TestFakeTerminal(TestCase):
 
     def test_concatenating_colors(self):
         term = FakeTerminal()
-        self.assertEquals(
+        self.assertEqual(
             'foo',
             term.standout + term.green + term.red_bold + 'foo' + term.normal)
 
     def test_calling_colors(self):
         term = FakeTerminal()
-        self.assertEquals(
+        self.assertEqual(
             'foo',
             term.red_bold(term.standout('foo')))
 
     def test_length(self):
-        self.assertEquals(3, FakeTerminal().length('foo'))
+        self.assertEqual(3, FakeTerminal().length('foo'))
 
     def test_ljust(self):
-        self.assertEquals(TERMINAL.ljust('foo', 10),
-                          FakeTerminal().ljust('foo', 10))
-        self.assertEquals(TERMINAL.ljust(u'foo', 10),
-                          FakeTerminal().ljust(u'foo', 10))
+        self.assertEqual(TERMINAL.ljust('foo', 10),
+                         FakeTerminal().ljust('foo', 10))
+        self.assertEqual(TERMINAL.ljust(u'foo', 10),
+                         FakeTerminal().ljust(u'foo', 10))
 
     def test_rjust(self):
-        self.assertEquals(TERMINAL.rjust('foo', 10),
-                          FakeTerminal().rjust('foo', 10))
+        self.assertEqual(TERMINAL.rjust('foo', 10),
+                         FakeTerminal().rjust('foo', 10))
 
     def test_center(self):
-        self.assertEquals(TERMINAL.center('foo', 10),
-                          FakeTerminal().center('foo', 10))
+        self.assertEqual(TERMINAL.center('foo', 10),
+                         FakeTerminal().center('foo', 10))
 
     def test_strip(self):
-        self.assertEquals(TERMINAL.strip('  foo  '),
-                          FakeTerminal().strip('  foo  '))
+        self.assertEqual(TERMINAL.strip('  foo  '),
+                         FakeTerminal().strip('  foo  '))
 
     def test_rstrip(self):
-        self.assertEquals(TERMINAL.rstrip('  foo  '),
-                          FakeTerminal().rstrip('  foo  '))
+        self.assertEqual(TERMINAL.rstrip('  foo  '),
+                         FakeTerminal().rstrip('  foo  '))
 
     def test_lstrip(self):
-        self.assertEquals(TERMINAL.lstrip('  foo  '),
-                          FakeTerminal().lstrip('  foo  '))
+        self.assertEqual(TERMINAL.lstrip('  foo  '),
+                         FakeTerminal().lstrip('  foo  '))

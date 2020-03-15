@@ -21,7 +21,7 @@ class TestTransactionNote(TestCase):
         note.add_upgrade('my.package:default', ('1702',), 'Remove utility')
         note.set_transaction_note()
 
-        self.assertEquals(
+        self.assertEqual(
             u'my.package:default -> 1.1 (Migrate objects)\n'
             u'my.package:default -> 1702 (Remove utility)',
             transaction.get().description)
@@ -41,7 +41,7 @@ class TestTransactionNote(TestCase):
             'Description seems not to be removed from too long' + \
             ' transaction note.'
 
-        self.assertEquals(
+        self.assertEqual(
             u'my.package:default -> 1000\n'
             u'my.package:default -> 1001',
             transaction.get().description)

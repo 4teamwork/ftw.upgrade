@@ -102,7 +102,7 @@ class TestExecutioner(UpgradeTestCase):
                 'Our notification_hook should be registered')
 
             transaction.commit()
-            self.assertEquals(
+            self.assertEqual(
                 [],
                 list(transaction.get().getAfterCommitHooks()),
                 'Hook registrations should not persist across transactions')
@@ -128,9 +128,9 @@ class TestExecutioner(UpgradeTestCase):
         with self.package_created():
             self.install_profile('the.package:default', version='1000')
             quickinstaller.get('the.package').installedversion = '1.0'
-            self.assertEquals('1.0', quickinstaller.get('the.package').getInstalledVersion())
+            self.assertEqual('1.0', quickinstaller.get('the.package').getInstalledVersion())
             self.install_profile_upgrades('the.package:default')
-            self.assertEquals('1.1', quickinstaller.get('the.package').getInstalledVersion())
+            self.assertEqual('1.1', quickinstaller.get('the.package').getInstalledVersion())
 
     def test_install_profiles_by_profile_ids(self):
         self.package.with_profile(Builder('genericsetup profile')
@@ -142,21 +142,21 @@ class TestExecutioner(UpgradeTestCase):
         with self.package_created():
             executioner = queryAdapter(self.portal_setup, IExecutioner)
             executioner.install_profiles_by_profile_ids(profile_id)
-            self.assertEquals(
+            self.assertEqual(
                 ['Installing profile the.package:default.',
                  'Done installing profile the.package:default.'],
                 self.get_log())
 
             self.purge_log()
             executioner.install_profiles_by_profile_ids(profile_id)
-            self.assertEquals(
+            self.assertEqual(
                 ['Ignoring already installed profile the.package:default.'],
                 self.get_log())
 
             self.purge_log()
             executioner.install_profiles_by_profile_ids(profile_id,
                                                         force_reinstall=True)
-            self.assertEquals(
+            self.assertEqual(
                 ['Installing profile the.package:default.',
                  'Done installing profile the.package:default.'],
                 self.get_log())
@@ -178,14 +178,14 @@ class TestExecutioner(UpgradeTestCase):
                     'done': ['20121212121200'],
                     'proposed': ['20111111111100'],
                     'orphan': ['20111111111100']}})
-            self.assertEquals(
+            self.assertEqual(
                 (u'20121212121200',),
                 self.portal_setup.getLastVersionForProfile('the.package:default'))
 
             executioner = queryAdapter(self.portal_setup, IExecutioner)
             executioner.install_upgrades_by_api_ids(
                 '20111111111100@the.package:default')
-            self.assertEquals(
+            self.assertEqual(
                 (u'20121212121200',),
                 self.portal_setup.getLastVersionForProfile('the.package:default'))
             self.assert_gathered_upgrades({
@@ -218,7 +218,7 @@ class TestExecutioner(UpgradeTestCase):
             self.setup_logging()
 
             self.install_profile_upgrades('the.package:default')
-            self.assertEquals(
+            self.assertEqual(
                 '1 of 2 (50%): Processing indexing queue',
                 self.get_log()[-1])
 
@@ -242,14 +242,14 @@ class TestExecutioner(UpgradeTestCase):
                     'done': ['4002'],
                     'proposed': ['20111111111100'],
                     'orphan': []}})
-            self.assertEquals(
+            self.assertEqual(
                 (u'4002',),
                 self.portal_setup.getLastVersionForProfile('the.package:default'))
 
             executioner = queryAdapter(self.portal_setup, IExecutioner)
             executioner.install_upgrades_by_api_ids(
                 '20111111111100@the.package:default')
-            self.assertEquals(
+            self.assertEqual(
                 (u'20111111111100',),
                 self.portal_setup.getLastVersionForProfile('the.package:default'))
             self.assert_gathered_upgrades({

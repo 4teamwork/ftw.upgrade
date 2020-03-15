@@ -94,7 +94,7 @@ class TestProgressLogger(TestCase):
                 if item == 4:
                     raise ValueError('baz')
 
-        self.assertEquals(['STARTING Foo',
-                           '1 of 5 (20%): Foo',
-                           'FAILED Foo (GeneratorExit: ) at 4'],
-                          self.read_log())
+        self.assertEqual(['STARTING Foo',
+                          '1 of 5 (20%): Foo',
+                          'FAILED Foo (GeneratorExit: ) at 4'],
+                         self.read_log())

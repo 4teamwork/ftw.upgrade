@@ -109,7 +109,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
 
         with create(package_builder).zcml_loaded(self.layer['configurationContext']):
             import other.package
-            self.assertEquals('package root', other.package.PACKAGE)
+            self.assertEqual('package root', other.package.PACKAGE)
 
     def test_profile_must_be_registed_before_registering_upgrade_directory(self):
         package_builder = (Builder('python package')
@@ -254,7 +254,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                  'for': None})
 
             portal_setup = getToolByName(self.portal, 'portal_setup')
-            self.assertEquals(
+            self.assertEqual(
                 [u'the.package:default',
                  u'the.package:baz',
                  u'the.package:bar',
@@ -282,7 +282,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
         with self.package_created():
             portal_setup = getToolByName(self.portal, 'portal_setup')
             steps = listUpgradeSteps(portal_setup, 'the.package:default', '10000000000000')
-            self.assertEquals(1, len(steps))
+            self.assertEqual(1, len(steps))
             six.assertCountEqual(
                 self,
                 (IRecordableHandler,

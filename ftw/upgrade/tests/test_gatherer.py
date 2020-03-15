@@ -159,7 +159,7 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
             self.install_profile('the.package:three')
             self.install_profile('the.package:four')
 
-            self.assertEquals(
+            self.assertEqual(
                 ['the.package:four',
                  'the.package:two',
                  'the.package:one'],
@@ -198,14 +198,14 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
 
         with self.package_created():
             self.install_profile('the.package:default')
-            self.assertEquals(['the.package:removed', 'the.package:default'],
-                              self.get_listed_profiles())
+            self.assertEqual(['the.package:removed', 'the.package:default'],
+                             self.get_listed_profiles())
 
             from Products.GenericSetup import profile_registry
             profile_registry.unregisterProfile('removed', 'the.package')
 
-            self.assertEquals(['the.package:default'],
-                              self.get_listed_profiles())
+            self.assertEqual(['the.package:default'],
+                             self.get_listed_profiles())
 
     def test_not_installable_products_are_not_checked_if_uninstalled(self):
         # Some profiles are not associated with a product.
@@ -461,7 +461,7 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
             self.install_profile('the.package:default')
 
             gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-            self.assertEquals(
+            self.assertEqual(
                 gatherer.get_upgrades_by_api_ids('20110101000000@the.package:default',
                                                  '20120202000000@the.package:default'),
                 gatherer.get_upgrades_by_api_ids('20120202000000@the.package:default',
@@ -471,9 +471,9 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
         with self.assertRaises(UpgradeNotFound) as cm:
             gatherer.get_upgrades_by_api_ids('foo@bar:default')
-        self.assertEquals('foo@bar:default', cm.exception.api_id)
-        self.assertEquals('The upgrade "foo@bar:default" could not be found.',
-                          str(cm.exception))
+        self.assertEqual('foo@bar:default', cm.exception.api_id)
+        self.assertEqual('The upgrade "foo@bar:default" could not be found.',
+                         str(cm.exception))
 
     def get_listed_profiles(self, filter_package='the.package'):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
@@ -496,8 +496,8 @@ class TestUpgradeInformationGatherer(UpgradeTestCase):
         result = gatherer.get_profiles()
         got_profiles = [profile['id'] for profile in result
                         if profile['outdated_fs_version'] and profile['id'] not in ignore]
-        self.assertEquals(expected_profiles, got_profiles,
-                          'Unexpected outdated fs versions for profiles.')
+        self.assertEqual(expected_profiles, got_profiles,
+                         'Unexpected outdated fs versions for profiles.')
 
 
 class TestExtendAutoUpgradesWithHumanFormattedDateVersion(TestCase):

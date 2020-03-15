@@ -103,12 +103,12 @@ class TestUpgradeStep(UpgradeTestCase):
 
         Step(self.portal_setup)
 
-        self.assertEquals(set(['Foo', 'Bar', 'Baz']), set(object_titles))
+        self.assertEqual(set(['Foo', 'Bar', 'Baz']), set(object_titles))
 
-        self.assertEquals(['STARTING Log message',
-                           '1 of 3 (33%): Log message',
-                           'DONE Log message'],
-                          self.get_log())
+        self.assertEqual(['STARTING Log message',
+                          '1 of 3 (33%): Log message',
+                          'DONE Log message'],
+                         self.get_log())
 
     def test_objects_modifying_catalog_does_not_reduce_result_set(self):
         old_date = DateTime(2010, 1, 1)
@@ -128,7 +128,7 @@ class TestUpgradeStep(UpgradeTestCase):
                     data['processed_folders'] += 1
 
         Step(self.portal_setup)
-        self.assertEquals(
+        self.assertEqual(
             4, data['processed_folders'],
             'Updating catalog reduced result set while iterating over it!!!')
 
@@ -208,13 +208,13 @@ class TestUpgradeStep(UpgradeTestCase):
 
                 brain = self.catalog_unrestricted_search(
                     {'UID': folder.UID()})[0]
-                testcase.assertEquals(modification_date, brain.modified)
+                testcase.assertEqual(modification_date, brain.modified)
 
                 self.catalog_reindex_objects({})
 
                 brain = self.catalog_unrestricted_search(
                     {'UID': folder.UID()})[0]
-                testcase.assertEquals(modification_date, brain.modified)
+                testcase.assertEqual(modification_date, brain.modified)
 
         Step(self.portal_setup)
 
@@ -287,7 +287,7 @@ class TestUpgradeStep(UpgradeTestCase):
 
             def __call__(self):
                 brains = self.get_folder_brains()
-                testcase.assertEquals(1, len(brains))
+                testcase.assertEqual(1, len(brains))
                 brain ,= brains
 
                 testcase.assertIsNone(
@@ -432,7 +432,7 @@ class TestUpgradeStep(UpgradeTestCase):
                 return [action.id for action in fti._actions]
 
             def __call__(self):
-                testcase.assertEquals(
+                testcase.assertEqual(
                     None, self.get_event_action('additional'))
                 testcase.assertNotIn(
                     'additional',
@@ -447,8 +447,8 @@ class TestUpgradeStep(UpgradeTestCase):
                     self.get_action_ids())
 
                 action = self.get_event_action('additional')
-                testcase.assertEquals('Additional', action.title)
-                testcase.assertEquals('string:#', action.action.text)
+                testcase.assertEqual('Additional', action.title)
+                testcase.assertEqual('string:#', action.action.text)
 
         Step(self.portal_setup)
 
@@ -558,20 +558,20 @@ class TestUpgradeStep(UpgradeTestCase):
 
         class Step(UpgradeStep):
             def __call__(self):
-                testcase.assertEquals(None, self.portal.getProperty('bar'))
-                testcase.assertEquals(None, self.portal.getProperty('foo'))
+                testcase.assertEqual(None, self.portal.getProperty('bar'))
+                testcase.assertEqual(None, self.portal.getProperty('foo'))
 
                 self.setup_install_profile('profile-the.package:foo')
-                testcase.assertEquals(None, self.portal.getProperty('bar'))
-                testcase.assertEquals('Foo', self.portal.getProperty('foo'))
+                testcase.assertEqual(None, self.portal.getProperty('bar'))
+                testcase.assertEqual('Foo', self.portal.getProperty('foo'))
 
                 self.portal._updateProperty('foo', 'Custom')
-                testcase.assertEquals(None, self.portal.getProperty('bar'))
-                testcase.assertEquals('Custom', self.portal.getProperty('foo'))
+                testcase.assertEqual(None, self.portal.getProperty('bar'))
+                testcase.assertEqual('Custom', self.portal.getProperty('foo'))
 
                 self.setup_install_profile('profile-the.package:bar')
-                testcase.assertEquals('Bar', self.portal.getProperty('bar'))
-                testcase.assertEquals(
+                testcase.assertEqual('Bar', self.portal.getProperty('bar'))
+                testcase.assertEqual(
                     'Custom', self.portal.getProperty('foo'),
                     'Accidental reinstall of dependency my.package:foo'
                     ' has caused the "foo" property to be reset.')
@@ -587,13 +587,13 @@ class TestUpgradeStep(UpgradeTestCase):
 
         class Step(UpgradeStep):
             def __call__(self):
-                testcase.assertEquals('unknown', self.get_version())
+                testcase.assertEqual('unknown', self.get_version())
                 self.ensure_profile_installed('profile-the.package:default')
-                testcase.assertEquals((u'1111',), self.get_version())
+                testcase.assertEqual((u'1111',), self.get_version())
                 self.set_version((u'1000',))
-                testcase.assertEquals((u'1000',), self.get_version())
+                testcase.assertEqual((u'1000',), self.get_version())
                 self.ensure_profile_installed('profile-the.package:default')
-                testcase.assertEquals(
+                testcase.assertEqual(
                     (u'1000',), self.get_version(),
                     'Profile should not have been installed again because it'
                     ' was already installed.')
@@ -847,24 +847,24 @@ class TestUpgradeStep(UpgradeTestCase):
         folder = create(Builder('folder')
                         .in_state('published'))
 
-        self.assertEquals(['Anonymous'],
-                          self.get_allowed_roles_and_users_for(folder))
+        self.assertEqual(['Anonymous'],
+                         self.get_allowed_roles_and_users_for(folder))
         folder.reindexObjectSecurity()
 
         folder.manage_permission(
             ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
 
-        self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users_for(folder))
+        self.assertEqual(['Reader'],
+                         self.get_allowed_roles_and_users_for(folder))
 
         class Step(UpgradeStep):
             def __call__(self):
                 self.update_security(folder)
         Step(self.portal_setup)
 
-        self.assertEquals(['Anonymous'],
-                          self.get_allowed_roles_and_users_for(folder))
+        self.assertEqual(['Anonymous'],
+                         self.get_allowed_roles_and_users_for(folder))
 
     def test_update_security_without_reindexing_security(self):
         self.set_workflow_chain(for_type='Folder',
@@ -872,23 +872,23 @@ class TestUpgradeStep(UpgradeTestCase):
         folder = create(Builder('folder')
                         .in_state('published'))
 
-        self.assertEquals(['Anonymous'],
-                          self.get_allowed_roles_and_users_for(folder))
+        self.assertEqual(['Anonymous'],
+                         self.get_allowed_roles_and_users_for(folder))
 
         folder.manage_permission(
             ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
 
-        self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users_for(folder))
+        self.assertEqual(['Reader'],
+                         self.get_allowed_roles_and_users_for(folder))
 
         class Step(UpgradeStep):
             def __call__(self):
                 self.update_security(folder, reindex_security=False)
         Step(self.portal_setup)
 
-        self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users_for(folder))
+        self.assertEqual(['Reader'],
+                         self.get_allowed_roles_and_users_for(folder))
 
     def test_update_workflow_security_updates_security(self):
         self.set_workflow_chain(for_type='Folder',
@@ -914,8 +914,8 @@ class TestUpgradeStep(UpgradeTestCase):
         folder.manage_permission(
             ALLOWED_ROLES_AND_USERS_PERMISSION, roles=['Reader'], acquire=False)
         folder.reindexObjectSecurity()
-        self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users_for(folder))
+        self.assertEqual(['Reader'],
+                         self.get_allowed_roles_and_users_for(folder))
 
         class Step(UpgradeStep):
             def __call__(self):
@@ -923,8 +923,8 @@ class TestUpgradeStep(UpgradeTestCase):
                     ['plone_workflow'], reindex_security=False)
         Step(self.portal_setup)
 
-        self.assertEquals(['Reader'],
-                          self.get_allowed_roles_and_users_for(folder))
+        self.assertEqual(['Reader'],
+                         self.get_allowed_roles_and_users_for(folder))
 
         class Step(UpgradeStep):
             def __call__(self):
@@ -932,8 +932,8 @@ class TestUpgradeStep(UpgradeTestCase):
                     ['plone_workflow'], reindex_security=True)
         Step(self.portal_setup)
 
-        self.assertEquals(['Anonymous'],
-                          self.get_allowed_roles_and_users_for(folder))
+        self.assertEqual(['Anonymous'],
+                         self.get_allowed_roles_and_users_for(folder))
 
     def test_update_workflow_security_expects_list_of_workflows(self):
         class Step(UpgradeStep):
@@ -943,8 +943,8 @@ class TestUpgradeStep(UpgradeTestCase):
         with self.assertRaises(ValueError) as cm:
             Step(self.portal_setup)
 
-        self.assertEquals('"workflows" must be a list of workflow names.',
-                          str(cm.exception))
+        self.assertEqual('"workflows" must be a list of workflow names.',
+                         str(cm.exception))
 
     def test_base_profile_and_target_version_are_stored_in_attribute(self):
         result = {}
@@ -958,7 +958,7 @@ class TestUpgradeStep(UpgradeTestCase):
              base_profile='profile-ftw.upgrade:default',
              target_version=1500)
 
-        self.assertEquals(
+        self.assertEqual(
             {'base_profile': 'profile-ftw.upgrade:default',
              'target_version': 1500},
             result)

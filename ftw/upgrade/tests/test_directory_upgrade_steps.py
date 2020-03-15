@@ -162,9 +162,9 @@ class TestDirectoryUpgradeSteps(UpgradeTestCase):
 
         with self.package_created():
             self.install_profile('the.package:default')
-            self.assertEquals({}, self.portal.upgrade_infos)
+            self.assertEqual({}, self.portal.upgrade_infos)
             self.install_profile_upgrades('the.package:default')
-            self.assertEquals(
+            self.assertEqual(
                 {'base_profile': u'profile-the.package:default',
                  'target_version': '20110101000000'},
                 self.portal.upgrade_infos)

@@ -40,8 +40,8 @@ class TestFindEgginfo(TestCase):
         with capture_streams(stderr=stderr):
             self.assertEqual(None, find_egginfo(self.path))
 
-        self.assertEquals('WARNING: no *.egg-info directory could be found.\n',
-                          stderr.getvalue())
+        self.assertEqual('WARNING: no *.egg-info directory could be found.\n',
+                         stderr.getvalue())
 
     def test_prints_warning_when_multiple_egginfos_found(self):
         create(self.package_builder)
@@ -51,8 +51,8 @@ class TestFindEgginfo(TestCase):
         with capture_streams(stderr=stderr):
             self.assertEqual(None, find_egginfo(self.path))
 
-        self.assertEquals('WARNING: more than one *.egg-info directory found.\n',
-                          stderr.getvalue())
+        self.assertEqual('WARNING: more than one *.egg-info directory found.\n',
+                         stderr.getvalue())
 
 
 class TestFindPackageNamespacePath(TestCase):
@@ -64,5 +64,5 @@ class TestFindPackageNamespacePath(TestCase):
     def test_returns_absolute_path_to_toplevel_namespace_directory(self):
         create(Builder('python package').named('the.package').at_path(self.path))
         egginfo = find_egginfo(self.path)
-        self.assertEquals(self.path.joinpath('the'),
-                          find_package_namespace_path(egginfo))
+        self.assertEqual(self.path.joinpath('the'),
+                         find_package_namespace_path(egginfo))

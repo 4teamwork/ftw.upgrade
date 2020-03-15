@@ -35,7 +35,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
 
             self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             exitcode, output = self.upgrade_script('install -s plone --proposed')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
             transaction.begin()  # sync transaction
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             self.assertIn('Result: SUCCESS', output)
@@ -53,7 +53,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
 
             self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             exitcode, output = self.upgrade_script('install -s plone --proposed --skip-deferrable')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
             transaction.begin()  # sync transaction
             self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             self.assertIn('Result: SUCCESS', output)
@@ -71,7 +71,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
 
             self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             exitcode, output = self.upgrade_script('install -s plone --proposed')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
             transaction.begin()  # sync transaction
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             self.assertIn('Result: SUCCESS', output)
@@ -91,7 +91,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             with no_logging_threads():
                 exitcode, output = self.upgrade_script('install -s plone --proposed',
                                                        assert_exitcode=False)
-            self.assertEquals(3, exitcode)
+            self.assertEqual(3, exitcode)
             self.assertIn('Result: FAILURE', output)
 
     def test_umlauts_can_be_printed(self):
@@ -132,7 +132,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
                 if changed_defaultencoding:
                     sys.setdefaultencoding(system_encoding)
 
-            self.assertEquals(0, exitcode, output)
+            self.assertEqual(0, exitcode, output)
 
     def test_install_list_of_upgrades(self):
         self.package.with_profile(
@@ -147,7 +147,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             self.assertFalse(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             exitcode, output = self.upgrade_script(
                 'install -s plone --upgrades 20110101000000@the.package:default')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
             transaction.begin()  # sync transaction
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             self.assertIn('Result: SUCCESS', output)
@@ -167,7 +167,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             self.assertFalse(self.is_installed('the.package:default', datetime(2011, 2, 2)))
             exitcode, output = self.upgrade_script(
                 'install -s plone --proposed the.package:default')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
             transaction.begin()  # sync transaction
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 1, 1)))
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 2, 2)))
@@ -177,7 +177,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
         exitcode, output = self.upgrade_script(
             'install -s plone --proposed the.inexisting.package:default',
             assert_exitcode=False)
-        self.assertEquals(1, exitcode)
+        self.assertEqual(1, exitcode)
         self.assertIn('ERROR:', output)
 
     def test_virtual_host_monster_is_configured_by_environment_variable(self):
@@ -200,10 +200,10 @@ class TestInstallCommand(CommandAndInstanceTestCase):
         with self.package_created():
             self.install_profile('the.package:default', version='1')
             exitcode, output = self.upgrade_script('install -s plone --proposed')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
             transaction.begin()  # sync transaction
-            self.assertEquals(['https://foo.bar.com/baz/the-folder'],
-                              self.layer['portal'].upgrade_info)
+            self.assertEqual(['https://foo.bar.com/baz/the-folder'],
+                             self.layer['portal'].upgrade_info)
 
     def test_install_profiles(self):
         self.package.with_profile(Builder('genericsetup profile'))
@@ -212,7 +212,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
         with self.package_created():
             exitcode, output = self.upgrade_script(
                 'install -s plone --profiles the.package:default')
-            self.assertEquals(
+            self.assertEqual(
                 [u'ftw.upgrade: Installing profile the.package:default.',
                  u'ftw.upgrade: Done installing profile the.package:default.',
                  u'Result: SUCCESS'],
@@ -223,7 +223,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
         self.purge_log()
         exitcode, output = self.upgrade_script(
             'install -s plone --profiles ftw.upgrade:default')
-        self.assertEquals(
+        self.assertEqual(
             [u'ftw.upgrade: Ignoring already installed profile'
              u' ftw.upgrade:default.',
              u'Result: SUCCESS'],
@@ -234,7 +234,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
         self.purge_log()
         exitcode, output = self.upgrade_script(
             'install -s plone --force --profiles ftw.upgrade:default')
-        self.assertEquals(
+        self.assertEqual(
             [u'ftw.upgrade: Installing profile ftw.upgrade:default.',
              u'ftw.upgrade: Done installing profile ftw.upgrade:default.',
              u'Result: SUCCESS'],
@@ -244,7 +244,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
         exitcode, output = self.upgrade_script(
             'install -s plone --force --upgrades 20110101000000@the.package:default',
             assert_exitcode=False)
-        self.assertEquals(3, exitcode)
-        self.assertEquals(
+        self.assertEqual(3, exitcode)
+        self.assertEqual(
             [u'ERROR: --force can only be used with --profiles.'],
             output.splitlines())

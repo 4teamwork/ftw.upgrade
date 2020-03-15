@@ -81,7 +81,7 @@ class TestFindCyclicDependencies(TestCase):
             ('default', 'image-replacement'),
             )
 
-        self.assertEquals(
+        self.assertEqual(
             [set(('foo', 'bar'))],
             list(map(set, find_cyclic_dependencies(dependencies))))
 
@@ -92,7 +92,7 @@ class TestFindCyclicDependencies(TestCase):
             ('baz', 'foo'),
             )
 
-        self.assertEquals(
+        self.assertEqual(
             [set(('foo', 'bar', 'baz'))],
             list(map(set, find_cyclic_dependencies(dependencies))))
 
@@ -238,22 +238,22 @@ class TestFormatDuration(TestCase):
 class TestSubjectFromDocstring(TestCase):
 
     def test_one_line_only(self):
-        self.assertEquals(
+        self.assertEqual(
             'This is the subject.',
             subject_from_docstring('This is the subject.'))
 
     def test_whitespace_is_stripped(self):
-        self.assertEquals(
+        self.assertEqual(
             'This is the subject.',
             subject_from_docstring('\nThis is the subject.\n'))
 
     def test_only_subject_is_returned(self):
-        self.assertEquals(
+        self.assertEqual(
             'This is the subject.',
             subject_from_docstring('This is the subject.\n\nThis is the body.'))
 
     def test_multiline_subject_is_joined(self):
-        self.assertEquals(
+        self.assertEqual(
             'This is a subject, with multiple lines.',
             subject_from_docstring('This is a subject,\n'
                                    'with multiple lines.\n'

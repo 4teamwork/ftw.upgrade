@@ -28,7 +28,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.clear_recorded_upgrades('the.package:default')
 
             exitcode, output = self.upgrade_script('list --profiles -s plone')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
 
             normalized_output = list(map(six.text_type.strip,
                                          re.sub(r' +', ' ', output).splitlines()))
@@ -50,7 +50,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.clear_recorded_upgrades('the.package:default')
 
             exitcode, output = self.upgrade_script('list --profiles -s plone --json')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
             self.assert_json_contains_profile(
                 {'id': 'the.package:default',
                  'title': 'the.package',
@@ -91,7 +91,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.clear_recorded_upgrades('the.package:default')
 
             exitcode, output = self.upgrade_script('list --upgrades -s plone')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
             self.assertMultiLineEqual(
                 'Proposed upgrades:\n'
                 'ID:                                        Title:    \n'
@@ -110,7 +110,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.clear_recorded_upgrades('the.package:default')
 
             exitcode, output = self.upgrade_script('list --upgrades -s plone --json')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
             self.assert_json_equal(
                 [{
                         "dest": "20110101000000",
@@ -148,7 +148,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.clear_recorded_upgrades('the.package:default')
 
             exitcode, output = self.upgrade_script('list --upgrades -s plone')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
 
             self.assertMultiLineEqual(
                 u'Proposed upgrades:\n'
@@ -167,7 +167,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.clear_recorded_upgrades('the.package:default')
 
             exitcode, output = self.upgrade_script('list --upgrades -s plone')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
             self.assertMultiLineEqual(
                 'Proposed upgrades:\n'
                 'ID:                                            Title:             \n'
@@ -187,7 +187,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.clear_recorded_upgrades('the.package:default')
 
             exitcode, output = self.upgrade_script('list --upgrades -s plone --json')
-            self.assertEquals(0, exitcode)
+            self.assertEqual(0, exitcode)
             self.assert_json_equal(
                 [{
                         "dest": "20110101000000",

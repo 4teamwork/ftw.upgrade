@@ -20,9 +20,13 @@ from unittest import skipIf
 from zope.interface import alsoProvides
 from zope.interface import Interface
 from zope.interface.verify import verifyClass
-from Products.CMFPlone.utils import get_installer
 
 import pkg_resources
+
+try:
+    from Products.CMFPlone.utils import get_installer
+except ImportError:
+    get_installer = None
 
 ALLOWED_ROLES_AND_USERS_PERMISSION = 'View'
 if getFSVersionTuple() > (5, 2):
@@ -682,19 +686,25 @@ class TestUpgradeStep(UpgradeTestCase):
                     'Products.CMFPlacefulWorkflow:CMFPlacefulWorkflow'))
 
     def test_uninstall_product(self):
-        quickinstaller = get_installer(self.portal, self.portal.REQUEST)
-        quickinstaller.install_product('CMFPlacefulWorkflow')
+        if get_installer is not None:
+            quickinstaller = get_installer(self.portal, self.portal.REQUEST)
+            quickinstaller.install_product('CMFPlacefulWorkflow')
+            is_product_installed = quickinstaller.is_product_installed
+        else:
+            quickinstaller = getToolByName(self.portal, 'portal_quickinstaller')
+            quickinstaller.installProduct('CMFPlacefulWorkflow')
+            is_product_installed = quickinstaller.isProductInstalled
 
         class Step(UpgradeStep):
             def __call__(self):
                 self.uninstall_product('CMFPlacefulWorkflow')
 
         self.assertTrue(
-            quickinstaller.is_product_installed('CMFPlacefulWorkflow'),
+            is_product_installed('CMFPlacefulWorkflow'),
             'CMFPlacefulWorkflow should be installed')
         Step(self.portal_setup)
         self.assertFalse(
-            quickinstaller.is_product_installed('CMFPlacefulWorkflow'),
+            is_product_installed('CMFPlacefulWorkflow'),
             'CMFPlacefulWorkflow should not be installed')
 
     def test_migrate_class(self):

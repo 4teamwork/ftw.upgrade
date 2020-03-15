@@ -15,7 +15,6 @@ from plone.portlets.interfaces import IPortletManagerRenderer
 from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.ActionInformation import ActionInformation
 from Products.CMFCore.utils import getToolByName
-from Products.CMFPlone.utils import get_installer
 from Products.ZCatalog.ProgressHandler import ZLogHandler
 from zExceptions import NotFound
 from zope.browser.interfaces import IBrowserView
@@ -35,6 +34,11 @@ try:
     from Products.GenericSetup.tool import DEPENDENCY_STRATEGY_NEW
 except ImportError:
     DEPENDENCY_STRATEGY_NEW = None
+
+try:
+    from Products.CMFPlone.utils import get_installer
+except ImportError:
+    get_installer = None
 
 
 LOG = logging.getLogger('ftw.upgrade')
@@ -344,16 +348,26 @@ class UpgradeStep(object):
     def is_product_installed(self, product_name):
         """Check whether a product is installed.
         """
-        quickinstaller = get_installer(self.portal, self.portal.REQUEST)
-        return quickinstaller.is_product_installable(product_name) and \
-            quickinstaller.is_product_installed(product_name)
+        if get_installer is not None:
+            quickinstaller = get_installer(self.portal, self.portal.REQUEST)
+            return (quickinstaller.is_product_installable(product_name)
+                    and quickinstaller.is_product_installed(product_name))
+        else:
+            quickinstaller = self.getToolByName('portal_quickinstaller')
+            return (quickinstaller.isProductInstallable(product_name)
+                    and quickinstaller.isProductInstalled(product_name))
+
 
     security.declarePrivate('uninstall_product')
     def uninstall_product(self, product_name):
         """Uninstalls a product using the quick installer.
         """
-        quickinstaller = get_installer(self.portal, self.portal.REQUEST)
-        quickinstaller.uninstall_product(product_name)
+        if get_installer is not None:
+            quickinstaller = get_installer(self.portal, self.portal.REQUEST)
+            quickinstaller.uninstall_product(product_name)
+        else:
+            quickinstaller = self.getToolByName('portal_quickinstaller')
+            quickinstaller.uninstallProducts([product_name])
 
     security.declarePrivate('migrate_class')
     def migrate_class(self, obj, new_class):

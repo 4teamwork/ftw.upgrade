@@ -8,7 +8,6 @@ from ftw.upgrade.utils import get_sorted_profile_ids
 from functools import reduce
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
-from Products.CMFPlone.utils import get_installer
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import normalize_version
 from Products.GenericSetup.upgrade import UpgradeStep
@@ -17,6 +16,11 @@ from zope.component import adapts
 from zope.component import getMultiAdapter
 from zope.deprecation import deprecated
 from zope.interface import implementer
+
+try:
+    from Products.CMFPlone.utils import get_installer
+except ImportError:
+    get_installer = None
 
 
 def flatten_upgrades(upgrades):
@@ -235,17 +239,24 @@ class UpgradeInformationGatherer(object):
 
     security.declarePrivate('_is_profile_installed')
     def _is_profile_installed(self, profileid):
-        quickinstaller = get_installer(self.portal, self.portal.REQUEST)
-
         try:
             profileinfo = self.portal_setup.getProfileInfo(profileid)
         except KeyError:
             return False
-
         product = profileinfo['product']
-        if quickinstaller.is_product_installable(product) and \
-                not quickinstaller.is_product_installed(product):
-            return False
+
+        if get_installer is not None:
+            quickinstaller = get_installer(self.portal, self.portal.REQUEST)
+
+            if (quickinstaller.is_product_installable(product)
+                    and not quickinstaller.is_product_installed(product)):
+                return False
+        else:
+            quickinstaller = getToolByName(
+                self.portal_setup, 'portal_quickinstaller')
+            if (quickinstaller.isProductInstallable(product)
+                    and not quickinstaller.isProductInstalled(product)):
+                return False
 
         version = self.portal_setup.getLastVersionForProfile(profileid)
         return version != 'unknown'

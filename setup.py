@@ -19,7 +19,7 @@ tests_require = [
     ]
 
 extras_require = {
-    'colors': ['blessed <= 1.9.5'],
+    'colors': ['blessed'],
     'tests': tests_require,
     'test_archetypes': ['Products.ATContentTypes'],
 }

@@ -7,6 +7,7 @@ from ftw.testing import freeze
 from ftw.upgrade.migration import BACKUP_AND_IGNORE_UNMAPPED_FIELDS
 from ftw.upgrade.migration import DISABLE_FIELD_AUTOMAPPING
 from ftw.upgrade.migration import FieldsNotMappedError
+from ftw.upgrade.migration import IBaseObject
 from ftw.upgrade.migration import IGNORE_DEFAULT_IGNORE_FIELDS
 from ftw.upgrade.migration import IGNORE_STANDARD_FIELD_MAPPING
 from ftw.upgrade.migration import IGNORE_UNMAPPED_FIELDS
@@ -21,12 +22,12 @@ from plone.app.textfield import RichTextValue
 from plone.dexterity.interfaces import IDexterityContent
 from plone.portlets.interfaces import IPortletAssignmentMapping
 from plone.portlets.interfaces import IPortletManager
-from Products.Archetypes.interfaces import IBaseObject
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.interfaces.constrains import ENABLED
 from Products.CMFPlone.interfaces.constrains import IConstrainTypes
 from Products.CMFPlone.interfaces.constrains import ISelectableConstrainTypes
 from Products.CMFPlone.utils import getFSVersionTuple
+from six.moves import map
 from unittest import skipIf
 from zope.annotation import IAnnotations
 from zope.component import getMultiAdapter
@@ -264,7 +265,7 @@ class TestInplaceMigrator(UpgradeTestCase):
         InplaceMigrator('Folder', {'title': 'description'},
                         ignore_fields=['description']).migrate_object(folder)
         folder = self.portal.get(folder.getId())
-        self.assertEquals(u'The Title', folder.Description())
+        self.assertEqual(u'The Title', folder.Description())
 
     def test_DISABLE_FIELD_AUTOMAPPING_flag(self):
         """When disabling field automapping we expect unmaped fields.
@@ -303,7 +304,7 @@ class TestInplaceMigrator(UpgradeTestCase):
                 options=DISABLE_FIELD_AUTOMAPPING | BACKUP_AND_IGNORE_UNMAPPED_FIELDS)
             .migrate_object(folder))
 
-        self.assertEquals(
+        self.assertEqual(
             {'nextPreviousEnabled': False,
              'description': u'A very fancy folder.',
              'contributors': (),
@@ -379,8 +380,8 @@ class TestInplaceMigrator(UpgradeTestCase):
         folder.changeOwnership(peter.getUser())
 
         self.assertTrue(IBaseObject.providedBy(folder))
-        self.assertEquals('john.doe', folder.Creator())
-        self.assertEquals('peter.pan', folder.getOwner().getId())
+        self.assertEqual('john.doe', folder.Creator())
+        self.assertEqual('peter.pan', folder.getOwner().getId())
 
         self.grant('Manager')
         self.install_profile('plone.app.contenttypes:default')
@@ -389,8 +390,8 @@ class TestInplaceMigrator(UpgradeTestCase):
 
         folder = self.portal.get('the-folder')
         self.assertTrue(IDexterityContent.providedBy(folder))
-        self.assertEquals('john.doe', folder.Creator())
-        self.assertEquals('peter.pan', folder.getOwner().getId())
+        self.assertEqual('john.doe', folder.Creator())
+        self.assertEqual('peter.pan', folder.getOwner().getId())
 
     def test_migrate_ownership_no_IOwner(self):
         john = create(Builder('user').named('John', 'Doe').with_roles('Manager'))
@@ -401,8 +402,8 @@ class TestInplaceMigrator(UpgradeTestCase):
         folder.changeOwnership(peter.getUser())
 
         self.assertTrue(IBaseObject.providedBy(folder))
-        self.assertEquals('john.doe', folder.Creator())
-        self.assertEquals('peter.pan', folder.getOwner().getId())
+        self.assertEqual('john.doe', folder.Creator())
+        self.assertEqual('peter.pan', folder.getOwner().getId())
 
         self.grant('Manager')
         self.install_profile('plone.app.contenttypes:default')
@@ -418,8 +419,8 @@ class TestInplaceMigrator(UpgradeTestCase):
 
         folder = self.portal.get('the-folder')
         self.assertTrue(IDexterityContent.providedBy(folder))
-        self.assertEquals('john.doe', folder.Creator())
-        self.assertEquals('peter.pan', folder.getOwner().getId())
+        self.assertEqual('john.doe', folder.Creator())
+        self.assertEqual('peter.pan', folder.getOwner().getId())
 
     def test_migrate_object_position(self):
         self.grant('Manager')
@@ -428,9 +429,13 @@ class TestInplaceMigrator(UpgradeTestCase):
         two = create(Builder('folder').titled(u'Two').within(container))
         three = create(Builder('folder').titled(u'Three').within(container))
 
-        self.assertEquals([0, 1, 2], map(container.getObjectPosition, ('one', 'two', 'three')))
+        self.assertEqual(
+            [0, 1, 2],
+            list(map(container.getObjectPosition, ('one', 'two', 'three'))))
         container.moveObjectsByDelta(['three'], -1)
-        self.assertEquals([0, 2, 1], map(container.getObjectPosition, ('one', 'two', 'three')))
+        self.assertEqual(
+            [0, 2, 1],
+            list(map(container.getObjectPosition, ('one', 'two', 'three'))))
 
         self.install_profile('plone.app.contenttypes:default')
         InplaceMigrator('Folder').migrate_object(container)
@@ -439,7 +444,9 @@ class TestInplaceMigrator(UpgradeTestCase):
         InplaceMigrator('Folder').migrate_object(one)
         container = self.portal.get('container')
 
-        self.assertEquals([0, 2, 1], map(container.getObjectPosition, ('one', 'two', 'three')))
+        self.assertEqual(
+            [0, 2, 1],
+            list(map(container.getObjectPosition, ('one', 'two', 'three'))))
 
     def test_migrate_portlets(self):
         self.grant('Manager')
@@ -449,17 +456,17 @@ class TestInplaceMigrator(UpgradeTestCase):
                          .within(folder)
                          .in_manager('plone.rightcolumn'))
 
-        self.assertEquals({'plone.leftcolumn': [],
-                           'plone.rightcolumn': [portlet]},
-                          self.get_portlets_for(folder))
+        self.assertEqual({'plone.leftcolumn': [],
+                          'plone.rightcolumn': [portlet]},
+                         self.get_portlets_for(folder))
 
         self.install_profile('plone.app.contenttypes:default')
         InplaceMigrator('Folder').migrate_object(folder)
 
         folder = self.portal.get('the-folder')
-        self.assertEquals({'plone.leftcolumn': [],
-                           'plone.rightcolumn': [portlet]},
-                          self.get_portlets_for(folder))
+        self.assertEqual({'plone.leftcolumn': [],
+                          'plone.rightcolumn': [portlet]},
+                         self.get_portlets_for(folder))
 
     def test_migrate_relations(self):
         self.grant('Manager')
@@ -468,18 +475,18 @@ class TestInplaceMigrator(UpgradeTestCase):
         bar = create(Builder('folder').titled(u'Bar')
                      .having(relatedItems=[foo]))
 
-        self.assertEquals([foo], bar.getRelatedItems())
-        self.assertEquals([bar], foo.getBackReferences())
+        self.assertEqual([foo], bar.getRelatedItems())
+        self.assertEqual([bar], foo.getBackReferences())
 
         self.install_profile('plone.app.contenttypes:default')
-        map(InplaceMigrator('Folder').migrate_object, (foo, bar))
+        list(map(InplaceMigrator('Folder').migrate_object, (foo, bar)))
 
         foo = self.portal.get('foo')
         bar = self.portal.get('bar')
 
-        self.assertEquals([foo],
-                          map(attrgetter('to_object'),
-                              IRelatedItems(bar).relatedItems))
+        self.assertEqual(
+            [foo],
+            list(map(attrgetter('to_object'), IRelatedItems(bar).relatedItems)))
 
     def get_catalog_indexdata_for(self, obj):
         catalog = getToolByName(obj, 'portal_catalog')
@@ -506,7 +513,7 @@ class TestInplaceMigrator(UpgradeTestCase):
                     ctypes.getImmediatelyAddableTypes())}
 
     def set_constraintypes_config(self, obj, config):
-        self.assertEquals(
+        self.assertEqual(
             {'mode', 'locally allowed', 'immediately addable'},
             set(config))
 
@@ -529,6 +536,6 @@ class TestInplaceMigrator(UpgradeTestCase):
                 IPortletAssignmentMapping,
                 context=self.portal
             )
-            portlets[manager_name] = assignments.values()
+            portlets[manager_name] = list(assignments.values())
 
         return portlets

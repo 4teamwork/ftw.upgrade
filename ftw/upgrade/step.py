@@ -1,5 +1,6 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
-from Acquisition import aq_base, aq_parent
+from Acquisition import aq_base
+from Acquisition import aq_parent
 from ftw.upgrade.events import ClassMigratedEvent
 from ftw.upgrade.exceptions import NoAssociatedProfileError
 from ftw.upgrade.helpers import update_security_for
@@ -20,11 +21,13 @@ from zope.browser.interfaces import IBrowserView
 from zope.event import notify
 from zope.interface import directlyProvidedBy
 from zope.interface import directlyProvides
-from zope.interface import implements
+from zope.interface import implementer
 from zope.interface import Interface
 from zope.publisher.interfaces.browser import IBrowserRequest
+
 import logging
 import re
+import six
 
 
 try:
@@ -32,12 +35,17 @@ try:
 except ImportError:
     DEPENDENCY_STRATEGY_NEW = None
 
+try:
+    from Products.CMFPlone.utils import get_installer
+except ImportError:
+    get_installer = None
+
 
 LOG = logging.getLogger('ftw.upgrade')
 
 
+@implementer(IUpgradeStep)
 class UpgradeStep(object):
-    implements(IUpgradeStep)
     security = ClassSecurityInformation()
 
     deferrable = False
@@ -340,16 +348,26 @@ class UpgradeStep(object):
     def is_product_installed(self, product_name):
         """Check whether a product is installed.
         """
-        quickinstaller = self.getToolByName('portal_quickinstaller')
-        return quickinstaller.isProductInstallable(product_name) and \
-            quickinstaller.isProductInstalled(product_name)
+        if get_installer is not None:
+            quickinstaller = get_installer(self.portal, self.portal.REQUEST)
+            return (quickinstaller.is_product_installable(product_name)
+                    and quickinstaller.is_product_installed(product_name))
+        else:
+            quickinstaller = self.getToolByName('portal_quickinstaller')
+            return (quickinstaller.isProductInstallable(product_name)
+                    and quickinstaller.isProductInstalled(product_name))
+
 
     security.declarePrivate('uninstall_product')
     def uninstall_product(self, product_name):
         """Uninstalls a product using the quick installer.
         """
-        quickinstaller = self.getToolByName('portal_quickinstaller')
-        quickinstaller.uninstallProducts([product_name])
+        if get_installer is not None:
+            quickinstaller = get_installer(self.portal, self.portal.REQUEST)
+            quickinstaller.uninstall_product(product_name)
+        else:
+            quickinstaller = self.getToolByName('portal_quickinstaller')
+            quickinstaller.uninstallProducts([product_name])
 
     security.declarePrivate('migrate_class')
     def migrate_class(self, obj, new_class):
@@ -454,7 +472,7 @@ class UpgradeStep(object):
         """
 
         if getattr(workflow_names, '__iter__', None) is None or \
-                isinstance(workflow_names, (str, unicode)):
+                isinstance(workflow_names, (str, six.text_type)):
             raise ValueError(
                 '"workflows" must be a list of workflow names.')
 

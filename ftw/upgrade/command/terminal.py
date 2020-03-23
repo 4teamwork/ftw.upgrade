@@ -1,4 +1,8 @@
+from __future__ import print_function
 from operator import itemgetter
+from six.moves import filter
+from six.moves import map
+from six.moves import zip
 
 
 class FakeTerminal(str):
@@ -19,7 +23,7 @@ class FakeTerminal(str):
 
 try:
     from blessed import Terminal
-except ImportError, exc:
+except ImportError:
     Terminal = FakeTerminal
 
 
@@ -35,14 +39,14 @@ FLAGS = {
 
 def print_table(data, titles=None, colspace=1):
     if titles:
-        data.insert(0, map(TERMINAL.bright_black, titles))
+        data.insert(0, list(map(TERMINAL.bright_black, titles)))
 
-    column_lengths = map(max, zip(*map(
-                lambda row: map(TERMINAL.length, row), data)))
+    column_lengths = list(map(max, zip(
+        *[list(map(TERMINAL.length, row)) for row in data])))
     for row in data:
         for col_num, cell in enumerate(row):
-            print TERMINAL.ljust(cell, column_lengths[col_num] + colspace),
-        print ''
+            print(TERMINAL.ljust(cell, column_lengths[col_num] + colspace), end=' ')
+        print('')
 
 
 def upgrade_id_with_flags(upgrade, omit_flags=()):
@@ -74,11 +78,11 @@ def colorized_profile_flags(profile):
     if profile['outdated_fs_version']:
         flags.append(FLAGS['outdated_fs_version'])
 
-    proposed = len(filter(itemgetter('proposed'), profile['upgrades']))
+    proposed = len(list(filter(itemgetter('proposed'), profile['upgrades'])))
     if proposed:
         flags.append(TERMINAL.blue('{0} proposed'.format(proposed)))
 
-    orphans = len(filter(itemgetter('orphan'), profile['upgrades']))
+    orphans = len(list(filter(itemgetter('orphan'), profile['upgrades'])))
     if orphans:
         flags.append(TERMINAL.standout_red('{0} orphan'.format(orphans)))
 

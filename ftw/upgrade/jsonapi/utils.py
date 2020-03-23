@@ -3,6 +3,7 @@ from AccessControl.SecurityManagement import newSecurityManager
 from AccessControl.SecurityManagement import SpecialUsers
 from Acquisition import aq_inner
 from Acquisition import aq_parent
+from binascii import hexlify
 from ftw.upgrade.exceptions import CyclicDependencies
 from ftw.upgrade.exceptions import UpgradeNotFound
 from ftw.upgrade.jsonapi.exceptions import AbortTransactionWithStreamedResponse
@@ -17,6 +18,7 @@ from OFS.interfaces import IApplication
 from zExceptions import Unauthorized
 from zope.interface import alsoProvides
 from zope.security import checkPermission
+
 import inspect
 import json
 import os
@@ -125,7 +127,7 @@ def jsonify(func):
             return result
 
         response.setHeader('Content-Type', 'application/json; charset=utf-8')
-        return json.dumps(result, indent=4, encoding='utf-8') + '\n'
+        return json.dumps(result, indent=4) + '\n'
 
     json_wrapper.__doc__ = func.__doc__
     json_wrapper.__name__ = func.__name__
@@ -204,7 +206,7 @@ def perform_tempfile_authentication(context, request):
 
 
 def validate_tempfile_authentication_header_value(header_value):
-    if not re.match('^tmp\w{6}:\w{64}', header_value):
+    if not re.match('^tmp\w{6,8}:\w{64}', header_value):
         raise ValueError(
             'tempfile auth: invalid x-ftw.upgrade-tempfile-auth header value.')
 
@@ -234,7 +236,7 @@ def get_system_upgrade_user(context):
     acl_users = context.acl_users
     if not acl_users.getUserById('system-upgrade'):
         acl_users.userFolderAddUser(
-            'system-upgrade', os.urandom(16).encode('hex'), ['Manager'], None)
+            'system-upgrade', hexlify(os.urandom(16)), ['Manager'], None)
     return acl_users.getUserById('system-upgrade')
 
 

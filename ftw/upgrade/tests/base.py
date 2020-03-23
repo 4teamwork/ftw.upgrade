@@ -22,17 +22,23 @@ from plone.app.testing import SITE_OWNER_NAME
 from plone.app.testing import TEST_USER_ID
 from plone.app.testing import TEST_USER_PASSWORD
 from Products.CMFCore.utils import getToolByName
-from StringIO import StringIO
+from six import StringIO
+from six.moves import map
+from six.moves import zip
 from unittest import TestCase
 from zope.component import getMultiAdapter
 from zope.component import queryAdapter
+
 import json
 import logging
 import lxml.html
 import os
 import re
+import six
+import six.moves.urllib.error
+import six.moves.urllib.parse
+import six.moves.urllib.request
 import transaction
-import urllib
 
 
 class UpgradeTestCase(TestCase):
@@ -103,14 +109,17 @@ class UpgradeTestCase(TestCase):
     def install_profile(self, profileid, version=None):
         self.portal_setup.runAllImportStepsFromProfile('profile-{0}'.format(profileid))
         if version is not None:
-            self.portal_setup.setLastVersionForProfile(profileid, (unicode(version),))
+            self.portal_setup.setLastVersionForProfile(
+                profileid, (six.text_type(version),))
         transaction.commit()
 
     def install_profile_upgrades(self, *profileids):
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
-        upgrade_info = [(profile['id'], map(itemgetter('id'), profile['upgrades']))
-                        for profile in gatherer.get_upgrades()
-                        if profile['id'] in profileids]
+        upgrade_info = [
+            (profile['id'], list(map(itemgetter('id'), profile['upgrades'])))
+            for profile in gatherer.get_upgrades()
+            if profile['id'] in profileids
+        ]
         executioner = queryAdapter(self.portal_setup, IExecutioner)
         executioner.install(upgrade_info)
 
@@ -118,7 +127,7 @@ class UpgradeTestCase(TestCase):
         profile = re.sub('^profile-', '', profile)
         recorder = getMultiAdapter((self.portal, profile), IUpgradeStepRecorder)
         recorder.clear()
-        map(recorder.mark_as_installed, destinations)
+        list(map(recorder.mark_as_installed, destinations))
         transaction.commit()
 
     def clear_recorded_upgrades(self, profile):
@@ -147,7 +156,7 @@ class UpgradeTestCase(TestCase):
         self.assertDictEqual(
             expected, got,
             'Unexpected gatherer result.\n\nPackages in result {0}:'.format(
-                map(lambda profile: profile['id'], result)))
+                [profile['id'] for profile in result]))
 
     def asset(self, filename):
         return Path(__file__).dirname().joinpath('assets', filename).text()
@@ -156,10 +165,9 @@ class UpgradeTestCase(TestCase):
     def assert_resources_recooked(self):
         def get_resources():
             doc = lxml.html.fromstring(self.portal())
-            return map(str.strip,
-                       map(lxml.html.tostring,
-                           doc.xpath('//link[@rel="stylesheet"][@href]'
-                                     ' | //script[@src]')))
+            return list(map(str.strip, map(six.ensure_str, map(lxml.html.tostring,
+                            doc.xpath('//link[@rel="stylesheet"][@href]'
+                                      ' | //script[@src]')))))
 
         resources = get_resources()
         yield
@@ -174,7 +182,7 @@ class UpgradeTestCase(TestCase):
             timestamp_file = self.portal.portal_resources.resource_overrides.production['timestamp.txt']
             # The data contains text, which should be a DateTime.
             # Convert it to an actual DateTime object so we can be sure when comparing it.
-            return DateTime(timestamp_file.data)
+            return DateTime(timestamp_file.data.decode('utf8'))
 
         timestamp = get_timestamp()
         yield
@@ -236,7 +244,7 @@ class WorkflowTestCase(TestCase):
             review_state = wftool.getInfoFor(obj, 'review_state')
             got[obj] = review_state
 
-        self.assertEquals(
+        self.assertEqual(
             expected, got, 'Unexpected workflow states')
 
     def set_workflow_chain(self, for_type, to_workflow):
@@ -247,7 +255,7 @@ class WorkflowTestCase(TestCase):
     def assertSecurityIsUpToDate(self):
         wftool = getToolByName(self.portal, 'portal_workflow')
         updated_objects = wftool.updateRoleMappings()
-        self.assertEquals(
+        self.assertEqual(
             0, updated_objects,
             'Expected all objects to have an up to date security, but'
             ' there were some which were not up to date.')
@@ -291,11 +299,10 @@ class WorkflowTestCase(TestCase):
                 msg and (' (%s)' % msg) or ''))
 
     def get_not_acquired_permissions_of(self, obj):
-        acquired_permissions = filter(
-            lambda item: not item.get('acquire'),
-            obj.permission_settings())
+        acquired_permissions = [
+            item for item in obj.permission_settings() if not item.get('acquire')]
 
-        return map(lambda item: item.get('name'), acquired_permissions)
+        return [item.get('name') for item in acquired_permissions]
 
 
 class JsonApiTestCase(UpgradeTestCase):
@@ -335,8 +342,7 @@ class JsonApiTestCase(UpgradeTestCase):
         with verbose_logging():
             if method.lower() == 'get':
                 browser.visit(context, view='upgrades-api/{0}?{1}'.format(
-                        action,
-                        urllib.urlencode(data)))
+                    action, six.moves.urllib.parse.urlencode(data)))
 
             elif method.lower() == 'post':
                 if not data:

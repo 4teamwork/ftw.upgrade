@@ -1,7 +1,8 @@
 from ftw.upgrade.transactionnote import TransactionNote
+from six.moves import range
 from unittest import TestCase
-import transaction
 
+import transaction
 
 
 class TestTransactionNote(TestCase):
@@ -20,14 +21,14 @@ class TestTransactionNote(TestCase):
         note.add_upgrade('my.package:default', ('1702',), 'Remove utility')
         note.set_transaction_note()
 
-        self.assertEquals(
+        self.assertEqual(
             u'my.package:default -> 1.1 (Migrate objects)\n'
             u'my.package:default -> 1702 (Remove utility)',
             transaction.get().description)
 
     def test_description_is_removed_when_note_gets_too_long(self):
         # Transaction note size is limited to 65535 characters
-        description = 'A' * (65535 / 2)
+        description = 'A' * (65535 // 2)
 
         note = TransactionNote()
         note.add_upgrade('my.package:default', ('1000',), description)
@@ -40,7 +41,7 @@ class TestTransactionNote(TestCase):
             'Description seems not to be removed from too long' + \
             ' transaction note.'
 
-        self.assertEquals(
+        self.assertEqual(
             u'my.package:default -> 1000\n'
             u'my.package:default -> 1001',
             transaction.get().description)
@@ -51,7 +52,7 @@ class TestTransactionNote(TestCase):
         transaction.get().note('Some notes..')
 
         note = TransactionNote()
-        for destination in range(1, (65535 / len(profileid)) + 2):
+        for destination in range(1, (65535 // len(profileid)) + 2):
             note.add_upgrade(profileid, (str(destination),), '')
         note.set_transaction_note()
 

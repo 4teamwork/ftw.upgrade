@@ -10,9 +10,10 @@ from Products.CMFPlone.interfaces import IMigratingPloneSiteRoot
 from Products.GenericSetup.interfaces import EXTENSION
 from Products.GenericSetup.upgrade import listUpgradeSteps
 from zope.configuration.config import ConfigurationExecutionError
-from zope.interface import implementer
 from zope.interface import Interface
 from zope.interface import providedBy
+
+import six
 
 
 class IFoo(Interface):
@@ -108,7 +109,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
 
         with create(package_builder).zcml_loaded(self.layer['configurationContext']):
             import other.package
-            self.assertEquals('package root', other.package.PACKAGE)
+            self.assertEqual('package root', other.package.PACKAGE)
 
     def test_profile_must_be_registed_before_registering_upgrade_directory(self):
         package_builder = (Builder('python package')
@@ -123,11 +124,10 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
             with self.assertRaises(ConfigurationExecutionError) as cm:
                 package.load_zcml(self.layer['configurationContext'])
 
-        self.assertEqual(
-            "<class 'ftw.upgrade.exceptions.UpgradeStepConfigurationError'>: "
-            'The profile "other.package:default" needs to be registered'
-            ' before registering its upgrade step directory.',
-            str(cm.exception).splitlines()[0])
+        self.assertIn(
+            'The profile "other.package:default" needs to be registered before'
+            ' registering its upgrade step directory.',
+            str(cm.exception))
 
     def test_profile_version_is_set_to_latest_profile_version(self):
         self.profile.with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1, 8)))
@@ -206,12 +206,11 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
             with self.assertRaises(ConfigurationExecutionError) as cm:
                 package.load_zcml(self.layer['configurationContext'])
 
-        self.assertEqual(
-            "<class 'ftw.upgrade.exceptions.UpgradeStepConfigurationError'>: "
+        self.assertIn(
             'Registering an upgrades directory for "the.package:default" requires'
             ' this profile to not define a version in its metadata.xml.'
             ' The version is automatically set to the latest upgrade.',
-            str(cm.exception).splitlines()[0])
+            str(cm.exception))
 
     def test_declaring_upgrades_dependency(self):
         self.package.with_profile(
@@ -255,13 +254,16 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                  'for': None})
 
             portal_setup = getToolByName(self.portal, 'portal_setup')
-            self.assertEquals(
+            self.assertEqual(
                 [u'the.package:default',
                  u'the.package:baz',
                  u'the.package:bar',
                  u'the.package:foo'],
-                filter(lambda profile_id: profile_id.startswith('the.package:'),
-                       get_sorted_profile_ids(portal_setup)))
+                [
+                    profile_id for profile_id
+                    in get_sorted_profile_ids(portal_setup)
+                    if profile_id.startswith('the.package:')
+                ])
 
     def test_handler_step_provides_interfaces_implemented_by_upgrade_step_class(self):
         code = '\n'.join((
@@ -280,8 +282,9 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
         with self.package_created():
             portal_setup = getToolByName(self.portal, 'portal_setup')
             steps = listUpgradeSteps(portal_setup, 'the.package:default', '10000000000000')
-            self.assertEquals(1, len(steps))
-            self.assertItemsEqual(
+            self.assertEqual(1, len(steps))
+            six.assertCountEqual(
+                self,
                 (IRecordableHandler,
                  IUpgradeStep,
                  IFoo),
@@ -294,7 +297,7 @@ class TestDirectoryMetaDirective(UpgradeTestCase):
                     if key in ('source', 'dest', 'title'))
                for step in upgrades]
         self.maxDiff = None
-        self.assertItemsEqual(expected, got)
+        six.assertCountEqual(self, expected, got)
 
     def assert_profile(self, expected):
         self.assertTrue(

@@ -1,5 +1,6 @@
-from Products.CMFCore.utils import getToolByName
 from ftw.upgrade.workflow import WorkflowChainUpdater
+from Products.CMFCore.utils import getToolByName
+
 import logging
 
 

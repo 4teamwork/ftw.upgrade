@@ -86,6 +86,6 @@ class TestPlacefulWorkflowPolicyActivator(WorkflowTestCase):
                 ('intranet_workflow', 'plone_workflow'): {
                     'internal': 'published'}})
 
-        self.assertEquals(
+        self.assertEqual(
             ['Anonymous'],
             self.get_allowed_roles_and_users(for_object=container))

@@ -1,12 +1,17 @@
 from ftw.upgrade import UpgradeStep
 from ftw.upgrade.exceptions import UpgradeStepDefinitionError
 from ftw.upgrade.utils import subject_from_docstring
+from functools import reduce
 from glob import glob
 from Products.GenericSetup.upgrade import normalize_version
+from six.moves import filter
+from six.moves import map
+
 import imp
 import inspect
 import os.path
 import re
+import six
 
 
 UPGRADESTEP_DATETIME_REGEX = re.compile(r'^.*/?(\d{14})[^/]*/upgrade.py$')
@@ -20,16 +25,16 @@ class Scanner(object):
 
     def scan(self):
         self._load_upgrades_directory()
-        infos = map(self._build_upgrade_step_info,
-                    self._find_upgrade_directories())
+        infos = list(map(self._build_upgrade_step_info,
+                         self._find_upgrade_directories()))
         infos.sort(key=lambda info: normalize_version(info['target-version']))
         if len(infos) > 0:
             reduce(self._chain_upgrade_steps, infos)
         return infos
 
     def _find_upgrade_directories(self):
-        return filter(UPGRADESTEP_DATETIME_REGEX.match,
-                      glob('{0}/*/upgrade.py'.format(self.directory)))
+        return list(filter(UPGRADESTEP_DATETIME_REGEX.match,
+                           glob('{0}/*/upgrade.py'.format(self.directory))))
 
     def _build_upgrade_step_info(self, path):
         title, callable = self._load_upgrade_step_code(path)
@@ -85,8 +90,7 @@ class Scanner(object):
                 continue
 
             title = subject_from_docstring(inspect.getdoc(value) or name)
-            if isinstance(title, str):
-                title = title.decode('utf-8')
+            title = six.ensure_text(title)
             yield (title, value)
 
     def _load_upgrades_directory(self):
@@ -100,4 +104,4 @@ class Scanner(object):
         except ImportError:
             pass
         else:
-            imp.load_module(self.dottedname, fp, pathname, description)
+            imp.load_module(self.dottedname, fp, str(pathname), description)

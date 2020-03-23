@@ -1,6 +1,7 @@
 from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
 from ftw.upgrade.utils import SavepointIterator
 from unittest import TestCase
+
 import os
 import transaction
 
@@ -18,7 +19,7 @@ class TestSavepointIterator(TestCase):
         os.environ.pop('UPGRADE_SAVEPOINT_THRESHOLD', None)
 
     def test_creates_savepoints(self):
-        self.assertEquals(
+        self.assertEqual(
             0, self.txn._savepoint_index,
             'A new transaction should not have any savepoints yet')
 
@@ -27,16 +28,16 @@ class TestSavepointIterator(TestCase):
         # Consume entire iterator
         result = list(iterator)
 
-        self.assertEquals(
+        self.assertEqual(
             self.iterable, result,
             'Iterator should yield every item of `iterable`')
 
-        self.assertEquals(
+        self.assertEqual(
             1, self.txn._savepoint_index,
             'One savepoint should have been created')
 
     def test_doesnt_create_savepoints_with_threshold_0(self):
-        self.assertEquals(
+        self.assertEqual(
             0, self.txn._savepoint_index,
             'A new transaction should not have any savepoints yet')
 
@@ -45,11 +46,11 @@ class TestSavepointIterator(TestCase):
         # Consume entire iterator
         result = list(iterator)
 
-        self.assertEquals(
+        self.assertEqual(
             self.iterable, result,
             'Iterator should yield every item of `iterable`')
 
-        self.assertEquals(
+        self.assertEqual(
             0, self.txn._savepoint_index,
             'threshold=0 should never create any savepoints')
 
@@ -62,11 +63,11 @@ class TestSavepointIterator(TestCase):
 
     def test_default_threshold_is_1000(self):
         # 1000 is the application default.
-        self.assertEquals(1000, SavepointIterator.get_default_threshold())
+        self.assertEqual(1000, SavepointIterator.get_default_threshold())
 
     def test_configure_default_threshold_with_environ_variable(self):
         os.environ['UPGRADE_SAVEPOINT_THRESHOLD'] = '333'
-        self.assertEquals(333, SavepointIterator.get_default_threshold())
+        self.assertEqual(333, SavepointIterator.get_default_threshold())
 
     def test_disable_default_threshold_with_environ_variable(self):
         os.environ['UPGRADE_SAVEPOINT_THRESHOLD'] = 'None'
@@ -78,4 +79,4 @@ class TestSavepointIterator(TestCase):
         os.environ['UPGRADE_SAVEPOINT_THRESHOLD'] = 'foo'
         with self.assertRaises(ValueError) as cm:
             SavepointIterator.get_default_threshold()
-        self.assertEquals("Invalid savepoint threshold 'foo'", str(cm.exception))
+        self.assertEqual("Invalid savepoint threshold 'foo'", str(cm.exception))

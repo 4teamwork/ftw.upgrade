@@ -3,6 +3,7 @@ from ftw.upgrade.command.jsonapi import add_site_path_argument
 from ftw.upgrade.command.jsonapi import error_handling
 from ftw.upgrade.command.jsonapi import with_api_requestor
 from ftw.upgrade.command.terminal import TERMINAL
+
 import sys
 
 
@@ -32,6 +33,6 @@ def setup_argparser(commands):
 @error_handling
 def plone_upgrade_command(args, requestor):
     response = requestor.GET('plone_upgrade_needed')
-    print response.text
+    print(response.text)
     if response.text.strip() not in ('true', 'false'):
         sys.exit(3)

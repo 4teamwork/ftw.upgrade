@@ -1,7 +1,9 @@
-from ftw.upgrade.tests.base import CommandTestCase
 from datetime import datetime
 from ftw.builder import Builder
 from ftw.builder import create
+from ftw.upgrade.tests.base import CommandTestCase
+
+import six
 
 
 class TestTouchCommand(CommandTestCase):
@@ -29,8 +31,9 @@ class TestTouchCommand(CommandTestCase):
                          'Expected path to no longer exist: {0}'.format(path))
 
         new_step_path, = path.dirname().dirs()
-        self.assertRegexpMatches(new_step_path.name,
-                                 r'^{0}\d{{10}}_add_action'.format(datetime.now().year))
+        six.assertRegex(
+            self, new_step_path.name,
+            r'^{0}\d{{10}}_add_action'.format(datetime.now().year))
 
     def test_moving_after_another(self):
         self.package = create(

@@ -1,10 +1,13 @@
+from __future__ import print_function
 from contextlib import closing
 from ftw.upgrade.command.jsonapi import add_requestor_authentication_argument
 from ftw.upgrade.command.jsonapi import add_site_path_argument
 from ftw.upgrade.command.jsonapi import error_handling
 from ftw.upgrade.command.jsonapi import with_api_requestor
 from ftw.upgrade.command.terminal import TERMINAL
+
 import re
+import six
 import sys
 
 
@@ -112,7 +115,7 @@ def setup_argparser(commands):
 @error_handling
 def install_command(args, requestor):
     if args.force_reinstall and not args.profiles:
-        print >>sys.stderr, 'ERROR: --force can only be used with --profiles.'
+        print('ERROR: --force can only be used with --profiles.', file=sys.stderr)
         sys.exit(3)
 
     if args.proposed is not None:
@@ -134,10 +137,9 @@ def install_command(args, requestor):
     with closing(requestor.POST(action, params=params,
                                 stream=True)) as response:
         for line in response.iter_lines(chunk_size=30):
-            if isinstance(line, unicode):
-                line = line.encode('utf-8')
+            line = six.ensure_str(line)
 
-            print line
+            print(line)
 
     if line.strip() != 'Result: SUCCESS':
         sys.exit(3)

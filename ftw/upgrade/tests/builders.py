@@ -3,6 +3,7 @@ from ftw.builder.utils import serialize_callable
 from ftw.upgrade import UpgradeStep
 from ftw.upgrade.directory import scaffold
 from path import Path
+
 import inflection
 import os
 

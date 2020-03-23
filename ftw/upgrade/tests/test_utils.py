@@ -8,7 +8,11 @@ from ftw.upgrade.utils import get_tempfile_authentication_directory
 from ftw.upgrade.utils import SizedGenerator
 from ftw.upgrade.utils import subject_from_docstring
 from ftw.upgrade.utils import topological_sort
+from six.moves import map
+from six.moves import range
 from unittest import TestCase
+
+import six
 import stat
 
 
@@ -77,10 +81,9 @@ class TestFindCyclicDependencies(TestCase):
             ('default', 'image-replacement'),
             )
 
-        self.assertEquals(
-            [set(('foo',
-                  'bar'))],
-            map(set, find_cyclic_dependencies(dependencies)))
+        self.assertEqual(
+            [set(('foo', 'bar'))],
+            list(map(set, find_cyclic_dependencies(dependencies))))
 
     def test_indirect_cyclic_dependencies(self):
         dependencies = (
@@ -89,11 +92,9 @@ class TestFindCyclicDependencies(TestCase):
             ('baz', 'foo'),
             )
 
-        self.assertEquals(
-            [set(('foo',
-                  'bar',
-                  'baz'))],
-            map(set, find_cyclic_dependencies(dependencies)))
+        self.assertEqual(
+            [set(('foo', 'bar', 'baz'))],
+            list(map(set, find_cyclic_dependencies(dependencies))))
 
 
 class TestSizedGenerator(TestCase):
@@ -166,8 +167,8 @@ class TestSortedProfileIds(MockTestCase):
         with self.assertRaises(CyclicDependencies) as cm:
             get_sorted_profile_ids(portal_setup)
 
-        self.assertEqual([('foo', 'bar')],
-                         cm.exception.cyclic_dependencies)
+        six.assertCountEqual(
+            self, ('foo', 'bar'), cm.exception.cyclic_dependencies[0])
 
         self.assertEqual([('foo', 'bar'), ('bar', 'foo')],
                          cm.exception.dependencies)
@@ -237,22 +238,22 @@ class TestFormatDuration(TestCase):
 class TestSubjectFromDocstring(TestCase):
 
     def test_one_line_only(self):
-        self.assertEquals(
+        self.assertEqual(
             'This is the subject.',
             subject_from_docstring('This is the subject.'))
 
     def test_whitespace_is_stripped(self):
-        self.assertEquals(
+        self.assertEqual(
             'This is the subject.',
             subject_from_docstring('\nThis is the subject.\n'))
 
     def test_only_subject_is_returned(self):
-        self.assertEquals(
+        self.assertEqual(
             'This is the subject.',
             subject_from_docstring('This is the subject.\n\nThis is the body.'))
 
     def test_multiline_subject_is_joined(self):
-        self.assertEquals(
+        self.assertEqual(
             'This is a subject, with multiple lines.',
             subject_from_docstring('This is a subject,\n'
                                    'with multiple lines.\n'
@@ -266,7 +267,7 @@ class TestGetTempfileAuthenticationDirectory(TestCase):
     def setUp(self):
         self.buildoutdir = self.layer['temp_directory']
         self.buildoutdir.joinpath('bin').mkdir()
-        self.buildoutdir.joinpath('bin', 'buildout').write_bytes('')
+        self.buildoutdir.joinpath('bin', 'buildout').write_bytes(b'')
         self.buildoutdir.joinpath('var').mkdir()
 
     def test_directory_is_created(self):

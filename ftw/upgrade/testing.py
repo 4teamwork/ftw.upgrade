@@ -16,8 +16,10 @@ from plone.testing import z2
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import getFSVersionTuple
 from Products.SiteAccess.VirtualHostMonster import manage_addVirtualHostMonster
+from six.moves import map
 from zope.component import getUtility
 from zope.configuration import xmlconfig
+
 import ftw.upgrade.tests.builders
 import pkg_resources
 import transaction
@@ -119,7 +121,7 @@ class UpgradeLayer(PloneSandboxLayer):
         portal_setup = getToolByName(portal, 'portal_setup')
         profileid = 'plone.app.jquery:default'
         version = max(map(itemgetter('dest'),
-                          portal_setup.listUpgrades(profileid, show_old=True)))
+                      portal_setup.listUpgrades(profileid, show_old=True)))
         portal_setup.setLastVersionForProfile(profileid, version)
 
 

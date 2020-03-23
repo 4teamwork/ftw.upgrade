@@ -6,6 +6,7 @@ from Products.CMFPlone.utils import getFSVersionTuple
 from unittest import skipIf
 from ZPublisher.BaseRequest import RequestContainer
 from ZPublisher.HTTPRequest import HTTPRequest
+
 import transaction
 
 
@@ -21,7 +22,7 @@ class TestPloneUpgradeCommand(CommandAndInstanceTestCase):
     def test_plone_upgrade_already_uptodate(self):
         exitcode, output = self.upgrade_script(
             'plone_upgrade -s plone')
-        self.assertEquals(0, exitcode)
+        self.assertEqual(0, exitcode)
         transaction.begin()  # sync transaction
         self.assertIn(u'Plone Site was already up to date.', output)
 
@@ -34,7 +35,7 @@ class TestPloneUpgradeCommand(CommandAndInstanceTestCase):
 
         exitcode, output = self.upgrade_script(
             'plone_upgrade -s plone')
-        self.assertEquals(0, exitcode)
+        self.assertEqual(0, exitcode)
         transaction.begin()  # sync transaction
         self.assertIn(u'Plone Site has been updated.', output)
 

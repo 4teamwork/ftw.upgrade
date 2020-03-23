@@ -28,4 +28,4 @@ def setup_argparser(commands):
 @with_api_requestor
 @error_handling
 def combine_bundles(args, requestor):
-    print(requestor.POST('combine_bundles').json())
+    print((requestor.POST('combine_bundles').json()))

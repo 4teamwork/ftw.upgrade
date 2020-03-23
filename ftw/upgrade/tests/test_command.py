@@ -1,4 +1,5 @@
 from ftw.upgrade.tests.base import CommandTestCase
+
 import os
 
 

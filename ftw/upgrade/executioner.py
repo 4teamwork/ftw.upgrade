@@ -16,18 +16,24 @@ from Products.GenericSetup.upgrade import _upgrade_registry
 from zope.component import adapts
 from zope.component import getAdapters
 from zope.interface import alsoProvides
-from zope.interface import implements
+from zope.interface import implementer
+
 import logging
 import time
 import transaction
+
+try:
+    from Products.CMFPlone.utils import get_installer
+except ImportError:
+    get_installer = None
 
 
 logger = logging.getLogger('ftw.upgrade')
 
 
+@implementer(IExecutioner)
 class Executioner(object):
 
-    implements(IExecutioner)
     adapts(ISetupTool)
     security = ClassSecurityInformation()
 
@@ -121,16 +127,17 @@ class Executioner(object):
             profileinfo = self.portal_setup.getProfileInfo(profileid)
         except KeyError:
             return
-
-        quickinstaller = getToolByName(self.portal_setup,
-                                       'portal_quickinstaller')
         product = profileinfo['product']
-        if not quickinstaller.isProductInstalled(product):
-            return
 
-        version = quickinstaller.getProductVersion(product)
-        if version:
-            quickinstaller.get(product).installedversion = version
+        if get_installer is None:
+            quickinstaller = getToolByName(self.portal_setup,
+                                           'portal_quickinstaller')
+            if not quickinstaller.isProductInstalled(product):
+                return
+
+            version = quickinstaller.getProductVersion(product)
+            if version:
+                quickinstaller.get(product).installedversion = version
 
     security.declarePrivate('_do_upgrade')
     def _do_upgrade(self, profileid, upgradeid):
@@ -167,22 +174,12 @@ class Executioner(object):
         portal = portal_url.getPortalObject()
         adapters = list(getAdapters((portal, portal.REQUEST), IPostUpgrade))
 
-        def _sorter(a, b):
-            name_a = a[0]
-            name_b = b[0]
-
-            if name_a not in profile_order and name_b not in profile_order:
-                return 0
-
-            elif name_a not in profile_order:
+        def sort_key(item):
+            name = item[0]
+            if name not in profile_order:
                 return -1
-
-            elif name_b not in profile_order:
-                return 1
-
             else:
-                return cmp(profile_order.index(name_a),
-                           profile_order.index(name_b))
+                return profile_order.index(name)
 
-        adapters.sort(_sorter)
+        adapters.sort(key=sort_key)
         return [adapter for name, adapter in adapters]

@@ -68,7 +68,7 @@ def setup_argparser(commands):
 def list_command(args, requestor):
     response = requestor.GET(args.action)
     if args.json:
-        print response.text
+        print(response.text)
         return
 
     if args.action == 'list_proposed_upgrades':
@@ -89,7 +89,7 @@ def format_proposed_upgrades(response):
                      ]
         proposed.append(table_row)
 
-    print TERMINAL.bold('Proposed upgrades:')
+    print(TERMINAL.bold('Proposed upgrades:'))
     print_table(proposed, ['ID:', 'Title:'])
 
 
@@ -102,5 +102,5 @@ def format_profiles(response):
              TERMINAL.bold(profile['title']),
              colorized_profile_versions(profile)])
 
-    print TERMINAL.bold('Installed profiles:')
+    print(TERMINAL.bold('Installed profiles:'))
     print_table(tabledata, ['ID:', '', 'Title:', 'Versions (DB/FS):'])

@@ -11,6 +11,8 @@ from plone.app.testing import TEST_USER_PASSWORD
 from Products.CMFPlone.utils import safe_unicode
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
+from six.moves import map
+
 import os
 
 
@@ -159,41 +161,41 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
         zconf = ZopeConfPathStub('<http-server>',
                                  '  address 8080',
                                  '</http-server>')
-        self.assertEquals(8080, get_instance_port(zconf))
+        self.assertEqual(8080, get_instance_port(zconf))
 
     def test_get_instance_port_localhost_interface_prefix(self):
         zconf = ZopeConfPathStub('<http-server>',
                                  '  address 127.0.0.1:8080',
                                  '</http-server>')
-        self.assertEquals(8080, get_instance_port(zconf))
+        self.assertEqual(8080, get_instance_port(zconf))
 
     def test_get_instance_port_public_interface_prefix(self):
         zconf = ZopeConfPathStub('<http-server>',
                                  '  address 127.0.0.1:8080',
                                  '</http-server>')
-        self.assertEquals(8080, get_instance_port(zconf))
+        self.assertEqual(8080, get_instance_port(zconf))
 
     def test_get_instance_port_localhost_ip(self):
         zconf = ZopeConfPathStub('ip-address 127.0.0.1',
                                  '<http-server>',
                                  '  address 127.0.0.1:8080',
                                  '</http-server>')
-        self.assertEquals(8080, get_instance_port(zconf))
+        self.assertEqual(8080, get_instance_port(zconf))
 
     def test_get_instance_port_public_ip(self):
         zconf = ZopeConfPathStub('ip-address 0.0.0.0',
                                  '<http-server>',
                                  '  address 127.0.0.1:8080',
                                  '</http-server>')
-        self.assertEquals(8080, get_instance_port(zconf))
+        self.assertEqual(8080, get_instance_port(zconf))
 
     def test_get_instance_port_no_indent(self):
         zconf = ZopeConfPathStub('<http-server>',
                                  'address 8080',
                                  '</http-server>')
-        self.assertEquals(8080, get_instance_port(zconf))
+        self.assertEqual(8080, get_instance_port(zconf))
 
     def test_get_instance_port_not_found(self):
         zconf = ZopeConfPathStub('<http-server>',
                                  '</http-server>')
-        self.assertEquals(None, get_instance_port(zconf))
+        self.assertEqual(None, get_instance_port(zconf))

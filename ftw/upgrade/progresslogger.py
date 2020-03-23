@@ -1,6 +1,8 @@
 from AccessControl.SecurityInfo import ClassSecurityInformation
 from time import time
+
 import logging
+import six
 
 
 class ProgressLogger(object):
@@ -16,7 +18,7 @@ class ProgressLogger(object):
         self.message = message
         self.iterable = iterable
 
-        if isinstance(iterable, (int, long, float)):
+        if isinstance(iterable, (six.integer_types + (float,))):
             self.length = iterable
         else:
             self.length = len(iterable)

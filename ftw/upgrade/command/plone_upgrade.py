@@ -4,6 +4,8 @@ from ftw.upgrade.command.jsonapi import add_site_path_argument
 from ftw.upgrade.command.jsonapi import error_handling
 from ftw.upgrade.command.jsonapi import with_api_requestor
 from ftw.upgrade.command.terminal import TERMINAL
+
+import six
 import sys
 
 
@@ -32,8 +34,8 @@ def setup_argparser(commands):
 
 # expected output
 expected = (
-    u'Plone Site was already up to date.',
-    u'Plone Site has been updated.')
+    b'Plone Site was already up to date.',
+    b'Plone Site has been updated.')
 
 
 @with_api_requestor
@@ -45,10 +47,10 @@ def plone_upgrade_command(args, requestor):
     with closing(requestor.POST(action, params=params,
                                 stream=True)) as response:
         for line in response.iter_lines(chunk_size=30):
-            if isinstance(line, unicode):
+            if isinstance(line, six.text_type):
                 line = line.encode('utf-8')
 
-            print line
+            print(line)
 
     line = line.strip()
     if not any([x in line for x in expected]):

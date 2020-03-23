@@ -4,14 +4,15 @@ from ftw.upgrade.jsonapi.utils import action
 from ftw.upgrade.jsonapi.utils import ErrorHandling
 from ftw.upgrade.jsonapi.utils import get_action_discovery_information
 from ftw.upgrade.jsonapi.utils import jsonify
-from zope.interface import implements
+from zope.interface import implementer
 from zope.publisher.browser import BrowserView
 from zope.publisher.interfaces import IPublishTraverse
+
 import re
 
 
+@implementer(IPublishTraverse)
 class APIView(BrowserView):
-    implements(IPublishTraverse)
     api_version = 'v1'
 
     def __init__(self, *args, **kwargs):

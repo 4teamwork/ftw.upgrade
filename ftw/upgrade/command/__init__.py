@@ -13,6 +13,7 @@ from ftw.upgrade.command.formatter import FlexiFormatter
 from ftw.upgrade.command.terminal import TERMINAL
 from ftw.upgrade.command.utils import capture
 from pkg_resources import get_distribution
+
 import argcomplete
 import argparse
 import json
@@ -167,7 +168,7 @@ class UpgradeCommand(object):
                     break
             if getattr(args, 'json', False):
                 # Pretty print the output of all sites.
-                print(json.dumps(info, indent=4, encoding='utf-8'))
+                print((json.dumps(info, indent=4)))
         else:
             args.func(args)
 

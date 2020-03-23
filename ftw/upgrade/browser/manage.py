@@ -7,7 +7,9 @@ from ftw.upgrade.utils import get_portal_migration
 from Products.CMFCore.utils import getToolByName
 from zope.component import getAdapter
 from zope.publisher.browser import BrowserView
+
 import logging
+import six
 import time
 import traceback
 
@@ -53,10 +55,10 @@ class ResponseLogger(object):
 
     security.declarePrivate('write')
     def write(self, line):
-        if isinstance(line, unicode):
+        if isinstance(line, six.text_type):
             line = line.encode('utf8')
 
-        line = line.replace('<', '&lt;').replace('>', '&gt;')
+        line = line.replace(b'<', b'&lt;').replace(b'>', b'&gt;')
 
         self.response.write(line)
         self.response.flush()
@@ -113,17 +115,17 @@ class ManageUpgrades(BrowserView):
         response = self.request.RESPONSE
         response.setHeader('Content-Type', 'text/html')
         response.setHeader('Transfer-Encoding', 'chunked')
-        response.write('<html>')
-        response.write('<body>')
-        response.write('  ' * getattr(response, 'http_chunk_size', 100))
-        response.write('<pre>')
+        response.write(b'<html>')
+        response.write(b'<body>')
+        response.write(b'  ' * getattr(response, 'http_chunk_size', 100))
+        response.write(b'<pre>')
 
         with ResponseLogger(self.request.RESPONSE):
             self.install()
 
-        response.write('</pre>')
-        response.write('</body>')
-        response.write('</html>')
+        response.write(b'</pre>')
+        response.write(b'</body>')
+        response.write(b'</html>')
 
     security.declarePrivate('get_data')
     def get_data(self):
@@ -131,7 +133,7 @@ class ManageUpgrades(BrowserView):
         gatherer = getAdapter(gstool, IUpgradeInformationGatherer)
         try:
             return gatherer.get_profiles()
-        except CyclicDependencies, exc:
+        except CyclicDependencies as exc:
             self.cyclic_dependencies = exc.cyclic_dependencies
             return []
 

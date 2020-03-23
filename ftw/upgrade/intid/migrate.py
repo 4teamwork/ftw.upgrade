@@ -1,5 +1,5 @@
-from zope.intid.interfaces import IIntIds
 from zope.component import queryUtility
+from zope.intid.interfaces import IIntIds
 
 
 def update_intids_after_class_migration(event):

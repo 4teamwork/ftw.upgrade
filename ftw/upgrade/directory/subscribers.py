@@ -4,7 +4,9 @@ from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from functools import partial
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
+from six.moves import map
 from zope.component import getMultiAdapter
+
 import os
 import re
 
@@ -47,6 +49,6 @@ def profile_installed(event):
     portal = getToolByName(event.tool, 'portal_url').getPortalObject()
     recorder = getMultiAdapter((portal, profile), IUpgradeStepRecorder)
 
-    map(recorder.mark_as_installed,
-        map(itemgetter('sdest'),
-            flatten_upgrades(event.tool.listUpgrades(profile, show_old=True))))
+    list(map(recorder.mark_as_installed, map(
+        itemgetter('sdest'), flatten_upgrades(
+            event.tool.listUpgrades(profile, show_old=True)))))

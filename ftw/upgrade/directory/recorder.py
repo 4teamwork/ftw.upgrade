@@ -3,15 +3,17 @@ from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from Products.CMFPlone.interfaces import IPloneSiteRoot
 from zope.annotation import IAnnotations
 from zope.component import adapts
-from zope.interface import implements
+from zope.interface import implementer
 from zope.interface import Interface
+
+import six
 
 
 ANNOTATION_KEY = 'ftw.upgrade:recorder'
 
 
+@implementer(IUpgradeStepRecorder)
 class UpgradeStepRecorder(object):
-    implements(IUpgradeStepRecorder)
     adapts(IPloneSiteRoot, Interface)
 
     def __init__(self, portal, profilename):
@@ -46,7 +48,7 @@ class UpgradeStepRecorder(object):
         if profilename.startswith('profile-'):
             profilename = profilename[len('profile-'):]
 
-        if not isinstance(profilename, unicode):
+        if not isinstance(profilename, six.text_type):
             profilename = profilename.decode('utf-8')
 
         return profilename

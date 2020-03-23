@@ -3,7 +3,9 @@ from contextlib import contextmanager
 from copy import deepcopy
 from ftw.upgrade.exceptions import CyclicDependencies
 from path import Path
+from six.moves import map
 from zope.component.hooks import getSite
+
 import logging
 import math
 import os
@@ -266,7 +268,7 @@ def subject_from_docstring(docstring):
     The subject consists of all lines from the beginning to the
     first empty line. Newlines are stripped.
     """
-    lines = map(str.strip, docstring.strip().splitlines())
+    lines = list(map(str.strip, docstring.strip().splitlines()))
     try:
         lines.index('')
     except ValueError:
@@ -288,7 +290,7 @@ def get_tempfile_authentication_directory(directory=None):
 
     auth_directory = directory.joinpath('var', 'ftw.upgrade-authentication')
     if not auth_directory.isdir():
-        auth_directory.mkdir(mode=0770)
+        auth_directory.mkdir(mode=0o770)
 
     # Verify that "others" do not have any permissions on this directory.
     if auth_directory.stat().st_mode & stat.S_IRWXO:

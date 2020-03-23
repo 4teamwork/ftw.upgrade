@@ -5,15 +5,22 @@ from ftw.upgrade.interfaces import IRecordableHandler
 from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.utils import get_sorted_profile_ids
+from functools import reduce
 from operator import itemgetter
 from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
 from Products.GenericSetup.upgrade import normalize_version
 from Products.GenericSetup.upgrade import UpgradeStep
+from six.moves import map
 from zope.component import adapts
 from zope.component import getMultiAdapter
 from zope.deprecation import deprecated
-from zope.interface import implements
+from zope.interface import implementer
+
+try:
+    from Products.CMFPlone.utils import get_installer
+except ImportError:
+    get_installer = None
 
 
 def flatten_upgrades(upgrades):
@@ -91,8 +98,8 @@ def extend_auto_upgrades_with_human_formatted_date_version(profiles):
     return profiles
 
 
+@implementer(IUpgradeInformationGatherer)
 class UpgradeInformationGatherer(object):
-    implements(IUpgradeInformationGatherer)
     adapts(ISetupTool)
 
     security = ClassSecurityInformation()
@@ -120,11 +127,12 @@ class UpgradeInformationGatherer(object):
     security.declarePrivate('get_upgrades_by_api_ids')
     def get_upgrades_by_api_ids(self, *api_ids, **kwargs):
         propose_deferrable = kwargs.pop('propose_deferrable', True)
-        upgrades = filter(lambda upgrade: upgrade['api_id'] in api_ids,
-                          reduce(list.__add__,
-                                 map(itemgetter('upgrades'),
-                                     self.get_profiles(
-                                        propose_deferrable=propose_deferrable))))
+        upgrades = [
+            upgrade for upgrade
+            in reduce(list.__add__, map(itemgetter('upgrades'),
+                      self.get_profiles(propose_deferrable=propose_deferrable)))
+            if upgrade['api_id'] in api_ids
+        ]
 
         missing_api_ids = (set(api_ids)
                            - set(map(itemgetter('api_id'), upgrades)))
@@ -172,7 +180,7 @@ class UpgradeInformationGatherer(object):
                 del profile_info['for']
             data.update(profile_info)
 
-        except KeyError, exc:
+        except KeyError as exc:
             if exc.args and exc.args[0] == profileid:
                 # package was removed - profile is no longer available.
                 return {'upgrades': []}
@@ -231,17 +239,24 @@ class UpgradeInformationGatherer(object):
 
     security.declarePrivate('_is_profile_installed')
     def _is_profile_installed(self, profileid):
-        quickinstaller = getToolByName(self.portal_setup,
-                                       'portal_quickinstaller')
         try:
             profileinfo = self.portal_setup.getProfileInfo(profileid)
         except KeyError:
             return False
-
         product = profileinfo['product']
-        if quickinstaller.isProductInstallable(product) and \
-                not quickinstaller.isProductInstalled(product):
-            return False
+
+        if get_installer is not None:
+            quickinstaller = get_installer(self.portal, self.portal.REQUEST)
+
+            if (quickinstaller.is_product_installable(product)
+                    and not quickinstaller.is_product_installed(product)):
+                return False
+        else:
+            quickinstaller = getToolByName(
+                self.portal_setup, 'portal_quickinstaller')
+            if (quickinstaller.isProductInstallable(product)
+                    and not quickinstaller.isProductInstalled(product)):
+                return False
 
         version = self.portal_setup.getLastVersionForProfile(profileid)
         return version != 'unknown'

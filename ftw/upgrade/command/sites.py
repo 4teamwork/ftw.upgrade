@@ -1,8 +1,11 @@
+from __future__ import print_function
 from ftw.upgrade.command.jsonapi import add_json_argument
 from ftw.upgrade.command.jsonapi import add_requestor_authentication_argument
 from ftw.upgrade.command.jsonapi import error_handling
 from ftw.upgrade.command.jsonapi import with_api_requestor
 from ftw.upgrade.command.terminal import TERMINAL
+
+import six
 
 
 DOCS = """
@@ -34,7 +37,7 @@ def sites_command(args, requestor):
     response = requestor.GET('list_plone_sites')
 
     if args.json:
-        print response.text
+        print(response.text)
     else:
         for site in response.json():
-            print site['path'].ljust(20), site['title'].encode('utf-8')
+            print(site['path'].ljust(20), six.ensure_str(site['title']))

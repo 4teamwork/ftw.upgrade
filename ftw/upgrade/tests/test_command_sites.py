@@ -1,4 +1,5 @@
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
+
 import json
 
 
@@ -13,12 +14,12 @@ class TestSitesCommand(CommandAndInstanceTestCase):
 
     def test_listing_sites_as_table(self):
         exitcode, output = self.upgrade_script('sites')
-        self.assertEquals(0, exitcode)
-        self.assertEquals('/plone               Plone site\n', output)
+        self.assertEqual(0, exitcode)
+        self.assertEqual('/plone               Plone site\n', output)
 
     def test_listing_sites_as_json(self):
         exitcode, output = self.upgrade_script('sites --json')
-        self.assertEquals(0, exitcode)
+        self.assertEqual(0, exitcode)
         self.assert_json_equal([{'id': 'plone',
                                  'path': '/plone',
                                  'title': 'Plone site'}],
@@ -27,7 +28,7 @@ class TestSitesCommand(CommandAndInstanceTestCase):
     def test_error_when_no_site_reachable(self):
         self.layer['root_path'].joinpath('parts/instance').rmtree()
         exitcode, output = self.upgrade_script('sites', assert_exitcode=False)
-        self.assertEquals(1, exitcode)
+        self.assertEqual(1, exitcode)
         self.assertMultiLineEqual(
             'ERROR: No running Plone instance detected.\n',
             output)

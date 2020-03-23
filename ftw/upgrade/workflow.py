@@ -1,11 +1,15 @@
 from DateTime import DateTime
-from Products.CMFCore.utils import getToolByName
 from ftw.upgrade import ProgressLogger
 from ftw.upgrade.helpers import update_security_for
 from ftw.upgrade.utils import SavepointIterator
 from ftw.upgrade.utils import SizedGenerator
+from Products.CMFCore.utils import getToolByName
+from six.moves import map
+from six.moves import zip
 from zope.component.hooks import getSite
+
 import logging
+
 
 LOG = logging.getLogger('ftw.upgrade.WorkflowChainUpdater')
 
@@ -72,7 +76,7 @@ class WorkflowChainUpdater(object):
 
         portal = getSite()
         wf_tool = getToolByName(portal, 'portal_workflow')
-        origin_workflows = zip(*self.review_state_mapping.keys())[0]
+        origin_workflows = list(zip(*list(self.review_state_mapping.keys())))[0]
 
         title = 'Change workflow states'
         for path in ProgressLogger(title, status_before_activation):
@@ -148,7 +152,7 @@ class WorkflowChainUpdater(object):
             _migrate_action(entry)
             return entry
 
-        wfhistory[new_wf] = map(_migrate_entry, wfhistory[old_wf])
+        wfhistory[new_wf] = list(map(_migrate_entry, wfhistory[old_wf]))
 
 
 class WorkflowSecurityUpdater(object):
@@ -203,6 +207,5 @@ class WorkflowSecurityUpdater(object):
 
     def obj_has_workflow(self, obj, workflows):
         wftool = getToolByName(getSite(), 'portal_workflow')
-        obj_workflow_names = map(lambda wf: wf.getId(),
-                                 wftool.getWorkflowsFor(obj))
+        obj_workflow_names = [wf.getId() for wf in wftool.getWorkflowsFor(obj)]
         return set(obj_workflow_names) & set(workflows)

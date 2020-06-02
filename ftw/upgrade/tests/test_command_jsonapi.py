@@ -199,3 +199,13 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
         zconf = ZopeConfPathStub('<http-server>',
                                  '</http-server>')
         self.assertEqual(None, get_instance_port(zconf))
+
+    def test_get_instance_port_wsgi_listen(self):
+        zconf = ZopeConfPathStub('[server:main]\n'
+                                 'listen = 127.0.0.1:8080')
+        self.assertEqual(8080, get_instance_port(zconf))
+
+    def test_get_instance_port_wsgi_fast_listen(self):
+        zconf = ZopeConfPathStub('[server:main]\n'
+                                 'fast-listen = 0.0.0.0:8080')
+        self.assertEqual(8080, get_instance_port(zconf))

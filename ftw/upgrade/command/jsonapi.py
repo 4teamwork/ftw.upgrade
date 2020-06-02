@@ -232,6 +232,10 @@ def get_instance_port(zconf):
     match = re.search(r'\slisten = ([\d.]*:)?(\d+)', zconf.text())
     if match:
         return int(match.group(2))
+    # wsgi.ini with fast listen
+    match = re.search(r'\sfast-listen = ([\d.]*:)?(\d+)', zconf.text())
+    if match:
+        return int(match.group(2))
     return None
 
 

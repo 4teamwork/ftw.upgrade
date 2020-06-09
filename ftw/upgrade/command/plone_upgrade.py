@@ -34,8 +34,9 @@ def setup_argparser(commands):
 
 # expected output
 expected = (
-    b'Plone Site was already up to date.',
-    b'Plone Site has been updated.')
+    'Plone Site was already up to date.',
+    'Plone Site has been updated.'
+)
 
 
 @with_api_requestor
@@ -47,11 +48,13 @@ def plone_upgrade_command(args, requestor):
     with closing(requestor.POST(action, params=params,
                                 stream=True)) as response:
         for line in response.iter_lines(chunk_size=30):
-            if isinstance(line, six.text_type):
+            if six.PY2 and isinstance(line, six.text_type):
                 line = line.encode('utf-8')
+            elif not six.PY2 and isinstance(line, bytes):
+                line = line.decode('utf-8')
 
             print(line)
 
     line = line.strip()
-    if not any([x in line for x in expected]):
+    if not any(x in line for x in expected):
         sys.exit(3)

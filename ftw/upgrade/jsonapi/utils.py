@@ -19,7 +19,6 @@ from zExceptions import Unauthorized
 from zope.interface import alsoProvides
 from zope.security import checkPermission
 
-import inspect
 import json
 import os
 import re
@@ -33,6 +32,12 @@ except ImportError:
     DISABLE_CSRF = False
 else:
     DISABLE_CSRF = True
+
+try:
+    from inspect import getfullargspec
+except ImportError:
+    # Python2.7 compatibility
+    from inspect import getargspec as getfullargspec
 
 
 class ErrorHandling(object):
@@ -110,7 +115,7 @@ def action(method, rename_params={}):
             'rename_params': rename_params,
             'name': func.__name__,
             'doc': func.__doc__,
-            'argspec': inspect.getargspec(func)}
+            'argspec': getfullargspec(func)}
         return action_wrapper
     return wrap_action
 
@@ -138,7 +143,7 @@ def jsonify(func):
 def extract_action_params(func, request, rename_params=None):
     rename_params = rename_params or {}
     form = request.form
-    argspec = inspect.getargspec(func)
+    argspec = getfullargspec(func)
     required_params = get_required_args(argspec)
 
     for arg_name in required_params:
@@ -206,7 +211,7 @@ def perform_tempfile_authentication(context, request):
 
 
 def validate_tempfile_authentication_header_value(header_value):
-    if not re.match('^tmp\w{6,8}:\w{64}', header_value):
+    if not re.match(r'^tmp\w{6,8}:\w{64}', header_value):
         raise ValueError(
             'tempfile auth: invalid x-ftw.upgrade-tempfile-auth header value.')
 

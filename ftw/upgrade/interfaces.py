@@ -3,9 +3,14 @@
 # E0213: Method should have "self" as first argument
 
 
-from zope.component.interfaces import IObjectEvent
 from zope.interface import Attribute
 from zope.interface import Interface
+
+try:
+    from zope.interface.interfaces import IObjectEvent
+except ImportError:
+    # BBB deprecated since 2011 ;)
+    from zope.component.interfaces import IObjectEvent
 
 
 class IUpgradeLayer(Interface):

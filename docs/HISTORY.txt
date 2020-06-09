@@ -6,6 +6,9 @@ Changelog
 ------------------
 
 - This Plone add-on now requires six >= 1.12.0. [mbaechtold]
+- Instance port number discovery in ``wsgi.ini`` works also when the fast listen
+  option is choosen.
+  Fixes `issue 200 <https://github.com/4teamwork/ftw.upgrade/issues/200>`. [ale-rt]
 
 
 3.0.0 (2020-03-23)

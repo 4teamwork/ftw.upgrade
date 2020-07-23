@@ -110,9 +110,20 @@ def upgrade_step_directory_action(profile, dottedname, path,
 
 
 def find_start_version(profile):
-    upgrades = list(_upgrade_registry.getUpgradeStepsForProfile(profile).values())
-    upgrades.sort(key=attrgetter('dest'))
-    if len(upgrades) > 0:
-        return upgrades[-1].dest
+    upgrades = _upgrade_registry.getUpgradeStepsForProfile(profile).values()
+    dests = set()
+
+    for upgrade in upgrades:
+        if isinstance(upgrade, list):
+            # Those are combined upgrade steps
+            # (registered with the upgradeSteps directive)
+            [dests.update(partial_upgrade[1].dest) for partial_upgrade in upgrade]
+        else:
+            # Those are simple upgrade steps
+            # (registered with the upgradeStep directive)
+            dests.update(upgrade.dest)
+
+    if dests:
+        return max(dests)
     else:
         return str(10 ** 13)

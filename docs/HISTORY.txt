@@ -5,7 +5,9 @@ Changelog
 3.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Properly compute ``find_start_version`` when the profile has combined
+  upgrade steps
+  Fixes `issue 207 <https://github.com/4teamwork/ftw.upgrade/issues/207>`. [ale-rt]
 
 
 3.0.1 (2020-06-09)

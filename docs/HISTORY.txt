@@ -5,7 +5,8 @@ Changelog
 3.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Check for six.binary_type to avoid AttributeErrors when running under Python3.
+  [erral]
 
 
 3.0.1 (2020-06-09)

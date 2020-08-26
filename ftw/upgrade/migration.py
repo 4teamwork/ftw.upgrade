@@ -407,7 +407,7 @@ class InplaceMigrator(object):
         recurse = partial(self.normalize_at_field_value,
                           old_field, old_fieldname)
 
-        if isinstance(value, str):
+        if isinstance(value, six.binary_type):
             return recurse(value.decode('utf-8'))
 
         if isinstance(value, list):
@@ -448,7 +448,7 @@ class InplaceMigrator(object):
     def prepare_field_value(self, new_object, field, value):
         recurse = partial(self.prepare_field_value, new_object, field)
 
-        if isinstance(value, str):
+        if isinstance(value, six.binary_type):
             return recurse(value.decode('utf-8'))
 
         if isinstance(value, list):
@@ -485,7 +485,7 @@ class InplaceMigrator(object):
 
             if source_is_blobby and target_is_blobby:
                 filename = value.filename
-                if isinstance(filename, str):
+                if isinstance(filename, six.binary_type):
                     filename = filename.decode('utf-8')
 
                 new_value = field._type(
@@ -507,7 +507,7 @@ class InplaceMigrator(object):
 
             else:
                 filename = value.filename
-                if isinstance(filename, str):
+                if isinstance(filename, six.binary_type):
                     filename = filename.decode('utf-8')
 
                 data = value.data

@@ -5,6 +5,9 @@ Changelog
 3.0.2 (unreleased)
 ------------------
 
+- Properly compute ``find_start_version`` when the profile has combined
+  upgrade steps
+  Fixes `issue 207 <https://github.com/4teamwork/ftw.upgrade/issues/207>`. [ale-rt]
 - Check for six.binary_type to avoid AttributeErrors when running under Python3.
   [erral]
 

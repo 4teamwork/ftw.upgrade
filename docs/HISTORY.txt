@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-3.0.2 (unreleased)
+3.0.2 (2020-08-27)
 ------------------
 
 - Properly compute ``find_start_version`` when the profile has combined

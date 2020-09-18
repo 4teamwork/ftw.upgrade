@@ -5,7 +5,10 @@ Changelog
 3.0.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Do not depend anymore on argparse because it is already included in
+  Python 2.7 and in Python 3 since version 3.2
+  Fixes `issue 209 <https://github.com/4teamwork/ftw.upgrade/issues/209>`.
+  [ale-rt]
 
 
 3.0.2 (2020-08-27)

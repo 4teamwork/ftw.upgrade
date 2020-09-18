@@ -59,7 +59,6 @@ setup(name='ftw.upgrade',
 
       install_requires=[
         'argcomplete',
-        'argparse',
         'inflection',
         'path.py >= 6.2',
         'requests',

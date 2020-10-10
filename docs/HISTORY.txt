@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-3.0.3 (unreleased)
+3.0.3 (2020-10-10)
 ------------------
 
 - Do not depend anymore on argparse because it is already included in

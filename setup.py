@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '3.0.3'
+version = '3.0.4.dev0'
 
 tests_require = [
     'ftw.testing >= 2.0.0.dev0',

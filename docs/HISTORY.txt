@@ -5,7 +5,11 @@ Changelog
 3.0.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- When using Python3, use importlib instead of the deprecated imp module
+  to look for upgrade steps.
+  This removes the warning displayed about unclosed resources.
+  Fixes `issue 211 <https://github.com/4teamwork/ftw.upgrade/issues/211>`.
+  [ale-rt]
 
 
 3.0.3 (2020-10-10)

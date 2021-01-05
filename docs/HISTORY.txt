@@ -5,6 +5,8 @@ Changelog
 3.0.4 (unreleased)
 ------------------
 
+- Do not call ``cookResources`` on dummy old resource registry tools.  [maurits]
+
 - When using Python3, use importlib instead of the deprecated imp module
   to look for upgrade steps.
   This removes the warning displayed about unclosed resources.

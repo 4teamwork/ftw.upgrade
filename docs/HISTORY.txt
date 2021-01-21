@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-3.0.4 (unreleased)
+3.0.4 (2021-01-21)
 ------------------
 
 - Do not call ``cookResources`` on dummy old resource registry tools.  [maurits]

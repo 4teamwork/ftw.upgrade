@@ -83,12 +83,9 @@ DEFAULT_ATTRIBUTES_TO_COPY = (
 
 DUBLIN_CORE_IGNORES = (
     'allowDiscussion',
-    'contributors',
-    'creators',
     'nextPreviousEnabled',
     'rights',
     'language',
-    'relatedItems',
 )
 
 
@@ -398,6 +395,11 @@ class InplaceMigrator(object):
 
             value = self.removed_field_values.get(
                 fieldname, field.getRaw(old_object))
+
+            if field.widget.__class__.__name__ == 'LinesWidget' and len(value):
+                # LinesField/Widget returns a weird raw value
+                # Example: (u'line1\nline2', )
+                value = tuple(value[0].split('\n'))
             value = self.normalize_at_field_value(field, fieldname, value)
             yield fieldname, value
 

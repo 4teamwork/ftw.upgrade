@@ -42,13 +42,16 @@ class Executioner(object):
         alsoProvides(portal_setup.REQUEST, IDuringUpgrade)
 
     security.declarePrivate('install')
-    def install(self, data):
+    def install(self, data, intermediate_commit=False):
         self._register_after_commit_hook()
         for profileid, upgradeids in data:
-            self._upgrade_profile(profileid, upgradeids)
+            self._upgrade_profile(profileid, upgradeids, intermediate_commit)
 
         for adapter in self._get_sorted_post_upgrade_adapters():
             adapter()
+
+        if intermediate_commit:
+            transaction.get().note('finalizing installing upgrades')
 
         TransactionNote().set_transaction_note()
         recook_resources()
@@ -56,10 +59,12 @@ class Executioner(object):
 
     security.declarePrivate('install_upgrades_by_api_ids')
     def install_upgrades_by_api_ids(self, *upgrade_api_ids, **kwargs):
+        intermediate_commit = kwargs.pop('intermediate_commit', False)
+
         gatherer = IUpgradeInformationGatherer(self.portal_setup)
         upgrades = gatherer.get_upgrades_by_api_ids(*upgrade_api_ids, **kwargs)
         data = [(upgrade['profile'], [upgrade['id']]) for upgrade in upgrades]
-        return self.install(data)
+        return self.install(data, intermediate_commit=intermediate_commit)
 
     security.declarePrivate('install_profiles_by_profile_ids')
     def install_profiles_by_profile_ids(self, *profile_ids, **options):
@@ -104,20 +109,19 @@ class Executioner(object):
         processQueue()
 
     security.declarePrivate('_upgrade_profile')
-    def _upgrade_profile(self, profileid, upgradeids):
+    def _upgrade_profile(self, profileid, upgradeids, intermediate_commit):
         last_dest_version = None
 
         for upgradeid in upgradeids:
             last_dest_version = self._do_upgrade(profileid, upgradeid) \
                 or last_dest_version
+            self._set_portal_setup_version(profileid, last_dest_version)
 
-        old_version = self.portal_setup.getLastVersionForProfile(profileid)
-        compareable = lambda v: LooseVersion('.'.join(v))
-
-        if old_version == 'unknown' or \
-           compareable(last_dest_version) > compareable(old_version):
-            self.portal_setup.setLastVersionForProfile(
-                profileid, last_dest_version)
+            if intermediate_commit:
+                TransactionNote().set_transaction_note()
+                self._process_indexing_queue()
+                transaction.commit()
+                self._register_after_commit_hook()
 
         self._set_quickinstaller_version(profileid)
 
@@ -138,6 +142,16 @@ class Executioner(object):
             version = quickinstaller.getProductVersion(product)
             if version:
                 quickinstaller.get(product).installedversion = version
+
+    security.declarePrivate('_set_portal_setup_version')
+    def _set_portal_setup_version(self, profileid, last_dest_version):
+        old_version = self.portal_setup.getLastVersionForProfile(profileid)
+        compareable = lambda v: LooseVersion('.'.join(v))
+
+        if old_version == 'unknown' or \
+           compareable(last_dest_version) > compareable(old_version):
+            self.portal_setup.setLastVersionForProfile(
+                profileid, last_dest_version)
 
     security.declarePrivate('_do_upgrade')
     def _do_upgrade(self, profileid, upgradeid):

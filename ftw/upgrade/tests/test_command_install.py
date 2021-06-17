@@ -1,12 +1,15 @@
 from datetime import datetime
 from ftw.builder import Builder
 from ftw.builder import create
+from ftw.upgrade import UpgradeStep
+from ftw.upgrade.indexing import HAS_INDEXING
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from ftw.upgrade.tests.helpers import no_logging_threads
 from imp import reload
 from persistent.list import PersistentList
 from plone.app.testing import setRoles
 from plone.app.testing import TEST_USER_ID
+from unittest import skipIf
 
 import os
 import six
@@ -15,6 +18,8 @@ import transaction
 
 
 class TestInstallCommand(CommandAndInstanceTestCase):
+
+    maxDiff = None
 
     def setUp(self):
         super(TestInstallCommand, self).setUp()
@@ -173,6 +178,94 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             self.assertTrue(self.is_installed('the.package:default', datetime(2011, 2, 2)))
             self.assertIn('Result: SUCCESS', output)
 
+    @skipIf(not HAS_INDEXING,
+            'Tests must only run when indexing is available')
+    def test_install_proposed_upgrades_of_profile_with_intermediate_commit(self):
+        self.grant('Manager')
+        create(Builder('folder'))
+        create(Builder('folder'))
+
+        class TriggerReindex(UpgradeStep):
+            def __call__(self):
+                catalog = self.getToolByName("portal_catalog")
+                for brain in catalog(portal_type="Folder"):
+                    brain.getObject().reindexObject()
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                .to(datetime(2011, 11, 11,))
+                .calling(TriggerReindex))
+            .with_upgrade(Builder('ftw upgrade step')
+                .to(datetime(2012, 12, 12))))
+
+        self.setup_logging()
+        with self.package_created():
+            self.install_profile('the.package:default', version='1000')
+            self.clear_recorded_upgrades('the.package:default')
+            exitcode, output = self.upgrade_script(
+                'install -s plone --proposed the.package:default '
+                '--intermediate-commit')
+            self.assertEqual(0, exitcode)
+            transaction.begin()  # sync transaction
+            self.assertTrue(self.is_installed('the.package:default', datetime(2011, 11, 11)))
+            self.assertTrue(self.is_installed('the.package:default', datetime(2012, 12, 12)))
+
+            self.assertEqual(
+                [u'ftw.upgrade: ______________________________________________________________________',
+                 u'ftw.upgrade: UPGRADE STEP the.package:default: TriggerReindex',
+                 u'ftw.upgrade: Ran upgrade step TriggerReindex for profile the.package:default',
+                 u'ftw.upgrade: Upgrade step duration: 1 second',
+                 u'ftw.upgrade: 1 of 2 (50%): Processing indexing queue',
+                 u'ftw.upgrade: Transaction has been committed.',
+                 u'ftw.upgrade: ______________________________________________________________________',
+                 u'ftw.upgrade: UPGRADE STEP the.package:default: Upgrade.',
+                 u'ftw.upgrade: Ran upgrade step Upgrade. for profile the.package:default',
+                 u'ftw.upgrade: Upgrade step duration: 1 second',
+                 u'ftw.upgrade: Transaction has been committed.',
+                 u'Result: SUCCESS'],
+                output.splitlines())
+
+    def test_failing_install_proposed_upgrades_of_profile_with_intermediate_commit(self):
+        class Upgrade(UpgradeStep):
+            def __call__(self):
+                raise Exception("failing upgrade")
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 11, 11)))
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2012, 12, 12))
+                          .calling(Upgrade)))
+
+        self.setup_logging()
+        with self.package_created():
+            self.install_profile('the.package:default', version='1000')
+            self.clear_recorded_upgrades('the.package:default')
+            exitcode, output = self.upgrade_script(
+                'install -s plone --proposed the.package:default '
+                '--intermediate-commit',
+                assert_exitcode=False)
+            self.assertEqual(3, exitcode)
+            transaction.begin()  # sync transaction
+            self.assertTrue(self.is_installed('the.package:default', datetime(2011, 11, 11)))
+            self.assertFalse(self.is_installed('the.package:default', datetime(2012, 12, 12)))
+
+            self.assertEqual(
+                [u'ftw.upgrade: ______________________________________________________________________',
+                 u'ftw.upgrade: UPGRADE STEP the.package:default: Upgrade.',
+                 u'ftw.upgrade: Ran upgrade step Upgrade. for profile the.package:default',
+                 u'ftw.upgrade: Upgrade step duration: 1 second',
+                 u'ftw.upgrade: Transaction has been committed.',
+                 u'ftw.upgrade: ______________________________________________________________________',
+                 u'ftw.upgrade: UPGRADE STEP the.package:default: Upgrade',
+                 u'ftw.upgrade: FAILED'],
+                output.splitlines()[:8])
+            self.assertEqual(
+                [u'Result: FAILURE'],
+                output.splitlines()[-1:])
+
     def test_install_proposed_upgrades_of_profile_fails_for_invalid_profiles(self):
         exitcode, output = self.upgrade_script(
             'install -s plone --proposed the.inexisting.package:default',
@@ -239,6 +332,20 @@ class TestInstallCommand(CommandAndInstanceTestCase):
              u'ftw.upgrade: Done installing profile ftw.upgrade:default.',
              u'Result: SUCCESS'],
             output.splitlines())
+
+    def test_intermediate_commit_not_supported_with_install_profiles(self):
+        self.package.with_profile(Builder('genericsetup profile'))
+
+        self.setup_logging()
+        with self.package_created():
+            exitcode, output = self.upgrade_script(
+                'install -s plone --profiles the.package:default '
+                '--intermediate-commit',
+                assert_exitcode=False)
+            self.assertEqual(3, exitcode)
+            self.assertEqual(
+                [u'ERROR: --intermediate-commit is not implemented for --profiles.'],
+                output.splitlines())
 
     def test_force_option_is_meant_to_be_combined_with_profiles(self):
         exitcode, output = self.upgrade_script(

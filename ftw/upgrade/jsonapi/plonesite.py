@@ -58,18 +58,21 @@ class PloneSiteAPI(APIView):
             self._get_proposed_upgrades(propose_deferrable=propose_deferrable)))
 
     @action('POST', rename_params={'upgrades': 'upgrades:list'})
-    def execute_upgrades(self, upgrades, allow_outdated=False):
+    def execute_upgrades(self, upgrades, allow_outdated=False,
+            intermediate_commit=False):
         """Executes a list of upgrades, each identified by the upgrade ID
         in the form "[dest-version]@[profile ID]".
         """
         if not allow_outdated:
             self._require_up_to_date_plone_site()
+        intermediate_commit = parse_bool(intermediate_commit)
         self._validate_upgrade_ids(*upgrades)
-        return self._install_upgrades(*upgrades)
+        return self._install_upgrades(
+            *upgrades, intermediate_commit=intermediate_commit)
 
     @action('POST', rename_params={'profiles': 'profiles:list'})
     def execute_proposed_upgrades(self, profiles=None, propose_deferrable=True,
-            allow_outdated=False):
+            allow_outdated=False, intermediate_commit=False):
         """Executes all proposed upgrades.
         """
         if not allow_outdated:
@@ -77,11 +80,14 @@ class PloneSiteAPI(APIView):
         if profiles:
             self._validate_profile_ids(*profiles)
         propose_deferrable = parse_bool(propose_deferrable)
+        intermediate_commit = parse_bool(intermediate_commit)
 
         api_ids = list(map(itemgetter('api_id'), self._get_proposed_upgrades(
             only_profiles=profiles, propose_deferrable=propose_deferrable)))
         return self._install_upgrades(
-            *api_ids, propose_deferrable=propose_deferrable)
+            *api_ids,
+            propose_deferrable=propose_deferrable,
+            intermediate_commit=intermediate_commit)
 
     @action('POST', rename_params={'profiles': 'profiles:list'})
     def execute_profiles(self, profiles, force_reinstall=False,
@@ -189,11 +195,16 @@ class PloneSiteAPI(APIView):
 
     def _install_upgrades(self, *api_ids, **kwargs):
         propose_deferrable = kwargs.pop('propose_deferrable', True)
+        intermediate_commit = kwargs.pop('intermediate_commit', False)
+
         executioner = IExecutioner(self.portal_setup)
         try:
             with ResponseLogger(self.request.RESPONSE, annotate_result=True):
                 executioner.install_upgrades_by_api_ids(
-                    *api_ids, propose_deferrable=propose_deferrable)
+                    *api_ids,
+                    propose_deferrable=propose_deferrable,
+                    intermediate_commit=intermediate_commit
+                    )
         except Exception as exc:
             raise AbortTransactionWithStreamedResponse(exc)
 

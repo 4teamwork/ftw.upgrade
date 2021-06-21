@@ -2,7 +2,7 @@ Changelog
 =========
 
 
-3.0.5 (unreleased)
+3.1.0 (2021-06-21)
 ------------------
 
 - Add intermediate commit option to commit the transaction after each installed upgrade. [deiferni]

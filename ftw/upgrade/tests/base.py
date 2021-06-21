@@ -113,7 +113,9 @@ class UpgradeTestCase(TestCase):
                 profileid, (six.text_type(version),))
         transaction.commit()
 
-    def install_profile_upgrades(self, *profileids):
+    def install_profile_upgrades(self, *profileids, **kwargs):
+        intermediate_commit = kwargs.pop('intermediate_commit', False)
+
         gatherer = queryAdapter(self.portal_setup, IUpgradeInformationGatherer)
         upgrade_info = [
             (profile['id'], list(map(itemgetter('id'), profile['upgrades'])))
@@ -121,7 +123,9 @@ class UpgradeTestCase(TestCase):
             if profile['id'] in profileids
         ]
         executioner = queryAdapter(self.portal_setup, IExecutioner)
-        executioner.install(upgrade_info)
+        executioner.install(
+            upgrade_info, intermediate_commit=intermediate_commit
+        )
 
     def record_installed_upgrades(self, profile, *destinations):
         profile = re.sub('^profile-', '', profile)

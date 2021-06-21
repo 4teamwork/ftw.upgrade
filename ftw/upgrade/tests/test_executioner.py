@@ -17,6 +17,8 @@ import transaction
 
 class TestExecutioner(UpgradeTestCase):
 
+    maxDiff = None
+
     def test_component_is_registered(self):
         setup_tool = getToolByName(self.layer['portal'], 'portal_setup')
         executioner = queryAdapter(setup_tool, IExecutioner)
@@ -257,3 +259,89 @@ class TestExecutioner(UpgradeTestCase):
                     'done': ['4002', '20111111111100'],
                     'proposed': [],
                     'orphan': []}})
+
+    def test_installs_upgrades_with_intermediate_commit(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 11, 11, 11, 11)))
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2012, 12, 12, 12, 12))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1000')
+            self.install_profile_upgrades(
+                'the.package:default', intermediate_commit=True
+            )
+
+        self.assertEqual(
+            (u'20121212121200',),
+            self.portal_setup.getLastVersionForProfile('the.package:default')
+        )
+
+    @skipIf(not HAS_INDEXING,
+            'Tests must only run when indexing is available')
+    def test_logs_indexing_progress_of_intermediate_reindex(self):
+        self.grant('Manager')
+        create(Builder('folder'))
+        create(Builder('folder'))
+
+        class TriggerReindex(UpgradeStep):
+            def __call__(self):
+                catalog = self.getToolByName("portal_catalog")
+                for brain in catalog(portal_type="Folder"):
+                    brain.getObject().reindexObject()
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                .to(datetime(2011, 11, 11, 11, 11))
+                .calling(TriggerReindex))
+            .with_upgrade(Builder('ftw upgrade step')
+                .to(datetime(2012, 12, 12, 12, 12))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1000')
+            self.setup_logging()
+
+            self.install_profile_upgrades(
+                'the.package:default', intermediate_commit=True
+            )
+            self.assertEqual(
+                [u'______________________________________________________________________',
+                 u'UPGRADE STEP the.package:default: TriggerReindex',
+                 u'Ran upgrade step TriggerReindex for profile the.package:default',
+                 u'Upgrade step duration: 1 second',
+                 u'1 of 2 (50%): Processing indexing queue',
+                 u'Transaction has been committed.',
+                 u'______________________________________________________________________',
+                 u'UPGRADE STEP the.package:default: Upgrade.',
+                 u'Ran upgrade step Upgrade. for profile the.package:default',
+                 u'Upgrade step duration: 1 second',
+                 u'Transaction has been committed.'],
+                self.get_log())
+
+    def test_installed_version_if_upgrade_fails_with_intermediate_commit(self):
+        class Upgrade(UpgradeStep):
+            def __call__(self):
+                raise Exception("failing upgrade")
+
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2011, 11, 11, 11, 11)))
+            .with_upgrade(Builder('ftw upgrade step')
+                          .to(datetime(2012, 12, 12, 12, 12))
+                          .calling(Upgrade)))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='1000')
+            with self.assertRaises(Exception):
+                self.install_profile_upgrades(
+                    'the.package:default', intermediate_commit=True
+                )
+
+        self.assertEqual(
+            (u'20111111111100',),
+            self.portal_setup.getLastVersionForProfile('the.package:default')
+        )

@@ -5,7 +5,7 @@ Changelog
 3.0.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add intermediate commit option to commit the transaction after each installed upgrade. [deiferni]
 
 
 3.0.4 (2021-01-21)

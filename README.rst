@@ -121,7 +121,7 @@ Some examples:
     $ bin/upgrade touch my/package/upgrades/20110101000000_add_catalog_index
     $ bin/upgrade sites
     $ bin/upgrade list -s Plone --auth admin:admin --upgrades
-    $ bin/upgrade install -s Plone --auth admin:admin  --proposed
+    $ bin/upgrade install -s Plone --auth admin:admin  --proposed --intermediate-commit
 
 The full documentation of the ``bin/upgrade`` script is available using its help system:
 
@@ -1073,6 +1073,12 @@ Example for executing all proposed upgrades of a Plone site:
     2015-01-14 11:17:35 INFO ftw.upgrade Ran upgrade step Bar. for profile ftw.upgrade:default
     2015-01-14 11:17:35 INFO ftw.upgrade Upgrade step duration: 1 second
     Result: SUCCESS
+
+To commit after each upgrade, pass the ``intermediate_commit`` argument:
+
+.. code:: sh
+
+    $ curl -uadmin:admin -X POST http://localhost:8080/Plone/upgrades-api/execute_proposed_upgrades?intermediate_commit=true
 
 
 Installing profiles

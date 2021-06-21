@@ -110,6 +110,12 @@ def setup_argparser(commands):
                          dest='allow_outdated',
                          action='store_true')
 
+    command.add_argument('--intermediate-commit',
+                         help='Commit after installing an upgrade step.',
+                         default=False,
+                         dest='intermediate_commit',
+                         action='store_true')
+
 
 @with_api_requestor
 @error_handling
@@ -124,6 +130,10 @@ def install_command(args, requestor):
         if args.skip_deferrable:
             params.append(('propose_deferrable', False))
     elif args.profiles:
+        if args.intermediate_commit:
+            print('ERROR: --intermediate-commit is not implemented for --profiles.',
+                  file=sys.stderr)
+            sys.exit(3)
         action = 'execute_profiles'
         params = [('profiles:list', name) for name in set(args.profiles)]
         if args.force_reinstall:
@@ -133,6 +143,8 @@ def install_command(args, requestor):
         params = [('upgrades:list', name) for name in set(args.upgrades)]
     if args.allow_outdated:
         params.append(('allow_outdated', True))
+    if args.intermediate_commit:
+        params.append(('intermediate_commit', True))
 
     with closing(requestor.POST(action, params=params,
                                 stream=True)) as response:

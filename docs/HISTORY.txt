@@ -3,9 +3,12 @@ Changelog
 
 
 3.3.2 (unreleased)
+3.4.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Added the possibility to group upgrade steps in subdirectories.
+  Fixes `issue 217 <https://github.com/4teamwork/ftw.upgrade/issues/217>`.
+  [ale-rt]
 
 
 3.3.1 (2022-07-08)

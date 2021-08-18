@@ -325,8 +325,10 @@ class TestUpgradeStep(UpgradeTestCase):
                 brains = self.catalog_unrestricted_search(query)
 
                 testcase.assertEqual(2, len(brains))
-                testcase.assertEqual(['page-one', 'page-two'],
-                                     [brain.id for brain in brains])
+                testcase.assertEqual(
+                    {'page-one', 'page-two'},
+                    {brain.id for brain in brains}
+                )
                 testcase.assertEqual('ImplicitAcquisitionWrapper',
                                      type(brains[0]).__name__)
 
@@ -334,8 +336,10 @@ class TestUpgradeStep(UpgradeTestCase):
                     query, full_objects=True)
                 testcase.assertEqual(2, len(objects))
                 objects = list(objects)
-                testcase.assertEqual(['page-one', 'page-two'],
-                                     [obj.id for obj in objects])
+                testcase.assertEqual(
+                    {'page-one', 'page-two'},
+                    {obj.id for obj in objects}
+                )
                 testcase.assertEqual('ImplicitAcquisitionWrapper',
                                      type(objects[0]).__name__)
 

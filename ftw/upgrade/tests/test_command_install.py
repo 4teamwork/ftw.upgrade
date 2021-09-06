@@ -5,6 +5,7 @@ from ftw.upgrade import UpgradeStep
 from ftw.upgrade.indexing import HAS_INDEXING
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from ftw.upgrade.tests.helpers import no_logging_threads
+from ftw.upgrade.tests.helpers import truncate_duration
 from imp import reload
 from persistent.list import PersistentList
 from plone.app.testing import setRoles
@@ -215,16 +216,16 @@ class TestInstallCommand(CommandAndInstanceTestCase):
                 [u'ftw.upgrade: ______________________________________________________________________',
                  u'ftw.upgrade: UPGRADE STEP the.package:default: TriggerReindex',
                  u'ftw.upgrade: Ran upgrade step TriggerReindex for profile the.package:default',
-                 u'ftw.upgrade: Upgrade step duration: 1 second',
+                 u'ftw.upgrade: Upgrade step duration: XXX',
                  u'ftw.upgrade: 1 of 2 (50%): Processing indexing queue',
                  u'ftw.upgrade: Transaction has been committed.',
                  u'ftw.upgrade: ______________________________________________________________________',
                  u'ftw.upgrade: UPGRADE STEP the.package:default: Upgrade.',
                  u'ftw.upgrade: Ran upgrade step Upgrade. for profile the.package:default',
-                 u'ftw.upgrade: Upgrade step duration: 1 second',
+                 u'ftw.upgrade: Upgrade step duration: XXX',
                  u'ftw.upgrade: Transaction has been committed.',
                  u'Result: SUCCESS'],
-                output.splitlines())
+                truncate_duration(output.splitlines()))
 
     def test_failing_install_proposed_upgrades_of_profile_with_intermediate_commit(self):
         class Upgrade(UpgradeStep):
@@ -256,12 +257,12 @@ class TestInstallCommand(CommandAndInstanceTestCase):
                 [u'ftw.upgrade: ______________________________________________________________________',
                  u'ftw.upgrade: UPGRADE STEP the.package:default: Upgrade.',
                  u'ftw.upgrade: Ran upgrade step Upgrade. for profile the.package:default',
-                 u'ftw.upgrade: Upgrade step duration: 1 second',
+                 u'ftw.upgrade: Upgrade step duration: XXX',
                  u'ftw.upgrade: Transaction has been committed.',
                  u'ftw.upgrade: ______________________________________________________________________',
                  u'ftw.upgrade: UPGRADE STEP the.package:default: Upgrade',
                  u'ftw.upgrade: FAILED'],
-                output.splitlines()[:8])
+                truncate_duration(output.splitlines()[:8]))
             self.assertEqual(
                 [u'Result: FAILURE'],
                 output.splitlines()[-1:])

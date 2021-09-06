@@ -7,10 +7,10 @@ from ftw.upgrade.indexing import HAS_INDEXING
 from ftw.upgrade.interfaces import IExecutioner
 from ftw.upgrade.tests.base import UpgradeTestCase
 from Products.CMFCore.utils import getToolByName
+from Products.CMFPlone.utils import getFSVersionTuple
 from unittest import skipIf
 from zope.component import queryAdapter
 from zope.interface.verify import verifyClass
-from Products.CMFPlone.utils import getFSVersionTuple
 
 import transaction
 
@@ -311,13 +311,13 @@ class TestExecutioner(UpgradeTestCase):
                 [u'______________________________________________________________________',
                  u'UPGRADE STEP the.package:default: TriggerReindex',
                  u'Ran upgrade step TriggerReindex for profile the.package:default',
-                 u'Upgrade step duration: 1 second',
+                 u'Upgrade step duration: XXX',
                  u'1 of 2 (50%): Processing indexing queue',
                  u'Transaction has been committed.',
                  u'______________________________________________________________________',
                  u'UPGRADE STEP the.package:default: Upgrade.',
                  u'Ran upgrade step Upgrade. for profile the.package:default',
-                 u'Upgrade step duration: 1 second',
+                 u'Upgrade step duration: XXX',
                  u'Transaction has been committed.'],
                 self.get_log())
 

@@ -132,6 +132,34 @@ class TestUpgradeStep(UpgradeTestCase):
             4, data['processed_folders'],
             'Updating catalog reduced result set while iterating over it!!!')
 
+    def test_brains_method_yields_brains_with_logging(self):
+        testcase = self
+        create(Builder('folder').titled(u'Foo'))
+        create(Builder('folder').titled(u'Bar'))
+        create(Builder('folder').titled(u'Baz'))
+
+        brain_titles = []
+        brain_classes = set()
+
+        class Step(UpgradeStep):
+            def __call__(self):
+                for brain in self.brains({'portal_type': 'Folder'},
+                                         'Log message',
+                                         logger=testcase.logger,
+                                         savepoints=False):
+                    brain_titles.append(brain.Title)
+                    brain_classes.add(brain.__class__.__name__)
+
+        Step(self.portal_setup)
+
+        self.assertEqual(set(['Foo', 'Bar', 'Baz']), set(brain_titles))
+        self.assertEqual({"mybrains"}, brain_classes)
+
+        self.assertEqual(['STARTING Log message',
+                          '1 of 3 (33%): Log message',
+                          'DONE Log message'],
+                         self.get_log())
+
     @skipIf(not HAS_INDEXING,
             'Tests must only run when indexing is available')
     def test_logs_indexing_progress(self):
@@ -816,7 +844,6 @@ class TestUpgradeStep(UpgradeTestCase):
             'my.manager'))
         self.assertIsNone(sm.queryUtility(
             IPortletManager, name='my.manager'))
-
 
     def test_update_security_removes_roles_unmanaged_by_workflow(self):
         self.set_workflow_chain(for_type='Folder',

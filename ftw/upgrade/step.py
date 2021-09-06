@@ -83,6 +83,13 @@ class UpgradeStep(object):
         """
         return getToolByName(self.portal_setup, tool_name)
 
+    def _iterate_and_log(self, catalog_query, full_objects, message,
+                         logger=None, savepoints=None):
+        results = self.catalog_unrestricted_search(
+            catalog_query, full_objects=full_objects)
+        items = SavepointIterator.build(results, savepoints, logger)
+        return ProgressLogger(message, items, logger=logger)
+
     security.declarePrivate('objects')
     def objects(self, catalog_query, message, logger=None,
                 savepoints=None):
@@ -91,12 +98,20 @@ class UpgradeStep(object):
         The iterator configures and calls a ``ProgressLogger`` with the
         passed ``message``.
         """
+        return self._iterate_and_log(catalog_query, True, message,
+                                     logger=logger, savepoints=savepoints)
 
-        objects = self.catalog_unrestricted_search(
-            catalog_query, full_objects=True)
+    security.declarePrivate('brains')
+    def brains(self, catalog_query, message, logger=None,
+               savepoints=None):
+        """Queries the catalog (unrestricted) and creates an iterator
+        over the brains.
+        The iterator configures and calls a ``ProgressLogger`` with the
+        passed ``message``.
+        """
 
-        objects = SavepointIterator.build(objects, savepoints, logger)
-        return ProgressLogger(message, objects, logger=logger)
+        return self._iterate_and_log(catalog_query, False, message,
+                                     logger=logger, savepoints=savepoints)
 
     security.declarePrivate('catalog_rebuild_index')
     def catalog_rebuild_index(self, name):

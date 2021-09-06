@@ -5,7 +5,7 @@ Changelog
 3.1.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add method to iterate over brains in upgrade step. [njohner]
 
 
 3.1.0 (2021-06-21)

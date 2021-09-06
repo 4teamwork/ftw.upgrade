@@ -13,6 +13,7 @@ from ftw.upgrade.interfaces import IUpgradeStepRecorder
 from ftw.upgrade.testing import COMMAND_AND_UPGRADE_FUNCTIONAL_TESTING
 from ftw.upgrade.testing import COMMAND_LAYER
 from ftw.upgrade.testing import UPGRADE_FUNCTIONAL_TESTING
+from ftw.upgrade.tests.helpers import truncate_duration
 from ftw.upgrade.tests.helpers import verbose_logging
 from operator import itemgetter
 from path import Path
@@ -210,7 +211,7 @@ class UpgradeTestCase(TestCase):
         self.logger = None
 
     def get_log(self):
-        return self.log.getvalue().splitlines()
+        return truncate_duration(self.log.getvalue().splitlines())
 
     def purge_log(self):
         self.log.seek(0)

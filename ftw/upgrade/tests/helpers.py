@@ -65,3 +65,16 @@ def no_logging_threads():
         yield
     finally:
         logging.logThreads = original_log_threads
+
+
+def truncate_duration(lines):
+    duration_entry = u'Upgrade step duration:'
+    truncated = []
+    for line in lines:
+        if duration_entry in line:
+            line = u'{} XXX'.format(
+                line[:line.index(duration_entry) + len(duration_entry)]
+            )
+        truncated.append(line)
+    return truncated
+

@@ -9,6 +9,7 @@ from ftw.upgrade.resource_registries import recook_resources
 from ftw.upgrade.transactionnote import TransactionNote
 from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
+from ftw.upgrade.utils import log_memory_usage
 from ftw.upgrade.utils import optimize_memory_usage
 from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
@@ -126,6 +127,7 @@ class Executioner(object):
 
             logger.log(logging.INFO, 'Upgrade step duration: %s' % format_duration(
                 time.time() - start))
+            log_memory_usage(logger)
 
         self._set_quickinstaller_version(profileid)
 

@@ -13,6 +13,7 @@ import re
 import stat
 import tarjan.tc
 import transaction
+import psutil
 
 
 def topological_sort(items, partial_order):
@@ -135,6 +136,7 @@ class SavepointIterator(object):
             if i % self.threshold == 0:
                 optimize_memory_usage()
                 self.logger.info("Created savepoint at %s items" % i)
+                log_memory_usage(self.logger)
             yield item
 
     def __len__(self):
@@ -177,6 +179,18 @@ class SavepointIterator(object):
             return value
         else:
             raise ValueError('Invalid savepoint threshold {!r}'.format(value))
+
+
+def get_memory_usage():
+    mem_info = psutil.Process().memory_info()
+    return mem_info.rss / 1024.0 ** 2.0
+
+
+def log_memory_usage(logger):
+    rss = get_memory_usage()
+    logger.log(
+        logging.INFO,
+        'Current memory usage in MB (RSS): {:0.1f}'.format(rss))
 
 
 def optimize_memory_usage():

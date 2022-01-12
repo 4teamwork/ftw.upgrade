@@ -65,6 +65,7 @@ setup(name='ftw.upgrade',
         'setuptools',
         'six >= 1.12.0',
         'tarjan',
+        'psutil',
 
         # Zope
         'AccessControl',

@@ -113,6 +113,7 @@ class Executioner(object):
         last_dest_version = None
 
         for upgradeid in upgradeids:
+            start = time.time()
             last_dest_version = self._do_upgrade(profileid, upgradeid) \
                 or last_dest_version
             self._set_portal_setup_version(profileid, last_dest_version)
@@ -122,6 +123,9 @@ class Executioner(object):
                 self._process_indexing_queue()
                 transaction.commit()
                 self._register_after_commit_hook()
+
+            logger.log(logging.INFO, 'Upgrade step duration: %s' % format_duration(
+                time.time() - start))
 
         self._set_quickinstaller_version(profileid)
 
@@ -155,8 +159,6 @@ class Executioner(object):
 
     security.declarePrivate('_do_upgrade')
     def _do_upgrade(self, profileid, upgradeid):
-        start = time.time()
-
         step = _upgrade_registry.getUpgradeStep(profileid, upgradeid)
         logger.log(logging.INFO, '_' * 70)
         logger.log(logging.INFO, 'UPGRADE STEP %s: %s' % (
@@ -168,9 +170,6 @@ class Executioner(object):
         msg = "Ran upgrade step %s for profile %s" % (
             step.title, profileid)
         logger.log(logging.INFO, msg)
-
-        logger.log(logging.INFO, 'Upgrade step duration: %s' % format_duration(
-                time.time() - start))
 
         return step.dest
 

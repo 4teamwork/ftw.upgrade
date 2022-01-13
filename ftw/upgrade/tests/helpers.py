@@ -67,14 +67,24 @@ def no_logging_threads():
         logging.logThreads = original_log_threads
 
 
-def truncate_duration(lines):
-    duration_entry = u'Upgrade step duration:'
+def truncate_value(message, lines):
     truncated = []
     for line in lines:
-        if duration_entry in line:
+        if message in line:
             line = u'{} XXX'.format(
-                line[:line.index(duration_entry) + len(duration_entry)]
+                line[:line.index(message) + len(message)]
             )
         truncated.append(line)
     return truncated
 
+
+def truncate_duration(lines):
+    return truncate_value(u'Upgrade step duration:', lines)
+
+
+def truncate_memory(lines):
+    return truncate_value(u'Current memory usage in MB (RSS):', lines)
+
+
+def truncate_memory_and_duration(lines):
+    return truncate_duration(truncate_memory(lines))

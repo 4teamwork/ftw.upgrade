@@ -1,3 +1,4 @@
+from App.config import getConfiguration
 from collections import defaultdict
 from contextlib import contextmanager
 from copy import deepcopy
@@ -391,3 +392,22 @@ def get_portal_migration(context):
     """
     portal_migration = getattr(context, 'portal_migration')
     return portal_migration
+
+
+def get_logdir():
+    """Determine the log directory.
+    This will be derived from Zope2's EventLog location, in order to not
+    have to figure out the path to var/log/ ourselves.
+    """
+    zconf = getConfiguration()
+    eventlog = getattr(zconf, 'eventlog', None)
+
+    if eventlog is None:
+        return None
+
+    handler_factories = eventlog.handler_factories
+    eventlog_path = handler_factories[0].section.path
+    if not eventlog_path.endswith('.log'):
+        return None
+    log_dir = os.path.dirname(eventlog_path)
+    return log_dir

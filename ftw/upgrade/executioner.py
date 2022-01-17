@@ -8,6 +8,7 @@ from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.resource_registries import recook_resources
 from ftw.upgrade.transactionnote import TransactionNote
 from ftw.upgrade.utils import format_duration
+from ftw.upgrade.utils import get_logdir
 from ftw.upgrade.utils import get_sorted_profile_ids
 from ftw.upgrade.utils import log_memory_usage
 from ftw.upgrade.utils import optimize_memory_usage
@@ -20,6 +21,7 @@ from zope.interface import alsoProvides
 from zope.interface import implementer
 
 import logging
+import os
 import time
 import transaction
 
@@ -41,6 +43,11 @@ class Executioner(object):
     def __init__(self, portal_setup):
         self.portal_setup = portal_setup
         alsoProvides(portal_setup.REQUEST, IDuringUpgrade)
+        log_dir = get_logdir()
+        if log_dir is None:
+            self.statistics_filename = None
+        else:
+            self.statistics_filename = os.path.join(log_dir, "upgrade_stats.csv")
 
     security.declarePrivate('install')
     def install(self, data, intermediate_commit=False):
@@ -125,9 +132,14 @@ class Executioner(object):
                 transaction.commit()
                 self._register_after_commit_hook()
 
+            duration = time.time() - start
             logger.log(logging.INFO, 'Upgrade step duration: %s' % format_duration(
-                time.time() - start))
+                duration))
             log_memory_usage(logger)
+            if self.statistics_filename:
+                with open(self.statistics_filename, "a") as stats_file:
+                    stats_file.write("{}, {}, {}\n".format(
+                        profileid, upgradeid, int(duration)))
 
         self._set_quickinstaller_version(profileid)
 

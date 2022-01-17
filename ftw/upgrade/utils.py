@@ -5,15 +5,17 @@ from ftw.upgrade.exceptions import CyclicDependencies
 from path import Path
 from six.moves import map
 from zope.component.hooks import getSite
+from zope.component.hooks import setSite
 
+import gc
 import logging
 import math
 import os
+import psutil
 import re
 import stat
 import tarjan.tc
 import transaction
-import psutil
 
 
 def topological_sort(items, partial_order):
@@ -134,7 +136,7 @@ class SavepointIterator(object):
     def __iter__(self):
         for i, item in enumerate(self.iterable):
             if i % self.threshold == 0:
-                optimize_memory_usage()
+                optimize_memory_usage(self.logger)
                 self.logger.info("Created savepoint at %s items" % i)
                 log_memory_usage(self.logger)
             yield item
@@ -193,7 +195,27 @@ def log_memory_usage(logger):
         'Current memory usage in MB (RSS): {:0.1f}'.format(rss))
 
 
-def optimize_memory_usage():
+LOAD_LIMITS = {'memory_available': 100 * 1024 * 1024,
+               'memory_percent': 95}
+
+
+def _is_memory_full(load, load_limits):
+    return (load['memory_available'] < load_limits['memory_available']
+            or load['memory_percent'] > load_limits['memory_percent'])
+
+
+def _get_system_load():
+    return {'memory_available': psutil.virtual_memory().available,
+            'memory_percent': psutil.virtual_memory().percent}
+
+
+def is_memory_critical(load_limits=None):
+    if load_limits is None:
+        load_limits = LOAD_LIMITS
+    return _is_memory_full(_get_system_load(), load_limits)
+
+
+def optimize_memory_usage(logger=None):
     """Optimizes the current memory usage by garbage collecting objects.
 
     The function creates a transaction savepoint in order to move pending
@@ -213,6 +235,14 @@ def optimize_memory_usage():
     # This only works well when we've created a savepoint in advance,
     # which moves the changes to the disk.
     getSite()._p_jar.cacheGC()
+
+    # If memory is critical after trying to optimize the cache, we sweep it.
+    if is_memory_critical():
+        if logger:
+            logger.warning("System memory critical, sweeping cache.")
+        setSite(getSite())
+        getSite()._p_jar.cacheMinimize()
+        gc.collect()
 
 
 def get_sorted_profile_ids(portal_setup):

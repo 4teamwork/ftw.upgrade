@@ -88,7 +88,7 @@ class Executioner(object):
             # the start.
             self.portal_setup.runAllImportStepsFromProfile(prefix + profile_id)
             logger.info('Done installing profile %s.', profile_id)
-            optimize_memory_usage()
+            optimize_memory_usage(logger)
         self._process_indexing_queue()
 
     security.declarePrivate('_register_after_commit_hook')

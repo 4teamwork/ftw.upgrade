@@ -1,10 +1,13 @@
 from ftw.testing import MockTestCase
 from ftw.testing.layer import TEMP_DIRECTORY
 from ftw.upgrade.exceptions import CyclicDependencies
+from ftw.upgrade.utils import _is_memory_full
 from ftw.upgrade.utils import find_cyclic_dependencies
 from ftw.upgrade.utils import format_duration
 from ftw.upgrade.utils import get_sorted_profile_ids
 from ftw.upgrade.utils import get_tempfile_authentication_directory
+from ftw.upgrade.utils import is_memory_critical
+from ftw.upgrade.utils import LOAD_LIMITS
 from ftw.upgrade.utils import SizedGenerator
 from ftw.upgrade.utils import subject_from_docstring
 from ftw.upgrade.utils import topological_sort
@@ -284,3 +287,28 @@ class TestGetTempfileAuthenticationDirectory(TestCase):
         tmpdir.chmod(tmpdir.stat().st_mode | stat.S_IROTH)
         with self.assertRaises(ValueError):
             get_tempfile_authentication_directory(self.buildoutdir)
+
+
+class TestMemoryControl(TestCase):
+
+    def test_memory_is_full(self):
+        load = {'memory_available': 1000 * 1024 * 1024,
+                'memory_percent': 10}
+        self.assertFalse(_is_memory_full(load, LOAD_LIMITS))
+
+        load = {'memory_available': 0,
+                'memory_percent': 10}
+        self.assertTrue(_is_memory_full(load, LOAD_LIMITS))
+
+        load = {'memory_available': 1000 * 1024 * 1024,
+                'memory_percent': 99}
+        self.assertTrue(_is_memory_full(load, LOAD_LIMITS))
+
+    def test_is_memory_critical(self):
+        load_limits = {'memory_available': 0,
+                       'memory_percent': 100}
+        self.assertFalse(is_memory_critical(load_limits))
+
+        load_limits = {'memory_available': 0,
+                       'memory_percent': 0}
+        self.assertTrue(is_memory_critical(load_limits))

@@ -8,7 +8,9 @@ from ftw.upgrade.interfaces import IUpgradeInformationGatherer
 from ftw.upgrade.resource_registries import recook_resources
 from ftw.upgrade.transactionnote import TransactionNote
 from ftw.upgrade.utils import format_duration
+from ftw.upgrade.utils import get_logdir
 from ftw.upgrade.utils import get_sorted_profile_ids
+from ftw.upgrade.utils import log_memory_usage
 from ftw.upgrade.utils import optimize_memory_usage
 from Products.CMFCore.utils import getToolByName
 from Products.GenericSetup.interfaces import ISetupTool
@@ -19,6 +21,7 @@ from zope.interface import alsoProvides
 from zope.interface import implementer
 
 import logging
+import os
 import time
 import transaction
 
@@ -40,6 +43,11 @@ class Executioner(object):
     def __init__(self, portal_setup):
         self.portal_setup = portal_setup
         alsoProvides(portal_setup.REQUEST, IDuringUpgrade)
+        log_dir = get_logdir()
+        if log_dir is None:
+            self.statistics_filename = None
+        else:
+            self.statistics_filename = os.path.join(log_dir, "upgrade_stats.csv")
 
     security.declarePrivate('install')
     def install(self, data, intermediate_commit=False):
@@ -87,7 +95,7 @@ class Executioner(object):
             # the start.
             self.portal_setup.runAllImportStepsFromProfile(prefix + profile_id)
             logger.info('Done installing profile %s.', profile_id)
-            optimize_memory_usage()
+            optimize_memory_usage(logger)
         self._process_indexing_queue()
 
     security.declarePrivate('_register_after_commit_hook')
@@ -113,6 +121,7 @@ class Executioner(object):
         last_dest_version = None
 
         for upgradeid in upgradeids:
+            start = time.time()
             last_dest_version = self._do_upgrade(profileid, upgradeid) \
                 or last_dest_version
             self._set_portal_setup_version(profileid, last_dest_version)
@@ -122,6 +131,15 @@ class Executioner(object):
                 self._process_indexing_queue()
                 transaction.commit()
                 self._register_after_commit_hook()
+
+            duration = time.time() - start
+            logger.log(logging.INFO, 'Upgrade step duration: %s' % format_duration(
+                duration))
+            log_memory_usage(logger)
+            if self.statistics_filename:
+                with open(self.statistics_filename, "a") as stats_file:
+                    stats_file.write("{}, {}, {}\n".format(
+                        profileid, upgradeid, int(duration)))
 
         self._set_quickinstaller_version(profileid)
 
@@ -155,8 +173,6 @@ class Executioner(object):
 
     security.declarePrivate('_do_upgrade')
     def _do_upgrade(self, profileid, upgradeid):
-        start = time.time()
-
         step = _upgrade_registry.getUpgradeStep(profileid, upgradeid)
         logger.log(logging.INFO, '_' * 70)
         logger.log(logging.INFO, 'UPGRADE STEP %s: %s' % (
@@ -168,9 +184,6 @@ class Executioner(object):
         msg = "Ran upgrade step %s for profile %s" % (
             step.title, profileid)
         logger.log(logging.INFO, msg)
-
-        logger.log(logging.INFO, 'Upgrade step duration: %s' % format_duration(
-                time.time() - start))
 
         return step.dest
 

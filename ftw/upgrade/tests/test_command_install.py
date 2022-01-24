@@ -5,7 +5,7 @@ from ftw.upgrade import UpgradeStep
 from ftw.upgrade.indexing import HAS_INDEXING
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from ftw.upgrade.tests.helpers import no_logging_threads
-from ftw.upgrade.tests.helpers import truncate_duration
+from ftw.upgrade.tests.helpers import truncate_memory_and_duration
 from imp import reload
 from persistent.list import PersistentList
 from plone.app.testing import setRoles
@@ -216,16 +216,18 @@ class TestInstallCommand(CommandAndInstanceTestCase):
                 [u'ftw.upgrade: ______________________________________________________________________',
                  u'ftw.upgrade: UPGRADE STEP the.package:default: TriggerReindex',
                  u'ftw.upgrade: Ran upgrade step TriggerReindex for profile the.package:default',
-                 u'ftw.upgrade: Upgrade step duration: XXX',
                  u'ftw.upgrade: 1 of 2 (50%): Processing indexing queue',
                  u'ftw.upgrade: Transaction has been committed.',
+                 u'ftw.upgrade: Upgrade step duration: XXX',
+                 u'ftw.upgrade: Current memory usage in MB (RSS): XXX',
                  u'ftw.upgrade: ______________________________________________________________________',
                  u'ftw.upgrade: UPGRADE STEP the.package:default: Upgrade.',
                  u'ftw.upgrade: Ran upgrade step Upgrade. for profile the.package:default',
-                 u'ftw.upgrade: Upgrade step duration: XXX',
                  u'ftw.upgrade: Transaction has been committed.',
+                 u'ftw.upgrade: Upgrade step duration: XXX',
+                 u'ftw.upgrade: Current memory usage in MB (RSS): XXX',
                  u'Result: SUCCESS'],
-                truncate_duration(output.splitlines()))
+                truncate_memory_and_duration(output.splitlines()))
 
     def test_failing_install_proposed_upgrades_of_profile_with_intermediate_commit(self):
         class Upgrade(UpgradeStep):
@@ -257,12 +259,13 @@ class TestInstallCommand(CommandAndInstanceTestCase):
                 [u'ftw.upgrade: ______________________________________________________________________',
                  u'ftw.upgrade: UPGRADE STEP the.package:default: Upgrade.',
                  u'ftw.upgrade: Ran upgrade step Upgrade. for profile the.package:default',
-                 u'ftw.upgrade: Upgrade step duration: XXX',
                  u'ftw.upgrade: Transaction has been committed.',
+                 u'ftw.upgrade: Upgrade step duration: XXX',
+                 u'ftw.upgrade: Current memory usage in MB (RSS): XXX',
                  u'ftw.upgrade: ______________________________________________________________________',
                  u'ftw.upgrade: UPGRADE STEP the.package:default: Upgrade',
                  u'ftw.upgrade: FAILED'],
-                truncate_duration(output.splitlines()[:8]))
+                truncate_memory_and_duration(output.splitlines()[:9]))
             self.assertEqual(
                 [u'Result: FAILURE'],
                 output.splitlines()[-1:])

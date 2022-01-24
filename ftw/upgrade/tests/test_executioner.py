@@ -311,14 +311,16 @@ class TestExecutioner(UpgradeTestCase):
                 [u'______________________________________________________________________',
                  u'UPGRADE STEP the.package:default: TriggerReindex',
                  u'Ran upgrade step TriggerReindex for profile the.package:default',
-                 u'Upgrade step duration: XXX',
                  u'1 of 2 (50%): Processing indexing queue',
                  u'Transaction has been committed.',
+                 u'Upgrade step duration: XXX',
+                 u'Current memory usage in MB (RSS): XXX',
                  u'______________________________________________________________________',
                  u'UPGRADE STEP the.package:default: Upgrade.',
                  u'Ran upgrade step Upgrade. for profile the.package:default',
+                 u'Transaction has been committed.',
                  u'Upgrade step duration: XXX',
-                 u'Transaction has been committed.'],
+                 u'Current memory usage in MB (RSS): XXX'],
                 self.get_log())
 
     def test_installed_version_if_upgrade_fails_with_intermediate_commit(self):

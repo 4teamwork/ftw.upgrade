@@ -1,3 +1,4 @@
+from App.config import getConfiguration
 from collections import defaultdict
 from contextlib import contextmanager
 from copy import deepcopy
@@ -5,10 +6,13 @@ from ftw.upgrade.exceptions import CyclicDependencies
 from path import Path
 from six.moves import map
 from zope.component.hooks import getSite
+from zope.component.hooks import setSite
 
+import gc
 import logging
 import math
 import os
+import psutil
 import re
 import stat
 import tarjan.tc
@@ -133,8 +137,9 @@ class SavepointIterator(object):
     def __iter__(self):
         for i, item in enumerate(self.iterable):
             if i % self.threshold == 0:
-                optimize_memory_usage()
+                optimize_memory_usage(self.logger)
                 self.logger.info("Created savepoint at %s items" % i)
+                log_memory_usage(self.logger)
             yield item
 
     def __len__(self):
@@ -179,7 +184,39 @@ class SavepointIterator(object):
             raise ValueError('Invalid savepoint threshold {!r}'.format(value))
 
 
-def optimize_memory_usage():
+def get_memory_usage():
+    mem_info = psutil.Process().memory_info()
+    return mem_info.rss / 1024.0 ** 2.0
+
+
+def log_memory_usage(logger):
+    rss = get_memory_usage()
+    logger.log(
+        logging.INFO,
+        'Current memory usage in MB (RSS): {:0.1f}'.format(rss))
+
+
+LOAD_LIMITS = {'memory_available': 100 * 1024 * 1024,
+               'memory_percent': 95}
+
+
+def _is_memory_full(load, load_limits):
+    return (load['memory_available'] < load_limits['memory_available']
+            or load['memory_percent'] > load_limits['memory_percent'])
+
+
+def _get_system_load():
+    return {'memory_available': psutil.virtual_memory().available,
+            'memory_percent': psutil.virtual_memory().percent}
+
+
+def is_memory_critical(load_limits=None):
+    if load_limits is None:
+        load_limits = LOAD_LIMITS
+    return _is_memory_full(_get_system_load(), load_limits)
+
+
+def optimize_memory_usage(logger=None):
     """Optimizes the current memory usage by garbage collecting objects.
 
     The function creates a transaction savepoint in order to move pending
@@ -199,6 +236,14 @@ def optimize_memory_usage():
     # This only works well when we've created a savepoint in advance,
     # which moves the changes to the disk.
     getSite()._p_jar.cacheGC()
+
+    # If memory is critical after trying to optimize the cache, we sweep it.
+    if is_memory_critical():
+        if logger:
+            logger.warning("System memory critical, sweeping cache.")
+        setSite(getSite())
+        getSite()._p_jar.cacheMinimize()
+        gc.collect()
 
 
 def get_sorted_profile_ids(portal_setup):
@@ -347,3 +392,22 @@ def get_portal_migration(context):
     """
     portal_migration = getattr(context, 'portal_migration')
     return portal_migration
+
+
+def get_logdir():
+    """Determine the log directory.
+    This will be derived from Zope2's EventLog location, in order to not
+    have to figure out the path to var/log/ ourselves.
+    """
+    zconf = getConfiguration()
+    eventlog = getattr(zconf, 'eventlog', None)
+
+    if eventlog is None:
+        return None
+
+    handler_factories = eventlog.handler_factories
+    eventlog_path = handler_factories[0].section.path
+    if not eventlog_path.endswith('.log'):
+        return None
+    log_dir = os.path.dirname(eventlog_path)
+    return log_dir

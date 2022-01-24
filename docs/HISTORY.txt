@@ -5,7 +5,9 @@ Changelog
 3.1.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Log memory usage during upgrade steps. [njohner]
+- Write upgrade step durations to a file. [njohner]
+- Sweep cache during upgrade if memory is critical. [njohner]
 
 
 3.1.1 (2021-09-07)

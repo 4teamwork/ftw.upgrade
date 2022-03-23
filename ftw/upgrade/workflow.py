@@ -171,8 +171,14 @@ class WorkflowSecurityUpdater(object):
         query = {'portal_type': types}
         brains = tuple(catalog.unrestrictedSearchResults(query))
 
-        lookup = lambda brain: portal.unrestrictedTraverse(brain.getPath())
-        generator = SizedGenerator((lookup(brain) for brain in brains),
+        def lookup(brain):
+            try:
+                return portal.unrestrictedTraverse(brain.getPath())
+            except KeyError:
+                return None
+
+        generator = (lookup(brain) for brain in brains)
+        generator = SizedGenerator((obj for obj in generator if obj),
                                    len(brains))
         return ProgressLogger('Update object security', generator)
 

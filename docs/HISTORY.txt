@@ -5,8 +5,7 @@ Changelog
 3.2.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Skip broken catalog brains in WorkflowSecurityUpdater. [phgross]
 
 3.2.0 (2022-01-31)
 ------------------

@@ -1,3 +1,5 @@
+from Acquisition import aq_inner
+from Acquisition import aq_parent
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.placefulworkflow import PlacefulWorkflowPolicyActivator
@@ -265,3 +267,22 @@ class TestWorkflowSecurityUpdater(WorkflowTestCase):
         self.assert_permission_not_acquired(
             'View', document,
             'The document should have been updated but was not.')
+
+    def test_skip_broken_brains(self):
+        self.set_workflow_chain(for_type='Folder',
+                                to_workflow='folder_workflow')
+
+        folder1 = create(Builder('folder'))
+        folder2 = create(Builder('folder'))
+        folder3 = create(Builder('folder'))
+
+        # Delete folder and suppress events so that the catalog does not notice
+        # the object is gone, then try to get the object.
+        aq_parent(aq_inner(folder2))._delObject(folder2.getId(),
+                                                suppress_events=True)
+
+        updater = WorkflowSecurityUpdater()
+        generator = updater.lookup_objects('Folder')
+
+        self.assertEquals([folder1, folder3],
+                          [obj for obj in generator])

@@ -1,5 +1,6 @@
 from datetime import datetime
 from ftw.builder import Builder
+from ftw.upgrade.command import jsonapi
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from six.moves import map
 
@@ -265,6 +266,7 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.assertIn('INFO: Acting on site /plone', output)
 
     def test_instance_argument(self):
+        jsonapi.TIMEOUT = 5
         self.package.with_profile(
             Builder('genericsetup profile')
             .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))))

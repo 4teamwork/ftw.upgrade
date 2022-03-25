@@ -18,6 +18,10 @@ import six
 import socket
 import sys
 import tempfile
+import time
+
+
+TIMEOUT = 60
 
 
 logger = logging.getLogger('ftw.upgrade')
@@ -217,7 +221,7 @@ def get_zope_url(instance_name=None):
     return 'http://localhost:{0}/'.format(instance['port'])
 
 
-def get_running_instance(buildout_path, instance_name=None):
+def _get_running_instance(buildout_path, instance_name=None):
     for zconf in find_instance_zconfs(buildout_path, instance_name):
         port = get_instance_port(zconf)
         if not port:
@@ -226,6 +230,20 @@ def get_running_instance(buildout_path, instance_name=None):
             return {'port': port,
                     'path': zconf.dirname().dirname()}
     return None
+
+
+def get_running_instance(buildout_path, instance_name=None):
+    """Because upgrades usually happen shortly after restarting the instances,
+    it is possible that the instances are not yet reachable yet. We therefore
+    retry to find a running instance until TIMEOUT is reached.
+    """
+    t0 = time.time()
+    while True:
+        instance_info = _get_running_instance(buildout_path, instance_name)
+        if instance_info is not None or time.time()-t0 > TIMEOUT:
+            break
+        time.sleep(5)
+    return instance_info
 
 
 def find_instance_zconfs(buildout_path, instance_name=None):

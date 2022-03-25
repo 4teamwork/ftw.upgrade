@@ -2,10 +2,10 @@ Changelog
 =========
 
 
-3.2.1 (unreleased)
+3.3.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Allow choosing a specific instance to run upgrade commands. [njohner]
 
 
 3.2.0 (2022-01-31)

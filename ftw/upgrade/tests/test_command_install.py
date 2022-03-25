@@ -2,6 +2,7 @@ from datetime import datetime
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade import UpgradeStep
+from ftw.upgrade.command import jsonapi
 from ftw.upgrade.indexing import HAS_INDEXING
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from ftw.upgrade.tests.helpers import no_logging_threads
@@ -361,6 +362,7 @@ class TestInstallCommand(CommandAndInstanceTestCase):
             output.splitlines())
 
     def test_instance_argument(self):
+        jsonapi.TIMEOUT = 5
         self.package.with_profile(
             Builder('genericsetup profile')
             .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))))

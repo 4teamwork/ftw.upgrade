@@ -1,3 +1,4 @@
+from ftw.upgrade.command import jsonapi
 from ftw.upgrade.command.jsonapi import APIRequestor
 from ftw.upgrade.command.jsonapi import get_api_url
 from ftw.upgrade.command.jsonapi import get_instance_port
@@ -14,6 +15,7 @@ from requests.exceptions import HTTPError
 from six.moves import map
 
 import os
+import time
 
 
 class ZopeConfPathStub(object):
@@ -59,6 +61,7 @@ class TestAPIRequestor(CommandAndInstanceTestCase):
                       params={'profileid': 'plone.app.discussion:default'})
 
     def test_GET_with_specific_instance(self):
+        jsonapi.TIMEOUT = 5
         requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD),
                                  instance_name='instance')
 
@@ -68,6 +71,7 @@ class TestAPIRequestor(CommandAndInstanceTestCase):
             requestor.GET('list_plone_sites', instance_name='instance2')
 
     def test_error_when_no_running_instance_found(self):
+        jsonapi.TIMEOUT = 5
         self.layer['root_path'].joinpath('parts/instance').rmtree()
         requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD))
         with self.assertRaises(NoRunningInstanceFound):
@@ -135,6 +139,7 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             get_api_url('action', site='mount-point/platform'))
 
     def test_get_api_url_for_specific_instance(self):
+        jsonapi.TIMEOUT = 5
         test_instance_port = self.layer['port']
         self.write_zconf('instance1', '1000')
         self.write_zconf('instance2', test_instance_port)
@@ -146,8 +151,20 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             get_api_url('foo', instance_name='instance2'))
 
     def test_get_zope_url_without_zconf(self):
+        jsonapi.TIMEOUT = 5
         with self.assertRaises(NoRunningInstanceFound):
             get_zope_url()
+
+    def test_find_running_instance_retries_until_timeout(self):
+        jsonapi.TIMEOUT = 5
+        self.write_zconf('instance1', '1000')
+
+        t0 = time.time()
+        info = get_running_instance(self.layer['root_path'])
+        elapsed = time.time() - t0
+
+        self.assertIsNone(info)
+        self.assertTrue(elapsed >= jsonapi.TIMEOUT)
 
     def test_find_first_running_instance_info(self):
         test_instance_port = self.layer['port']

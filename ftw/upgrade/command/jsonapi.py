@@ -90,6 +90,13 @@ def add_requestor_authentication_argument(argparse_command):
         help='Authentication information: "<username>:<password>"')
 
 
+def add_requestor_instance_argument(argparse_command):
+    argparse_command.add_argument(
+        '--instance',
+        help='instance that should be used for all requests. '
+             'If not specified the first running instance is used.')
+
+
 def add_site_path_argument(argparse_command):
     argparse_command.add_argument(
         '--verbose', '-v', action='store_true',
@@ -130,7 +137,8 @@ def with_api_requestor(func):
             auth = TempfileAuth()
 
         site = get_plone_site_by_args(args, APIRequestor(auth))
-        requestor = APIRequestor(auth, site=site)
+        requestor = APIRequestor(
+            auth, site=site, instance_name=getattr(args, 'instance', None))
         return func(args, requestor)
     func_wrapper.__name__ = func.__name__
     func_wrapper.__doc__ = func.__doc__

@@ -263,3 +263,22 @@ class TestListCommand(CommandAndInstanceTestCase):
             self.assertIn('Proposed upgrades', output)
             self.assertIn('20110101000000@the.package:default', output)
             self.assertIn('INFO: Acting on site /plone', output)
+
+    def test_instance_argument(self):
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='20110101000000')
+            self.clear_recorded_upgrades('the.package:default')
+
+        exitcode, output = self.upgrade_script(
+            'list --upgrades -s plone --json --instance=instance1',
+            assert_exitcode=False)
+        self.assertEqual(1, exitcode)
+        self.assertEqual(u'ERROR: No running Plone instance detected.\n', output)
+
+        exitcode, output = self.upgrade_script(
+            'list --upgrades -s plone --json --instance=instance')
+        self.assertEqual(1, len(json.loads(output)))

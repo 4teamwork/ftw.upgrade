@@ -58,6 +58,15 @@ class TestAPIRequestor(CommandAndInstanceTestCase):
         requestor.GET('get_profile', site='plone',
                       params={'profileid': 'plone.app.discussion:default'})
 
+    def test_GET_with_specific_instance(self):
+        requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD),
+                                 instance_name='instance')
+
+        self.assertEqual(200, requestor.GET('list_plone_sites').status_code)
+
+        with self.assertRaises(NoRunningInstanceFound):
+            requestor.GET('list_plone_sites', instance_name='instance2')
+
     def test_error_when_no_running_instance_found(self):
         self.layer['root_path'].joinpath('parts/instance').rmtree()
         requestor = APIRequestor(HTTPBasicAuth(SITE_OWNER_NAME, TEST_USER_PASSWORD))
@@ -125,6 +134,17 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             'VirtualHostRoot/_vh_foo/upgrades-api/action'.format(test_instance_port),
             get_api_url('action', site='mount-point/platform'))
 
+    def test_get_api_url_for_specific_instance(self):
+        test_instance_port = self.layer['port']
+        self.write_zconf('instance1', '1000')
+        self.write_zconf('instance2', test_instance_port)
+
+        with self.assertRaises(NoRunningInstanceFound):
+            get_api_url('foo', instance_name='instance1')
+        self.assertEqual(
+            'http://localhost:{0}/upgrades-api/foo'.format(test_instance_port),
+            get_api_url('foo', instance_name='instance2'))
+
     def test_get_zope_url_without_zconf(self):
         with self.assertRaises(NoRunningInstanceFound):
             get_zope_url()
@@ -137,6 +157,19 @@ class TestJsonAPIUtils(CommandAndInstanceTestCase):
             {'port': test_instance_port,
              'path': str(part2)},
             get_running_instance(self.layer['root_path']))
+
+    def test_find_specific_running_instance_info(self):
+        test_instance_port = self.layer['port']
+        part1 = self.write_zconf('instance1', test_instance_port)
+        part2 = self.write_zconf('instance2', test_instance_port)
+        self.assertEqual(
+            {'port': test_instance_port,
+             'path': str(part1)},
+            get_running_instance(self.layer['root_path'], 'instance1'))
+        self.assertEqual(
+            {'port': test_instance_port,
+             'path': str(part2)},
+            get_running_instance(self.layer['root_path'], 'instance2'))
 
     def test_find_first_running_instance_info_with_network_interface(self):
         test_instance_port = self.layer['port']

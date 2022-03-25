@@ -29,19 +29,23 @@ class NoRunningInstanceFound(Exception):
 
 class APIRequestor(object):
 
-    def __init__(self, auth, site=None):
+    def __init__(self, auth, site=None, instance_name=None):
         self.session = requests.Session()
         self.session.auth = auth
         self.site = site
+        self.instance_name = instance_name
 
-    def GET(self, action, site=None, **kwargs):
-        return self._make_request('GET', action, site=site, **kwargs)
+    def GET(self, action, site=None, instance_name=None, **kwargs):
+        return self._make_request('GET', action, site=site,
+                                  instance_name=instance_name, **kwargs)
 
-    def POST(self, action, site=None, **kwargs):
-        return self._make_request('POST', action, site=site, **kwargs)
+    def POST(self, action, site=None, instance_name=None, **kwargs):
+        return self._make_request('POST', action, site=site,
+                                  instance_name=instance_name, **kwargs)
 
-    def _make_request(self, method, action, site=None, **kwargs):
-        url = get_api_url(action, site=site or self.site)
+    def _make_request(self, method, action, site=None, instance_name=None, **kwargs):
+        url = get_api_url(action, site=site or self.site,
+                          instance_name=instance_name or self.instance_name)
         response = self.session.request(method.upper(), url, **kwargs)
         response.raise_for_status()
         return response
@@ -162,8 +166,8 @@ def error_handling(func):
     return func_wrapper
 
 
-def get_api_url(action, site=None):
-    url = get_zope_url()
+def get_api_url(action, site=None, instance_name=None):
+    url = get_zope_url(instance_name)
     public_url = os.environ.get('UPGRADE_PUBLIC_URL', None)
     if public_url:
         url = extend_url_with_virtualhost_config(url, public_url, site)
@@ -198,15 +202,15 @@ def extend_url_with_virtualhost_config(zope_url, public_url, site):
     return url
 
 
-def get_zope_url():
-    instance = get_running_instance(Path.getcwd())
+def get_zope_url(instance_name=None):
+    instance = get_running_instance(Path.getcwd(), instance_name)
     if not instance:
         raise NoRunningInstanceFound()
     return 'http://localhost:{0}/'.format(instance['port'])
 
 
-def get_running_instance(buildout_path):
-    for zconf in find_instance_zconfs(buildout_path):
+def get_running_instance(buildout_path, instance_name=None):
+    for zconf in find_instance_zconfs(buildout_path, instance_name):
         port = get_instance_port(zconf)
         if not port:
             continue
@@ -216,10 +220,10 @@ def get_running_instance(buildout_path):
     return None
 
 
-def find_instance_zconfs(buildout_path):
+def find_instance_zconfs(buildout_path, instance_name=None):
     return sorted(
-        buildout_path.glob('parts/*/etc/zope.conf')
-        + buildout_path.glob('parts/*/etc/wsgi.ini')
+        buildout_path.glob('parts/{}/etc/zope.conf'.format(instance_name or "*"))
+        + buildout_path.glob('parts/{}/etc/wsgi.ini'.format(instance_name or "*"))
     )
 
 

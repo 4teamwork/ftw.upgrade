@@ -18,6 +18,10 @@ import six
 import socket
 import sys
 import tempfile
+import time
+
+
+TIMEOUT = 60
 
 
 logger = logging.getLogger('ftw.upgrade')
@@ -29,19 +33,23 @@ class NoRunningInstanceFound(Exception):
 
 class APIRequestor(object):
 
-    def __init__(self, auth, site=None):
+    def __init__(self, auth, site=None, instance_name=None):
         self.session = requests.Session()
         self.session.auth = auth
         self.site = site
+        self.instance_name = instance_name
 
-    def GET(self, action, site=None, **kwargs):
-        return self._make_request('GET', action, site=site, **kwargs)
+    def GET(self, action, site=None, instance_name=None, **kwargs):
+        return self._make_request('GET', action, site=site,
+                                  instance_name=instance_name, **kwargs)
 
-    def POST(self, action, site=None, **kwargs):
-        return self._make_request('POST', action, site=site, **kwargs)
+    def POST(self, action, site=None, instance_name=None, **kwargs):
+        return self._make_request('POST', action, site=site,
+                                  instance_name=instance_name, **kwargs)
 
-    def _make_request(self, method, action, site=None, **kwargs):
-        url = get_api_url(action, site=site or self.site)
+    def _make_request(self, method, action, site=None, instance_name=None, **kwargs):
+        url = get_api_url(action, site=site or self.site,
+                          instance_name=instance_name or self.instance_name)
         response = self.session.request(method.upper(), url, **kwargs)
         response.raise_for_status()
         return response
@@ -86,6 +94,13 @@ def add_requestor_authentication_argument(argparse_command):
         help='Authentication information: "<username>:<password>"')
 
 
+def add_requestor_instance_argument(argparse_command):
+    argparse_command.add_argument(
+        '--instance',
+        help='instance that should be used for all requests. '
+             'If not specified the first running instance is used.')
+
+
 def add_site_path_argument(argparse_command):
     argparse_command.add_argument(
         '--verbose', '-v', action='store_true',
@@ -126,7 +141,8 @@ def with_api_requestor(func):
             auth = TempfileAuth()
 
         site = get_plone_site_by_args(args, APIRequestor(auth))
-        requestor = APIRequestor(auth, site=site)
+        requestor = APIRequestor(
+            auth, site=site, instance_name=getattr(args, 'instance', None))
         return func(args, requestor)
     func_wrapper.__name__ = func.__name__
     func_wrapper.__doc__ = func.__doc__
@@ -162,8 +178,8 @@ def error_handling(func):
     return func_wrapper
 
 
-def get_api_url(action, site=None):
-    url = get_zope_url()
+def get_api_url(action, site=None, instance_name=None):
+    url = get_zope_url(instance_name)
     public_url = os.environ.get('UPGRADE_PUBLIC_URL', None)
     if public_url:
         url = extend_url_with_virtualhost_config(url, public_url, site)
@@ -198,15 +214,15 @@ def extend_url_with_virtualhost_config(zope_url, public_url, site):
     return url
 
 
-def get_zope_url():
-    instance = get_running_instance(Path.getcwd())
+def get_zope_url(instance_name=None):
+    instance = get_running_instance(Path.getcwd(), instance_name)
     if not instance:
         raise NoRunningInstanceFound()
     return 'http://localhost:{0}/'.format(instance['port'])
 
 
-def get_running_instance(buildout_path):
-    for zconf in find_instance_zconfs(buildout_path):
+def _get_running_instance(buildout_path, instance_name=None):
+    for zconf in find_instance_zconfs(buildout_path, instance_name):
         port = get_instance_port(zconf)
         if not port:
             continue
@@ -216,10 +232,24 @@ def get_running_instance(buildout_path):
     return None
 
 
-def find_instance_zconfs(buildout_path):
+def get_running_instance(buildout_path, instance_name=None):
+    """Because upgrades usually happen shortly after restarting the instances,
+    it is possible that the instances are not yet reachable yet. We therefore
+    retry to find a running instance until TIMEOUT is reached.
+    """
+    t0 = time.time()
+    while True:
+        instance_info = _get_running_instance(buildout_path, instance_name)
+        if instance_info is not None or time.time()-t0 > TIMEOUT:
+            break
+        time.sleep(5)
+    return instance_info
+
+
+def find_instance_zconfs(buildout_path, instance_name=None):
     return sorted(
-        buildout_path.glob('parts/*/etc/zope.conf')
-        + buildout_path.glob('parts/*/etc/wsgi.ini')
+        buildout_path.glob('parts/{}/etc/zope.conf'.format(instance_name or "*"))
+        + buildout_path.glob('parts/{}/etc/wsgi.ini'.format(instance_name or "*"))
     )
 
 

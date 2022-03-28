@@ -1,4 +1,5 @@
 from ftw.upgrade.command.jsonapi import add_requestor_authentication_argument
+from ftw.upgrade.command.jsonapi import add_requestor_instance_argument
 from ftw.upgrade.command.jsonapi import add_site_path_argument
 from ftw.upgrade.command.jsonapi import error_handling
 from ftw.upgrade.command.jsonapi import with_api_requestor
@@ -21,6 +22,7 @@ def setup_argparser(commands):
         description=DOCS)
     command.set_defaults(func=recook_command)
     add_requestor_authentication_argument(command)
+    add_requestor_instance_argument(command)
     add_site_path_argument(command)
 
 

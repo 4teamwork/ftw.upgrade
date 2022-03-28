@@ -2,6 +2,7 @@ from datetime import datetime
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade import UpgradeStep
+from ftw.upgrade.command import jsonapi
 from ftw.upgrade.indexing import HAS_INDEXING
 from ftw.upgrade.tests.base import CommandAndInstanceTestCase
 from ftw.upgrade.tests.helpers import no_logging_threads
@@ -359,3 +360,23 @@ class TestInstallCommand(CommandAndInstanceTestCase):
         self.assertEqual(
             [u'ERROR: --force can only be used with --profiles.'],
             output.splitlines())
+
+    def test_instance_argument(self):
+        jsonapi.TIMEOUT = 5
+        self.package.with_profile(
+            Builder('genericsetup profile')
+            .with_upgrade(Builder('ftw upgrade step').to(datetime(2011, 1, 1))))
+
+        with self.package_created():
+            self.install_profile('the.package:default', version='20110101000000')
+
+        exitcode, output = self.upgrade_script(
+            'install -s plone --proposed --instance=instance1',
+            assert_exitcode=False)
+
+        self.assertEqual(1, exitcode)
+        self.assertEqual(u'ERROR: No running Plone instance detected.\n', output)
+
+        exitcode, output = self.upgrade_script(
+            'install -s plone --proposed --instance=instance')
+        self.assertEqual(u'Result: SUCCESS\n', output)

@@ -367,7 +367,6 @@ class UpgradeStep(object):
             return (quickinstaller.isProductInstallable(product_name)
                     and quickinstaller.isProductInstalled(product_name))
 
-
     security.declarePrivate('uninstall_product')
     def uninstall_product(self, product_name):
         """Uninstalls a product using the quick installer.
@@ -426,7 +425,7 @@ class UpgradeStep(object):
         # ... as well as subscribers
         layer_subscribers = subscribers[0][ILocalBrowserLayerType]
         remaining_layers = tuple([layer for layer in layer_subscribers['']
-                                if not layer.__name__ == iface_name])
+                                  if not layer.__name__ == iface_name])
         layer_subscribers[''] = remaining_layers
 
         sm._utility_registrations.pop((ILocalBrowserLayerType, name), None)

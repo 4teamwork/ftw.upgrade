@@ -1,3 +1,5 @@
+from Acquisition import aq_inner
+from Acquisition import aq_parent
 from ftw.builder import Builder
 from ftw.builder import create
 from ftw.upgrade.placefulworkflow import PlacefulWorkflowPolicyActivator
@@ -6,6 +8,7 @@ from ftw.upgrade.workflow import WorkflowChainUpdater
 from ftw.upgrade.workflow import WorkflowSecurityUpdater
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import getFSVersionTuple
+from zope.component.hooks import getSite
 
 ALLOWED_ROLES_AND_USERS_PERMISSION = 'View'
 if getFSVersionTuple() > (5, 2):
@@ -265,3 +268,29 @@ class TestWorkflowSecurityUpdater(WorkflowTestCase):
         self.assert_permission_not_acquired(
             'View', document,
             'The document should have been updated but was not.')
+
+    def test_supports_dead_brains(self):
+        self.set_workflow_chain(for_type='Folder',
+                                to_workflow='folder_workflow')
+        folder = create(Builder('folder'))
+        folder.manage_permission('View', roles=[],
+                                 acquire=True)
+        # Delete folder and suppress events so that the catalog does not notice
+        # the object is gone, then try to get the object.
+        aq_parent(aq_inner(folder))._delObject(folder.getId(),
+                                               suppress_events=True)
+        catalog = getToolByName(getSite(), 'portal_catalog')
+        brains = catalog.unrestrictedSearchResults({'portal_type': 'Folder'})
+        self.assertEqual(1, len(brains))
+        path = brains[0].getPath()
+
+        updater = WorkflowSecurityUpdater()
+        updater.update(['folder_workflow'])
+
+        self.assertEqual(
+            0, len(catalog.unrestrictedSearchResults({'portal_type': 'Folder'})))
+
+        self.assertEqual(
+            [{'type': 'Inexistant brain', 'path': path}],
+            updater.safe_object_getter.errors,
+            'Failing brains should get collected in the object getter.')

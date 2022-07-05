@@ -7,6 +7,7 @@ from ftw.upgrade.helpers import update_security_for
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.progresslogger import ProgressLogger
 from ftw.upgrade.utils import log_silencer
+from ftw.upgrade.utils import SafeObjectGetter
 from ftw.upgrade.utils import SavepointIterator
 from ftw.upgrade.utils import SizedGenerator
 from plone.browserlayer.interfaces import ILocalBrowserLayerType
@@ -16,7 +17,6 @@ from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.ActionInformation import ActionInformation
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ProgressHandler import ZLogHandler
-from zExceptions import NotFound
 from zope.browser.interfaces import IBrowserView
 from zope.event import notify
 from zope.interface import directlyProvidedBy
@@ -69,6 +69,7 @@ class UpgradeStep(object):
         self.base_profile = base_profile
         self.target_version = target_version
         self.catalog = self.getToolByName('portal_catalog')
+        self._safe_object_getter = None
 
     security.declarePrivate('__call__')
     def __call__(self):
@@ -169,18 +170,17 @@ class UpgradeStep(object):
         """
         return self.catalog.delIndex(name)
 
+    @property
+    def safe_object_getter(self):
+        if not self._safe_object_getter:
+            self._safe_object_getter = SafeObjectGetter(self.portal, self.catalog, LOG)
+        return self._safe_object_getter
+
     security.declarePrivate('catalog_unrestricted_get_object')
     def catalog_unrestricted_get_object(self, brain):
         """Returns the unrestricted object of a brain.
         """
-        try:
-            return self.portal.unrestrictedTraverse(brain.getPath())
-        except (AttributeError, KeyError, NotFound):
-            LOG.warning('The object of the brain with rid {!r} no longer'
-                        ' exists at the path {!r}; removing the brain.'.format(
-                            brain.getRID(), brain.getPath()))
-            self.catalog.uncatalog_object(brain.getPath())
-            return None
+        return self.safe_object_getter.catalog_unrestricted_get_object(brain)
 
     security.declarePrivate('catalog_unrestricted_search')
     def catalog_unrestricted_search(self, query, full_objects=False):

@@ -1,3 +1,4 @@
+from AccessControl.SecurityInfo import ClassSecurityInformation
 from App.config import getConfiguration
 from collections import defaultdict
 from contextlib import contextmanager
@@ -5,9 +6,9 @@ from copy import deepcopy
 from ftw.upgrade.exceptions import CyclicDependencies
 from path import Path
 from six.moves import map
+from zExceptions import NotFound
 from zope.component.hooks import getSite
 from zope.component.hooks import setSite
-
 import gc
 import logging
 import math
@@ -17,6 +18,32 @@ import re
 import stat
 import tarjan.tc
 import transaction
+
+
+class SafeObjectGetter(object):
+
+    security = ClassSecurityInformation()
+
+    def __init__(self, portal, catalog, log):
+        self.catalog = catalog
+        self.portal = portal
+        self.errors = []
+        self.log = log
+
+    security.declarePrivate('catalog_unrestricted_get_object')
+    def catalog_unrestricted_get_object(self, brain):
+        """Returns the unrestricted object of a brain.
+        """
+        try:
+            return self.portal.unrestrictedTraverse(brain.getPath())
+        except (AttributeError, KeyError, NotFound):
+            self.log.warning('The object of the brain with rid {!r} no longer'
+                             ' exists at the path {!r}; removing the brain.'.format(
+                                 brain.getRID(), brain.getPath()))
+            self.errors.append({'type': 'Inexistant brain',
+                                'path': brain.getPath()})
+            self.catalog.uncatalog_object(brain.getPath())
+            return None
 
 
 def topological_sort(items, partial_order):

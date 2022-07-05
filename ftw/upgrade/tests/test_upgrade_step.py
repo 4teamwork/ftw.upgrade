@@ -316,7 +316,8 @@ class TestUpgradeStep(UpgradeTestCase):
             def __call__(self):
                 brains = self.get_folder_brains()
                 testcase.assertEqual(1, len(brains))
-                brain ,= brains
+                brain, = brains
+                path = brain.getPath()
 
                 testcase.assertIsNone(
                     self.catalog_unrestricted_get_object(brain),
@@ -331,6 +332,11 @@ class TestUpgradeStep(UpgradeTestCase):
                 testcase.assertEqual(
                     0, len(self.get_folder_brains()),
                     'Brain should have been uncataloged at this point.')
+
+                testcase.assertEqual(
+                    [{'type': 'Inexistant brain', 'path': path}],
+                    self.safe_object_getter.errors,
+                    'Failing brains should get collected in the object getter.')
 
             def get_folder_brains(self):
                 return self.catalog_unrestricted_search({'portal_type': 'Folder'})

@@ -1,6 +1,7 @@
 from DateTime import DateTime
 from ftw.upgrade import ProgressLogger
 from ftw.upgrade.helpers import update_security_for
+from ftw.upgrade.utils import SafeObjectGetter
 from ftw.upgrade.utils import SavepointIterator
 from ftw.upgrade.utils import SizedGenerator
 from Products.CMFCore.utils import getToolByName
@@ -157,6 +158,11 @@ class WorkflowChainUpdater(object):
 
 class WorkflowSecurityUpdater(object):
 
+    def __init__(self):
+        self._safe_object_getter = None
+        self.portal = getSite()
+        self.catalog = getToolByName(self.portal, 'portal_catalog')
+
     def update(self, changed_workflows, reindex_security=True, savepoints=None):
         types = self.get_suspected_types(changed_workflows)
         objects = SavepointIterator.build(self.lookup_objects(types), savepoints)
@@ -164,21 +170,25 @@ class WorkflowSecurityUpdater(object):
             if self.obj_has_workflow(obj, changed_workflows):
                 update_security_for(obj, reindex_security=reindex_security)
 
+    @property
+    def safe_object_getter(self):
+        if not self._safe_object_getter:
+            self._safe_object_getter = SafeObjectGetter(self.portal, self.catalog, LOG)
+        return self._safe_object_getter
+
     def lookup_objects(self, types):
-        portal = getSite()
-        catalog = getToolByName(portal, 'portal_catalog')
-
         query = {'portal_type': types}
-        brains = tuple(catalog.unrestrictedSearchResults(query))
+        brains = tuple(self.catalog.unrestrictedSearchResults(query))
 
-        lookup = lambda brain: portal.unrestrictedTraverse(brain.getPath())
-        generator = SizedGenerator((lookup(brain) for brain in brains),
-                                   len(brains))
+        generator = SizedGenerator(
+            (self.safe_object_getter.catalog_unrestricted_get_object(brain)
+             for brain in brains),
+            len(brains))
         return ProgressLogger('Update object security', generator)
 
     def get_suspected_types(self, changed_workflows):
         types = []
-        ttool = getToolByName(getSite(), 'portal_types')
+        ttool = getToolByName(self.portal, 'portal_types')
 
         for fti in ttool.objectValues():
             portal_type = fti.getId()
@@ -188,13 +198,13 @@ class WorkflowSecurityUpdater(object):
         return types
 
     def type_workflow_is_one_of(self, portal_type, workflows):
-        wftool = getToolByName(getSite(), 'portal_workflow')
+        wftool = getToolByName(self.portal, 'portal_workflow')
         default_chain = wftool.getChainForPortalType(portal_type)
         if set(default_chain) & set(workflows):
             return True
 
         try:
-            pwftool = getToolByName(getSite(), 'portal_placeful_workflow')
+            pwftool = getToolByName(self.portal, 'portal_placeful_workflow')
         except AttributeError:
             return False
 
@@ -206,6 +216,6 @@ class WorkflowSecurityUpdater(object):
         return False
 
     def obj_has_workflow(self, obj, workflows):
-        wftool = getToolByName(getSite(), 'portal_workflow')
+        wftool = getToolByName(self.portal, 'portal_workflow')
         obj_workflow_names = [wf.getId() for wf in wftool.getWorkflowsFor(obj)]
         return set(obj_workflow_names) & set(workflows)

@@ -7,6 +7,7 @@ from ftw.upgrade.helpers import update_security_for
 from ftw.upgrade.interfaces import IUpgradeStep
 from ftw.upgrade.progresslogger import ProgressLogger
 from ftw.upgrade.utils import log_silencer
+from ftw.upgrade.utils import SafeObjectGetter
 from ftw.upgrade.utils import SavepointIterator
 from ftw.upgrade.utils import SizedGenerator
 from plone.browserlayer.interfaces import ILocalBrowserLayerType
@@ -16,7 +17,6 @@ from Products.BTreeFolder2.BTreeFolder2 import BTreeFolder2Base
 from Products.CMFCore.ActionInformation import ActionInformation
 from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.ProgressHandler import ZLogHandler
-from zExceptions import NotFound
 from zope.browser.interfaces import IBrowserView
 from zope.event import notify
 from zope.interface import directlyProvidedBy
@@ -68,6 +68,8 @@ class UpgradeStep(object):
         self.associated_profile = associated_profile
         self.base_profile = base_profile
         self.target_version = target_version
+        self.catalog = self.getToolByName('portal_catalog')
+        self._safe_object_getter = None
 
     security.declarePrivate('__call__')
     def __call__(self):
@@ -117,14 +119,13 @@ class UpgradeStep(object):
     def catalog_rebuild_index(self, name):
         """Reindex the ``portal_catalog`` index identified by ``name``.
         """
-        catalog = self.getToolByName('portal_catalog')
         LOG.info("Reindexing index %s" % name)
 
         # pylint: disable=W0212
-        pgthreshold = catalog._getProgressThreshold() or 100
+        pgthreshold = self.catalog._getProgressThreshold() or 100
         # pylint: enable=W0212
         pghandler = ZLogHandler(pgthreshold)
-        catalog.reindexIndex(name, None, pghandler=pghandler)
+        self.catalog.reindexIndex(name, None, pghandler=pghandler)
 
         LOG.info("Reindexing index %s DONE" % name)
 
@@ -154,37 +155,32 @@ class UpgradeStep(object):
     def catalog_has_index(self, name):
         """Returns whether there is a catalog index ``name``.
         """
-        catalog = self.getToolByName('portal_catalog')
-        index_names = catalog.indexes()
+        index_names = self.catalog.indexes()
         return name in index_names
 
     security.declarePrivate('catalog_add_index')
     def catalog_add_index(self, name, type_, extra=None):
         """Adds a new index to the ``portal_catalog`` tool.
         """
-        catalog = self.getToolByName('portal_catalog')
-        return catalog.addIndex(name, type_, extra=extra)
+        return self.catalog.addIndex(name, type_, extra=extra)
 
     security.declarePrivate('catalog_remove_index')
     def catalog_remove_index(self, name):
         """Removes an index to from ``portal_catalog`` tool.
         """
-        catalog = self.getToolByName('portal_catalog')
-        return catalog.delIndex(name)
+        return self.catalog.delIndex(name)
+
+    @property
+    def safe_object_getter(self):
+        if not self._safe_object_getter:
+            self._safe_object_getter = SafeObjectGetter(self.portal, self.catalog, LOG)
+        return self._safe_object_getter
 
     security.declarePrivate('catalog_unrestricted_get_object')
     def catalog_unrestricted_get_object(self, brain):
         """Returns the unrestricted object of a brain.
         """
-        try:
-            return self.portal.unrestrictedTraverse(brain.getPath())
-        except (AttributeError, KeyError, NotFound):
-            LOG.warning('The object of the brain with rid {!r} no longer'
-                        ' exists at the path {!r}; removing the brain.'.format(
-                            brain.getRID(), brain.getPath()))
-            catalog = self.getToolByName('portal_catalog')
-            catalog.uncatalog_object(brain.getPath())
-            return None
+        return self.safe_object_getter.catalog_unrestricted_get_object(brain)
 
     security.declarePrivate('catalog_unrestricted_search')
     def catalog_unrestricted_search(self, query, full_objects=False):
@@ -192,8 +188,7 @@ class UpgradeStep(object):
         If `full_objects` is `True`, objects instead of brains
         are returned.
         """
-        catalog = self.getToolByName('portal_catalog')
-        brains = tuple(catalog.unrestrictedSearchResults(query))
+        brains = tuple(self.catalog.unrestrictedSearchResults(query))
 
         if full_objects:
             generator = (self.catalog_unrestricted_get_object(brain)
@@ -372,7 +367,6 @@ class UpgradeStep(object):
             return (quickinstaller.isProductInstallable(product_name)
                     and quickinstaller.isProductInstalled(product_name))
 
-
     security.declarePrivate('uninstall_product')
     def uninstall_product(self, product_name):
         """Uninstalls a product using the quick installer.
@@ -431,7 +425,7 @@ class UpgradeStep(object):
         # ... as well as subscribers
         layer_subscribers = subscribers[0][ILocalBrowserLayerType]
         remaining_layers = tuple([layer for layer in layer_subscribers['']
-                                if not layer.__name__ == iface_name])
+                                  if not layer.__name__ == iface_name])
         layer_subscribers[''] = remaining_layers
 
         sm._utility_registrations.pop((ILocalBrowserLayerType, name), None)

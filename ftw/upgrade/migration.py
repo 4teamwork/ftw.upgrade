@@ -60,6 +60,14 @@ except pkg_resources.DistributionNotFound:
 else:
     from plone.app.blob.interfaces import IBlobWrapper
 
+HAS_LANG_REFS = False
+try:
+    from plone.multilingual.interfaces import ITranslationManager
+    HAS_LANG_REFS = True
+except ImportError:
+    pass
+
+
 try:
     pkg_resources.get_distribution('archetypes.referencebrowserwidget')
 except pkg_resources.DistributionNotFound:
@@ -77,6 +85,7 @@ IGNORE_DEFAULT_IGNORE_FIELDS = 16
 SKIP_MODIFIED_EVENT = 32
 
 UNMAPPED_FIELDS_BACKUP_ANN_KEY = 'ftw.upgrade.migration:fields_backup'
+LANGUAGE_INFORMATIONS_ANN_KEY = 'ftw.upgrade.migration:language_info'
 
 LOG = logging.getLogger('ftw.upgrade.migration')
 
@@ -95,12 +104,9 @@ DEFAULT_ATTRIBUTES_TO_COPY = (
 
 DUBLIN_CORE_IGNORES = (
     'allowDiscussion',
-    'contributors',
-    'creators',
     'nextPreviousEnabled',
     'rights',
     'language',
-    'relatedItems',
 )
 
 
@@ -209,6 +215,7 @@ class InplaceMigrator(object):
             self.dump_and_remove_references,
         )
         self.steps_after_clone = (
+            self.store_language_informations,
             self.migrate_intid,
             self.migrate_field_values,
             self.add_relations_to_relation_catalog,
@@ -233,6 +240,15 @@ class InplaceMigrator(object):
                  + list(self.additional_steps)
                  + list(self.final_steps)))
         return new_object
+
+    def store_language_informations(self, old_object, new_object):
+        if HAS_LANG_REFS:
+            languages = ITranslationManager(old_object, None)
+            if languages:
+                annotations = IAnnotations(new_object)
+                storage = annotations[LANGUAGE_INFORMATIONS_ANN_KEY] = PersistentMapping()
+                for language, obj in languages.get_translations().items():
+                    storage[language] = '/'.join(obj.getPhysicalPath())
 
     def dump_and_remove_references(self, old_object):
         """We can only remove the relations from the reference_catalog
@@ -400,6 +416,11 @@ class InplaceMigrator(object):
 
             value = self.removed_field_values.get(
                 fieldname, field.getRaw(old_object))
+
+            if field.widget.__class__.__name__ == 'LinesWidget' and len(value):
+                # LinesField/Widget returns a weird raw value
+                # Example: (u'line1\nline2', )
+                value = tuple(value[0].split('\n'))
             value = self.normalize_at_field_value(field, fieldname, value)
             yield fieldname, value
 

@@ -18,6 +18,9 @@ import os
 import zope.schema
 
 
+MIN_VERSION = str(10 ** 13)
+
+
 class IUpgradeStepDirectoryDirective(Interface):
 
     profile = zope.schema.TextLine(
@@ -45,7 +48,7 @@ def upgrade_step_directory_handler(context, profile, directory,
             .split(os.sep))
 
     context.action(
-        discriminator=('upgrade-step:directory', profile),
+        discriminator=('upgrade-step:directory', profile, directory),
         callable=upgrade_step_directory_action,
         args=(profile, dottedname, context.path(directory),
               soft_dependencies))
@@ -62,7 +65,14 @@ def upgrade_step_directory_action(profile, dottedname, path,
             ' upgrade step directory.'.format(profile))
 
     profileinfo = _profile_registry.getProfileInfo(profile)
-    if profileinfo.get('version', None) is not None:
+
+    # Check that no version is set for the profile in the metadata.xml
+    # The profile can still have a version set by ftw.upgrade in a previous run
+    # of this action
+    if (
+        "ftw.upgrade:dependencies" not in profileinfo
+        and profileinfo.get("version", None) is not None
+    ):
         raise UpgradeStepConfigurationError(
             'Registering an upgrades directory for "{0}" requires this profile'
             ' to not define a version in its metadata.xml.'
@@ -105,7 +115,22 @@ def upgrade_step_directory_action(profile, dottedname, path,
         last_version = upgrade_info['target-version']
 
     profile = GlobalRegistryStorage(IProfile).get(profile)
-    profile['version'] = last_version
+    profile['version'] = max(last_version, profile.get('version', MIN_VERSION))
+
+    # Combine the soft dependencies with the one we might have already
+    # due to this action setting them in a previous run
+    existing_soft_dependencies = profile.get('ftw.upgrade:dependencies')
+    if existing_soft_dependencies:
+        if soft_dependencies:
+            soft_dependencies = (
+                [
+                    dependency for dependency in soft_dependencies
+                    if dependency not in existing_soft_dependencies
+                ] + existing_soft_dependencies
+            )
+        else:
+            soft_dependencies = existing_soft_dependencies
+
     profile['ftw.upgrade:dependencies'] = soft_dependencies
 
 
@@ -126,4 +151,4 @@ def find_start_version(profile):
     if dests:
         return max(dests)
     else:
-        return str(10 ** 13)
+        return MIN_VERSION
